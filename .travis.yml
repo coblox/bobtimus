@@ -1,0 +1,9 @@
+language: node_js
+cache:
+  directories:
+    - "~/.cache/yarn"
+script:
+  - yarn run prettier
+  - yarn run lint
+  - yarn run check
+  - yarn run build

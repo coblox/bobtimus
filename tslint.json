@@ -1,12 +1,13 @@
 {
   "defaultSeverity": "error",
-  "extends": ["tslint:recommended", "tslint-react", "tslint-config-prettier"],
+  "extends": ["tslint:recommended"],
   "jsRules": {},
   "rules": {
     "interface-name": false,
     "object-literal-sort-keys": false,
     "jsx-no-lambda": false,
-    "no-shadowed-variable": false
+    "no-shadowed-variable": false,
+    "no-console": false
   },
   "rulesDirectory": []
 }

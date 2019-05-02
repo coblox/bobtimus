@@ -1,22 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
+    "target": "es6",
+    "module": "commonjs",
+    "lib": ["es5", "es2015", "es2017", "es6", "dom"],
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
-    "moduleResolution": "node",
     "resolveJsonModule": true,
+    "esModuleInterop": true,
     "noEmit": true,
-    "jsx": "preserve",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noImplicitAny": true,
-    "rootDirs": ["src", "stories"]
-  },
-  "include": ["src"]
+    "noImplicitAny": true
+  }
 }

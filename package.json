@@ -4,8 +4,13 @@
   "description": "an autobot that automatically handles swaps as Bob",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node ./src/index.ts",
-    "test": "ts-node"
+    "check": "tsc",
+    "build": "json2ts -i ./schema/siren.schema.json -o ./gen/siren.d.ts",
+    "start": "yarn run build && ts-node -- ./src/index.ts",
+    "start-dev": "yarn run build && nodemon --exec ./node_modules/.bin/ts-node -- ./src/index.ts",
+    "format": "tslint -p . --fix; prettier --write '{src,stubs}/**/*.ts' '*.json'",
+    "lint": "tslint -p .",
+    "prettier": "prettier --check '{src,stubs}/**/*.ts' '*.json'"
   },
   "repository": {
     "type": "git",
@@ -13,14 +18,28 @@
   },
   "keywords": [],
   "author": "The CoBloX Team <team@coblox.tech>",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/coblox/bobtimus/issues"
   },
   "homepage": "https://github.com/coblox/bobtimus#readme",
   "dependencies": {
-    "ts-node": "^8.1.0",
-    "typescript": "^3.4.5"
+    "@badrap/result": "^0.2.4",
+    "big.js": "^5.2.2",
+    "fs": "^0.0.1-security",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.7",
+    "toml": "^3.0.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/big.js": "^4.0.5",
+    "@types/request": "^2.48.1",
+    "@types/request-promise-native": "^1.0.16",
+    "json-schema-to-typescript": "^6.1.3",
+    "nodemon": "^1.19.0",
+    "ts-node": "^8.1.0",
+    "tsc": "^1.20150623.0",
+    "tslint": "^5.16.0",
+    "typescript": "^3.4.5"
+  }
 }

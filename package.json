@@ -1,0 +1,26 @@
+{
+  "name": "bobtimus",
+  "version": "1.0.0",
+  "description": "an autobot that automatically handles swaps as Bob",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node ./src/index.ts",
+    "test": "ts-node"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coblox/bobtimus.git"
+  },
+  "keywords": [],
+  "author": "The CoBloX Team <team@coblox.tech>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/coblox/bobtimus/issues"
+  },
+  "homepage": "https://github.com/coblox/bobtimus#readme",
+  "dependencies": {
+    "ts-node": "^8.1.0",
+    "typescript": "^3.4.5"
+  },
+  "devDependencies": {}
+}

@@ -1,4 +1,4 @@
-import { triggerAction } from "./action_handler";
+import { ActionHandler } from "./action_handler";
 import { ComitNode, Swap } from "./comit_node_api";
 import { selectAction } from "./decision";
 
@@ -7,6 +7,7 @@ import { selectAction } from "./decision";
 // config: handle parsing of configuration
 
 const comitNode = new ComitNode();
+const actionHandler = new ActionHandler();
 
 async function processSwaps() {
   const swaps = await comitNode.getSwaps();
@@ -20,7 +21,7 @@ async function processSwaps() {
       if (nextAction.isOk) {
         const action = nextAction.unwrap();
         console.log("Will do " + action.title);
-        await triggerAction(action);
+        await actionHandler.triggerAction(action);
       }
     }
   });

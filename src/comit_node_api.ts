@@ -6,7 +6,7 @@ interface Asset {
   quantity: string; // Convert to BN here?
 }
 
-export interface Swap extends Entity {
+export interface Swap {
   properties: {
     role: string;
     protocol: string;
@@ -20,13 +20,8 @@ export interface Swap extends Entity {
 }
 
 export class ComitNode {
-  public getSwaps = (): Swap[] => {
+  public getSwaps = (): Promise<Entity[]> => {
     const response = stubSwapsAcceptDecline as Entity;
-
-    if (response.entities) {
-      const entities: any = response.entities;
-      return entities as Swap[];
-    }
-    return [];
+    return Promise.resolve(response.entities || []);
   }
 }

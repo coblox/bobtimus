@@ -1,5 +1,5 @@
 import { triggerAction } from "./action_handler";
-import { ComitNode } from "./comit_node_api";
+import { ComitNode, Swap } from "./comit_node_api";
 import { selectAction } from "./decision";
 
 // Modules
@@ -8,13 +8,22 @@ import { selectAction } from "./decision";
 
 const comitNode = new ComitNode();
 
-const swaps = comitNode.getSwaps();
+async function processSwaps() {
+  const swaps = await comitNode.getSwaps();
 
-swaps.forEach(async (swap) => {
-  const nextAction = selectAction(swap);
-  if (nextAction.isOk) {
-    const action = nextAction.unwrap();
-    console.log("Will do " + action.title);
-    await triggerAction(action);
-  }
-});
+  swaps.forEach(async (entity: any) => {
+    if (entity.class.some((e: string) => e === "swap")) {
+      const swap = entity as Swap;
+
+      const nextAction = selectAction(swap);
+
+      if (nextAction.isOk) {
+        const action = nextAction.unwrap();
+        console.log("Will do " + action.title);
+        await triggerAction(action);
+      }
+    }
+  });
+}
+
+processSwaps();

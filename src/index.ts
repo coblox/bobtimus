@@ -21,7 +21,8 @@ async function processSwaps() {
       if (nextAction.isOk) {
         const action = nextAction.unwrap();
         console.log("Will do " + action.title);
-        await actionHandler.triggerAction(action);
+        let res = await actionHandler.triggerAction(action);
+        console.log(res);
       }
     }
   });

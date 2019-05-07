@@ -30,10 +30,7 @@ export class Config implements TomlConfig {
   }
 
   public prependUrlIfNeeded(path: string): string {
-    if (path.startsWith("/")) {
-      return this.comitNodeUrl + path;
-    }
-    return path;
+    return path.startsWith("/") ? this.comitNodeUrl + path : path;
   }
 }
 

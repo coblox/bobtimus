@@ -70,17 +70,7 @@ export class ActionHandler {
 
     try {
       const response = await request(options);
-
-      if (response.statusCode.toString().startsWith("2")) {
-        return Result.ok(response);
-      } else {
-        return Result.err(
-          new ActionRequestError(
-            "HTTP request returned a bad status code",
-            response,
-          ),
-        );
-      }
+      return Result.ok(response);
     } catch (err) {
       return Result.err(new ActionRequestError("HTTP request failed", err));
     }

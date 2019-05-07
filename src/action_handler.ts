@@ -1,6 +1,6 @@
 import { Result } from "@badrap/result/dist";
 import { Response } from "request";
-import * as request from "request-promise-native";
+import request from "request-promise-native";
 import { Action, Field } from "../gen/siren";
 import config from "./config";
 import { Datastore } from "./datastore";
@@ -22,63 +22,54 @@ export class ActionHandler {
     this.datastore = new Datastore();
   }
 
-  public async triggerAction(action: Action): Promise<Result<void, Error>> {
-    switch (action.method) {
-      case "POST": {
-        const res = await this.postRequest(action);
-        if (res.isErr) {
-          console.log(JSON.stringify(res.error));
-          return Result.err(new Error("Action trigger failed"));
-        }
-        return Result.ok(undefined);
-      }
-      case "GET": {
-        return Result.err(new Error("Cannot handle GET action method"));
-      }
-      case "PUT": {
-        return Result.err(new Error("Cannot handle PUT action method"));
-      }
-      case "DELETE": {
-        return Result.err(new Error("Cannot handle DELETE action method"));
-      }
-      case "PATCH": {
-        return Result.err(new Error("Cannot handle PATCH action method"));
-      }
-      default: {
-        return Result.err(new Error("Internal Error"));
-      }
-    }
-  }
-
-  public async postRequest(
+  public async triggerAction(
     action: Action,
   ): Promise<Result<Response, ActionRequestError>> {
-    if (action.method !== "POST") {
-      return Result.err(
-        new ActionRequestError(
-          "postRequest should only be used for POST actions",
-        ),
-      );
-    }
-
     let body: any = {};
+    let url = config.prependUrlIfNeeded(action.href);
+    let prefixAdded = false;
 
     if (action.fields) {
-      action.fields.forEach((field) => {
-        const data: any = this.retrieveDataForField(field);
-        body = { ...body, ...data };
+      const promises = action.fields.map(async (field) => {
+        const data: any = await this.retrieveDataForField(field);
+        if (data) {
+          if (action.method === "GET") {
+            console.log(data);
+            if (!prefixAdded) {
+              url += "?";
+              prefixAdded = true;
+            } else {
+              url += "&";
+            }
+            url += Object.entries(data)
+              .map(([key, val]) => `${key}=${val}`)
+              .join("&");
+          } else {
+            body = { ...body, ...data };
+          }
+        }
       });
+      await Promise.all(promises);
     }
-    const url = config.prependUrlIfNeeded(action.href);
+
     console.log(
-      "Doing a POST request to " + url + " with body: " + JSON.stringify(body),
+      "Doing a " +
+        action.method +
+        " request to " +
+        url +
+        " with body: " +
+        JSON.stringify(body),
     );
+
+    const options = {
+      method: action.method,
+      url,
+      body,
+      json: true,
+    };
+
     try {
-      const response = await request.post({
-        uri: url,
-        body,
-        json: true,
-      });
+      const response = await request(options);
 
       if (response.statusCode.toString().startsWith("2")) {
         return Result.ok(response);
@@ -95,8 +86,8 @@ export class ActionHandler {
     }
   }
 
-  public retrieveDataForField(field: Field): any {
-    const data = this.datastore.getData(field);
+  public async retrieveDataForField(field: Field): Promise<any> {
+    const data = await this.datastore.getData(field);
 
     const res: any = {};
     res[field.name] = data;

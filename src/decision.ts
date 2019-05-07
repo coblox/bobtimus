@@ -1,6 +1,7 @@
 import { Result } from "@badrap/result/dist";
 import Big from "big.js";
-import { Action, Swap } from "./comit_node_api";
+import { Action } from "../gen/siren";
+import { Swap } from "./comit_node_api";
 import config from "./config";
 
 Big.DP = 30;

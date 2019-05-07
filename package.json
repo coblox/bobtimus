@@ -8,7 +8,7 @@
     "build": "json2ts -i ./schema/siren.schema.json -o ./gen/siren.d.ts",
     "start": "yarn run build && ts-node -- ./src/index.ts",
     "start-dev": "yarn run build && nodemon --exec ./node_modules/.bin/ts-node -- ./src/index.ts",
-    "format": "tslint -p . --fix; prettier --write '{src,stubs}/**/*.ts' '*.json'",
+    "format": "prettier --write '{src,stubs}/**/*.ts' '*.json' && tslint -p . --fix",
     "lint": "tslint -p .",
     "prettier": "prettier --check '{src,stubs}/**/*.ts' '*.json'"
   },

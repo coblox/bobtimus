@@ -1,8 +1,7 @@
 import { Result } from "@badrap/result/dist";
 import { Response } from "request";
 import * as request from "request-promise-native";
-import { Field } from "../gen/siren";
-import { Action, FieldClass } from "./comit_node_api";
+import { Action, Field } from "../gen/siren";
 import config from "./config";
 import * as ethereum from "./ethereum";
 
@@ -90,7 +89,7 @@ async function postRequest(
 }
 
 function retrieveDataForField(field: Field): any {
-  if (field.class.some((e: FieldClass) => e === "ethereum")) {
+  if (field.class.some((e: string) => e === "ethereum")) {
     const data = ethereum.getData(field);
 
     const res: any = {};

@@ -1,25 +1,5 @@
-import {
-  Action as SirenAction,
-  Entity,
-  Field as SirenField,
-} from "../gen/siren";
+import { Action, Entity } from "../gen/siren";
 import stubSwapsAcceptDecline from "../stubs/swaps_with_accept_decline.siren.json";
-
-export interface Action extends SirenAction {
-  name: "accept" | "decline" | "fund" | "redeem" | "refund";
-}
-
-type Class = "swaps" | "swap";
-
-export type FieldClass = "ethereum" | "address";
-
-export interface Field extends SirenField {
-  class: FieldClass[];
-}
-
-export interface SwapsResponse extends Entity {
-  class: Class[];
-}
 
 interface Asset {
   name: string;
@@ -27,11 +7,10 @@ interface Asset {
 }
 
 export interface Swap extends Entity {
-  class: Class[];
   properties: {
-    role: "Alice" | "Bob";
-    protocol: "rfc003";
-    status: "IN_PROGRESS" | "SWAPPED" | "NOT_SWAPPED" | "INTERNAL_FAILURE";
+    role: string;
+    protocol: string;
+    status: string;
     parameters: {
       alpha_asset: Asset;
       beta_asset: Asset;
@@ -42,7 +21,7 @@ export interface Swap extends Entity {
 
 export class ComitNode {
   public getSwaps = (): Swap[] => {
-    const response = stubSwapsAcceptDecline as SwapsResponse;
+    const response = stubSwapsAcceptDecline as Entity;
 
     if (response.entities) {
       const entities: any = response.entities;

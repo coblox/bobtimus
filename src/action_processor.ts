@@ -23,6 +23,8 @@ export class ActionProcessor {
                 const action = nextAction.unwrap();
                 console.debug("Will do " + action.title);
                 return this.actionHandler.triggerAction(action);
+            } else {
+                return throwError(nextAction.error);
             }
         }
         return throwError(new Error("Internal Error"));

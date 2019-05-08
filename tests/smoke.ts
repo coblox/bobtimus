@@ -18,9 +18,9 @@ describe("index", () => {
         Index.start(of(1))
             .subscribe(
                 (action_response_result) => {
-                    console.log(action_response_result);
+                    console.debug(action_response_result);
                     expect(action_response_result.isOk).to.be.true;
-                    console.log(`isOk: ${action_response_result.isOk}`);
+                    expect(action_response_result.unwrap()).deep.equal(accepted);
                 },
                 (error) => console.error(`error: ${error}`),
                 () => {

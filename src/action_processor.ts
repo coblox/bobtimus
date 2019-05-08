@@ -21,7 +21,7 @@ export class ActionProcessor {
 
             if (nextAction.isOk) { //TODO move this out of this function
                 const action = nextAction.unwrap();
-                console.log("Will do " + action.title);
+                console.debug("Will do " + action.title);
                 return this.actionHandler.triggerAction(action);
             }
         }

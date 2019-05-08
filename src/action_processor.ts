@@ -19,7 +19,7 @@ export class ActionProcessor {
 
             const nextAction = selectAction(swap);
 
-            if (nextAction.isOk) { //TODO move this out of this function
+            if (nextAction.isOk) {
                 const action = nextAction.unwrap();
                 console.debug("Will do " + action.title);
                 return this.actionHandler.triggerAction(action);

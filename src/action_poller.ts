@@ -3,10 +3,14 @@ import {Response} from "request";
 import {flatMap, map, mergeMap} from "rxjs/operators";
 import {ComitNode} from "./comit_node_api";
 import {ActionProcessor} from "./action_processor";
+import {ActionTriggerer} from "./action_triggerer";
+import {Datastore} from "./datastore";
 
 
+const datastore = new Datastore();
 const comitNode = new ComitNode();
-const actionProcessor = new ActionProcessor();
+const actionTriggerer = new ActionTriggerer(datastore);
+const actionProcessor = new ActionProcessor(actionTriggerer);
 
 
 export function start<T>(observable: Observable<T>): Observable<Response> {

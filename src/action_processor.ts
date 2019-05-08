@@ -2,7 +2,7 @@ import {Entity} from "../gen/siren";
 import {Response} from "request";
 import {Swap} from "./comit_node_api";
 import {selectAction} from "./decision";
-import {ActionTriggerer} from "./action_handler";
+import {ActionTriggerer} from "./action_triggerer";
 import {Datastore} from "./datastore";
 import {Observable, throwError} from "rxjs";
 

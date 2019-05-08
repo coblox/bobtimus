@@ -1,13 +1,14 @@
-import "mocha";
 import nock from 'nock';
-import * as ActionPoller from "../src/action_poller";
-import {expect} from "chai";
-import {range} from "rxjs";
+
 import acceptedStub from "./stubs/accepted.json";
 import swapsAcceptDeclineStub from "./stubs/swaps_with_accept_decline.siren.json";
+import {ActionTriggerer} from "../src/action_triggerer";
+import {Datastore} from "../src/datastore";
+import {expect} from "chai";
+import {Swap} from "../src/comit_node_api";
+import {Action} from "../gen/siren";
 
-
-describe("Action poller tests: ", () => {
+describe("Action triggerer tests: ", () => {
 
     beforeEach(() => {
         nock('http://localhost:8000')
@@ -19,11 +20,13 @@ describe("Action poller tests: ", () => {
             .reply(200, acceptedStub);
     });
 
-    it("should get actions to accept", done => {
-        ActionPoller.start(range(0, 1))
+    it("should post accept action and get stubbed response", done => {
+        let actionTriggerer = new ActionTriggerer(new Datastore());
+        const swap = swapsAcceptDeclineStub.entities[0] as Swap;
+        const acceptAction = swap.actions.find((action) => action.name === "accept") as Action;
+        actionTriggerer.triggerAction(acceptAction)
             .subscribe(
                 (action_response) => {
-                    console.debug(action_response);
                     expect(action_response).deep.equal(acceptedStub);
                 },
                 (error) => {
@@ -34,4 +37,5 @@ describe("Action poller tests: ", () => {
                 }
             );
     });
+
 });

@@ -3,14 +3,14 @@ import {Result} from "@badrap/result/dist";
 import {Response} from "request";
 import {Swap} from "./comit_node_api";
 import {selectAction} from "./decision";
-import {ActionHandler} from "./action_handler";
+import {ActionTriggerer} from "./action_handler";
 import {Datastore} from "./datastore";
 
 export class ActionProcessor {
-    private actionHandler: ActionHandler;
+    private actionHandler: ActionTriggerer;
 
     constructor() {
-        this.actionHandler = new ActionHandler(new Datastore());
+        this.actionHandler = new ActionTriggerer(new Datastore());
     }
 
     public async process(entity: Entity): Promise<Result<Response, Error>> {

@@ -1,8 +1,8 @@
 import "mocha";
 import nock from 'nock';
-import * as Index from "../src/index";
+import * as ActionPoller from "../src/action_poller";
 import {expect} from "chai";
-import {of} from "rxjs";
+import {range} from "rxjs";
 
 const accepted = require('./responses/accepted');
 
@@ -15,7 +15,7 @@ describe("index", () => {
     });
 
     it("should get actions to accept", done => {
-        Index.start(of(1))
+        ActionPoller.start(range(0, 1))
             .subscribe(
                 (action_response_result) => {
                     console.debug(action_response_result);
@@ -26,7 +26,6 @@ describe("index", () => {
                     expect.fail(`error: ${error}`);
                 },
                 () => {
-                    console.log("done");
                     done();
                 }
             );

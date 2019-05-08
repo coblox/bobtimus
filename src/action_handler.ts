@@ -15,7 +15,7 @@ class ActionRequestError extends Error {
   }
 }
 
-export class ActionHandler {
+export class ActionTriggerer {
   public datastore: Datastore;
 
   constructor(datastore: Datastore) {

@@ -1,9 +1,7 @@
-import {from, timer} from "rxjs";
-import {ActionHandler} from "./action_handler";
-import {ComitNode, Swap} from "./comit_node_api";
-import {selectAction} from "./decision";
-import {Entity} from "../gen/siren";
-import {map, mergeMap} from 'rxjs/operators';
+import {from, Observable} from "rxjs";
+import {ComitNode} from "./comit_node_api";
+import {flatMap, map, mergeMap} from 'rxjs/operators';
+import {ActionProcessor} from "./action_processor";
 import {Result} from "@badrap/result/dist";
 import {Response} from "request";
 
@@ -12,29 +10,21 @@ import {Response} from "request";
 // config: handle parsing of configuration
 
 const comitNode = new ComitNode();
-const actionHandler = new ActionHandler();
+const actionProcessor = new ActionProcessor();
 
-async function process(entity: Entity): Promise<Result<Response, Error>> {
-    if (entity.class && entity.class.some((e: string) => e === "swap")) {
-        const swap = entity as Swap;
 
-        const nextAction = selectAction(swap);
+export function start(observable: Observable<number>): Observable<Result<Response, Error>> {
+    return observable
+        .pipe(() => from(comitNode.getSwaps()))
+        .pipe(mergeMap(swap =>
+            from(swap)
+                .pipe(map(swap => actionProcessor.process(swap)))))
+        .pipe(flatMap(action_response => from(action_response)));
 
-        if (nextAction.isOk) {
-            const action = nextAction.unwrap();
-            console.log("Will do " + action.title);
-            return actionHandler.triggerAction(action);
-        }
-    }
-    return Result.err(new Error("Internal Error"));
 }
 
-timer(0, 500)
-    .pipe(() => from(comitNode.getSwaps()))
-    .pipe(mergeMap(swap => from(swap).pipe(map(swap => process(swap)))))
-    .pipe(action => from(action))
-    .subscribe(
-        (swap) => console.log("success: " + swap),
-        (error) => console.error("error: " + error),
-        () => console.log("dosne")
-    );
+// start(timer(0, 500)).subscribe(
+//     (swap) => console.log("success: " + swap),
+//     (error) => console.error("error: " + error),
+//     () => console.log("done")
+// );

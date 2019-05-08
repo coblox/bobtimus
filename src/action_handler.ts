@@ -18,8 +18,8 @@ class ActionRequestError extends Error {
 export class ActionHandler {
   public datastore: Datastore;
 
-  constructor() {
-    this.datastore = new Datastore();
+  constructor(datastore: Datastore) {
+    this.datastore = datastore;
   }
 
   public async triggerAction(

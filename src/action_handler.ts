@@ -27,7 +27,6 @@ export class ActionHandler {
   ): Promise<Result<Response, ActionRequestError>> {
     let body: any = {};
     let url = config.prependUrlIfNeeded(action.href);
-    let prefixAdded = false;
 
     if (action.fields) {
       const promises = action.fields.map(async (field) => {
@@ -35,12 +34,7 @@ export class ActionHandler {
         if (data) {
           if (action.method === "GET") {
             console.log(data);
-            if (!prefixAdded) {
-              url += "?";
-              prefixAdded = true;
-            } else {
-              url += "&";
-            }
+            url += "?";
             url += Object.entries(data)
               .map(([key, val]) => `${key}=${val}`)
               .join("&");

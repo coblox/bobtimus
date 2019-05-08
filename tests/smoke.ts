@@ -22,7 +22,9 @@ describe("index", () => {
                     expect(action_response_result.isOk).to.be.true;
                     expect(action_response_result.unwrap()).deep.equal(accepted);
                 },
-                (error) => console.error(`error: ${error}`),
+                (error) => {
+                    expect.fail(`error: ${error}`);
+                },
                 () => {
                     console.log("done");
                     done();

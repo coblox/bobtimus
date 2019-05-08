@@ -6,7 +6,7 @@ import {range} from "rxjs";
 
 const accepted = require('./responses/accepted');
 
-describe("index", () => {
+describe("Action poller tests: ", () => {
 
     beforeEach(() => {
         nock('http://localhost:8000')
@@ -30,5 +30,4 @@ describe("index", () => {
                 }
             );
     });
-
 });

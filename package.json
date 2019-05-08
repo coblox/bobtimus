@@ -10,7 +10,8 @@
     "start-dev": "yarn run build && nodemon --exec ./node_modules/.bin/ts-node -- ./src/index.ts",
     "format": "prettier --write '{src,stubs}/**/*.ts' '*.json' && tslint -p . --fix",
     "lint": "tslint -p .",
-    "prettier": "prettier --check '{src,stubs}/**/*.ts' '*.json'"
+    "prettier": "prettier --check '{src,stubs}/**/*.ts' '*.json'",
+    "test": "./node_modules/.bin/mocha 'tests/**/*.ts' --reporter spec --require ts-node/register"
   },
   "repository": {
     "type": "git",

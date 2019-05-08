@@ -1,10 +1,10 @@
 import {Entity} from "../gen/siren";
-import {Result} from "@badrap/result/dist";
 import {Response} from "request";
 import {Swap} from "./comit_node_api";
 import {selectAction} from "./decision";
 import {ActionTriggerer} from "./action_handler";
 import {Datastore} from "./datastore";
+import {Observable, throwError} from "rxjs";
 
 export class ActionProcessor {
     private actionHandler: ActionTriggerer;
@@ -13,7 +13,7 @@ export class ActionProcessor {
         this.actionHandler = new ActionTriggerer(new Datastore());
     }
 
-    public async process(entity: Entity): Promise<Result<Response, Error>> {
+    public process(entity: Entity): Observable<Response> {
         if (entity.class && entity.class.some((e: string) => e === "swap")) {
             const swap = entity as Swap;
 
@@ -25,6 +25,6 @@ export class ActionProcessor {
                 return this.actionHandler.triggerAction(action);
             }
         }
-        return Result.err(new Error("Internal Error"));
+        return throwError(new Error("Internal Error"));
     }
 }

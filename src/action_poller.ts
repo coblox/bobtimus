@@ -1,5 +1,4 @@
 import {from, Observable} from "rxjs";
-import {Result} from "@badrap/result/dist";
 import {Response} from "request";
 import {flatMap, map, mergeMap} from "rxjs/operators";
 import {ComitNode} from "./comit_node_api";
@@ -10,7 +9,7 @@ const comitNode = new ComitNode();
 const actionProcessor = new ActionProcessor();
 
 
-export function start<T>(observable: Observable<T>): Observable<Result<Response, Error>> {
+export function start<T>(observable: Observable<T>): Observable<Response> {
     return observable
         .pipe(() => comitNode.getSwaps())
         .pipe(mergeMap(swap =>

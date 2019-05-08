@@ -1,19 +1,10 @@
-import { Result } from "@badrap/result/dist";
-import { Response } from "request";
+import {Response} from "request";
 import request from "request-promise-native";
-import { Action, Field } from "../gen/siren";
+import {Action, Field} from "../gen/siren";
 import config from "./config";
-import { Datastore } from "./datastore";
+import {Datastore} from "./datastore";
+import {from, Observable} from "rxjs";
 
-class ActionRequestError extends Error {
-  public response?: Response;
-
-  constructor(message: string, response?: Response) {
-    super();
-    this.message = message;
-    this.response = response;
-  }
-}
 
 export class ActionTriggerer {
   public datastore: Datastore;
@@ -22,9 +13,9 @@ export class ActionTriggerer {
     this.datastore = datastore;
   }
 
-  public async triggerAction(
+  public triggerAction(
     action: Action,
-  ): Promise<Result<Response, ActionRequestError>> {
+  ): Observable<Response> {
     let body: any = {};
     let url = config.prependUrlIfNeeded(action.href);
 
@@ -43,7 +34,7 @@ export class ActionTriggerer {
           }
         }
       });
-      await Promise.all(promises);
+      Promise.all(promises);
     }
 
     console.log(
@@ -62,12 +53,7 @@ export class ActionTriggerer {
       json: true,
     };
 
-    try {
-      const response = await request(options);
-      return Result.ok(response);
-    } catch (err) {
-      return Result.err(new ActionRequestError("HTTP request failed", err));
-    }
+    return from(request(options));
   }
 
   public async retrieveDataForField(field: Field): Promise<any> {

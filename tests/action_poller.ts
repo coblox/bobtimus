@@ -23,10 +23,9 @@ describe("Action poller tests: ", () => {
     it("should get actions to accept", done => {
         ActionPoller.start(range(0, 1))
             .subscribe(
-                (action_response_result) => {
-                    console.debug(action_response_result);
-                    expect(action_response_result.isOk).to.be.true;
-                    expect(action_response_result.unwrap()).deep.equal(acceptedStub);
+                (action_response) => {
+                    console.debug(action_response);
+                    expect(action_response).deep.equal(acceptedStub);
                 },
                 (error) => {
                     expect.fail(`error: ${error}`);

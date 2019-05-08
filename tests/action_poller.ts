@@ -12,7 +12,7 @@ describe("Action poller tests: ", () => {
 
     beforeEach(() => {
         nock('http://localhost:8000')
-            .get('/actions')
+            .get('/swaps/rfc003/')
             .reply(200, swapsAcceptDeclineStub);
 
         nock('http://localhost:8000')

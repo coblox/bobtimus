@@ -26,7 +26,7 @@ export class ComitNode {
 
     const options = {
       method: 'GET',
-      url: 'http://localhost:8000/actions',
+      url: 'http://localhost:8000/swaps/rfc003/',
       json: true,
     };
 

@@ -4,14 +4,20 @@ import * as ActionPoller from "../src/action_poller";
 import {expect} from "chai";
 import {range} from "rxjs";
 
-const accepted = require('./responses/accepted');
+import acceptedStub from "./stubs/accepted.json";
+import swapsAcceptDeclineStub from "./stubs/swaps_with_accept_decline.siren.json";
+
 
 describe("Action poller tests: ", () => {
 
     beforeEach(() => {
         nock('http://localhost:8000')
+            .get('/actions')
+            .reply(200, swapsAcceptDeclineStub);
+
+        nock('http://localhost:8000')
             .post('/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/accept')
-            .reply(200, accepted);
+            .reply(200, acceptedStub);
     });
 
     it("should get actions to accept", done => {
@@ -20,7 +26,7 @@ describe("Action poller tests: ", () => {
                 (action_response_result) => {
                     console.debug(action_response_result);
                     expect(action_response_result.isOk).to.be.true;
-                    expect(action_response_result.unwrap()).deep.equal(accepted);
+                    expect(action_response_result.unwrap()).deep.equal(acceptedStub);
                 },
                 (error) => {
                     expect.fail(`error: ${error}`);

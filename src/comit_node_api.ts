@@ -1,5 +1,7 @@
 import { Action, Entity } from "../gen/siren";
-import stubSwapsAcceptDecline from "../stubs/swaps_with_accept_decline.siren.json";
+import request from "request-promise-native";
+import {from, Observable} from "rxjs";
+import {map} from "rxjs/operators";
 
 interface Asset {
   name: string;
@@ -20,8 +22,15 @@ export interface Swap {
 }
 
 export class ComitNode {
-  public getSwaps = (): Promise<Entity[]> => {
-    const response = stubSwapsAcceptDecline as Entity;
-    return Promise.resolve(response.entities || []);
+  public getSwaps = (): Observable<Entity[]> => {
+
+    const options = {
+      method: 'GET',
+      url: 'http://localhost:8000/actions',
+      json: true,
+    };
+
+    return from(request(options))
+        .pipe(map(response => response.entities));
   }
 }

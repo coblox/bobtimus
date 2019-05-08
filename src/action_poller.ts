@@ -12,7 +12,7 @@ const actionProcessor = new ActionProcessor();
 
 export function start<T>(observable: Observable<T>): Observable<Result<Response, Error>> {
     return observable
-        .pipe(() => from(comitNode.getSwaps()))
+        .pipe(() => comitNode.getSwaps())
         .pipe(mergeMap(swap =>
             from(swap)
                 .pipe(map(swap => actionProcessor.process(swap)))))

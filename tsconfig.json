@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "outDir": "dist",
     "target": "es6",
     "module": "commonjs",
     "lib": ["es5", "es2015", "es2017", "es6", "dom"],
@@ -11,6 +12,13 @@
     "noEmit": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noImplicitAny": true
-  }
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "inlineSources": true
+  },
+  "include": [
+    "src/**/*",
+    "typings/**/*" // <-- don't forget this line!
+  ]
 }

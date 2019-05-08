@@ -3,7 +3,6 @@ import nock from 'nock';
 import * as ActionPoller from "../src/action_poller";
 import {expect} from "chai";
 import {range} from "rxjs";
-
 import acceptedStub from "./stubs/accepted.json";
 import swapsAcceptDeclineStub from "./stubs/swaps_with_accept_decline.siren.json";
 

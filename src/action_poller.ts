@@ -16,5 +16,4 @@ export function start<T>(observable: Observable<T>): Observable<Response> {
             from(swap)
                 .pipe(map(swap => actionProcessor.process(swap)))))
         .pipe(flatMap(action_response => from(action_response)));
-
 }

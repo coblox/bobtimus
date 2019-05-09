@@ -12,7 +12,7 @@ export class ActionExecutor {
     this.datastore = datastore;
   }
 
-  public async triggerAction(
+  public async execute(
     action: Action,
   ): Promise<Response> {
     let body: any = {};
@@ -37,12 +37,7 @@ export class ActionExecutor {
     }
 
     console.log(
-      "Doing a " +
-        action.method +
-        " request to " +
-        url +
-        " with body: " +
-        JSON.stringify(body),
+      `Doing a ${action.method} request to ${url} with body: ${JSON.stringify(body)}`,
     );
 
     const options = {

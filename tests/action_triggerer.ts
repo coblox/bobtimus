@@ -25,7 +25,7 @@ describe("Action triggerer tests: ", () => {
         let actionTriggerer = new ActionExecutor(new Datastore());
         const swap = swapsAcceptDeclineStub.entities[0] as Swap;
         const acceptAction = swap.actions.find((action) => action.name === "accept") as Action;
-        from(actionTriggerer.triggerAction(acceptAction))
+        from(actionTriggerer.execute(acceptAction))
             .subscribe(
                 (action_response) => {
                     expect(action_response).deep.equal(acceptedStub);

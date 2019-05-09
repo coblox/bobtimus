@@ -21,7 +21,7 @@ export class ActionProcessor {
             if (nextAction.isOk) {
                 const action = nextAction.unwrap();
                 console.debug("Will do " + action.title);
-                return from(this.actionTriggerer.triggerAction(action));
+                return from(this.actionTriggerer.execute(action));
             } else {
                 return throwError(nextAction.error);
             }

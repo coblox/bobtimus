@@ -2,9 +2,13 @@ import "mocha";
 import nock from "nock";
 import * as ActionPoller from "../src/action_poller";
 import { expect } from "chai";
-import { range } from "rxjs";
+import { from, range } from "rxjs";
 import acceptedStub from "./stubs/accepted.json";
 import swapsAcceptDeclineStub from "./stubs/swaps_with_accept_decline.siren.json";
+import { flatMap, map } from "rxjs/operators";
+import { ActionExecutor } from "../src/action_executor";
+import { ActionProcessor } from "../src/action_processor";
+import { Datastore } from "../src/datastore";
 
 describe("Full workflow tests: ", () => {
   beforeEach(() => {
@@ -17,18 +21,30 @@ describe("Full workflow tests: ", () => {
       .reply(200, acceptedStub);
   });
 
+  const datastore = new Datastore();
+  const actionExecutor = new ActionExecutor(datastore);
+  const actionProcessor = new ActionProcessor(actionExecutor);
+
   it("should get actions and accept", done => {
-    ActionPoller.poll(range(0, 1)).subscribe(
-      action_response => {
-        console.debug(action_response);
-        expect(action_response).deep.equal(acceptedStub);
-      },
-      error => {
-        expect.fail(`error: ${error}`);
-      },
-      () => {
-        done();
-      }
-    );
+    let success = false;
+
+    ActionPoller.poll(range(0, 1))
+      .pipe(map(swap => actionProcessor.process(swap)))
+      .pipe(flatMap(action_response => from(action_response)))
+      .subscribe(
+        action_response => {
+          success = true;
+          console.debug(action_response);
+          expect(action_response).deep.equal(acceptedStub);
+        },
+        error => {
+          console.log(error);
+          expect.fail(`error: ${error}`);
+        },
+        () => {
+          expect(success).to.be.true;
+          done();
+        }
+      );
   });
 });

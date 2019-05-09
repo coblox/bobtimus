@@ -5,9 +5,9 @@ import { expect } from "chai";
 import { from, range } from "rxjs";
 import acceptedStub from "./stubs/accepted.json";
 import swapsAcceptDeclineStub from "./stubs/swaps_with_accept_decline.siren.json";
-import { flatMap, map } from "rxjs/operators";
+import { filter, flatMap, map, tap } from "rxjs/operators";
 import { ActionExecutor } from "../src/action_executor";
-import { ActionProcessor } from "../src/action_processor";
+import { ActionSelector } from "../src/action_processor";
 import { Datastore } from "../src/datastore";
 
 describe("Full workflow tests: ", () => {
@@ -23,13 +23,20 @@ describe("Full workflow tests: ", () => {
 
   const datastore = new Datastore();
   const actionExecutor = new ActionExecutor(datastore);
-  const actionProcessor = new ActionProcessor(actionExecutor);
 
   it("should get actions and accept", done => {
     let success = false;
 
     ActionPoller.poll(range(0, 1))
-      .pipe(map(swap => actionProcessor.process(swap)))
+      .pipe(map(swap => ActionSelector.select(swap)))
+      .pipe(
+        tap(action_result => {
+          expect(action_result.isOk).to.be.true;
+        })
+      )
+      .pipe(filter(action => action.isOk))
+      .pipe(map(action_result => action_result.unwrap()))
+      .pipe(map(action => actionExecutor.execute(action)))
       .pipe(flatMap(action_response => from(action_response)))
       .subscribe(
         action_response => {

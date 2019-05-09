@@ -3,7 +3,6 @@ import request from "request-promise-native";
 import { Action, Field } from "../gen/siren";
 import config from "./config";
 import { Datastore } from "./datastore";
-import URI from "urijs";
 
 export class ActionExecutor {
   public datastore: Datastore;
@@ -14,8 +13,7 @@ export class ActionExecutor {
 
   public async execute(action: Action): Promise<Response> {
     let body: any = {};
-    let prepended_url: string = config.prependUrlIfNeeded(action.href);
-    var url = new URI(prepended_url);
+    let url = config.prependUrlIfNeeded(action.href);
 
     if (action.fields) {
       const promises = action.fields.map(async field => {

@@ -5,9 +5,11 @@ import { ComitNode } from "./comit_node";
 import { ActionProcessor } from "./action_processor";
 import { ActionExecutor } from "./action_executor";
 import { Datastore } from "./datastore";
+import { Config } from "./config";
 
 const datastore = new Datastore();
-const comitNode = new ComitNode();
+let config = new Config("./config.toml");
+const comitNode = new ComitNode(config);
 const actionExecutor = new ActionExecutor(datastore);
 const actionProcessor = new ActionProcessor(actionExecutor);
 

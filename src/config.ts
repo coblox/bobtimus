@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as toml from "toml";
+import URI from "urijs";
 
 export interface SwapConfig {
   rate: {
@@ -17,7 +18,7 @@ export class Config implements TomlConfig {
   public comitNodeUrl: string;
   public ethBtc: SwapConfig;
 
-  constructor(filePath: string = "./config.toml") {
+  constructor(filePath: string) {
     const config = toml.parse(fs.readFileSync(filePath, "utf8")) as TomlConfig;
 
     this.ethBtc = config.ethBtc;
@@ -29,10 +30,13 @@ export class Config implements TomlConfig {
     }
   }
 
-  public prependUrlIfNeeded(path: string): string {
-    return path.startsWith("/") ? this.comitNodeUrl + path : path;
+  public prependUrlIfNeeded(path: string): uri.URI {
+    let uri_path = new URI(path);
+    return uri_path.is("relative")
+      ? new URI(this.comitNodeUrl).segment(path)
+      : uri_path;
   }
 }
 
-const config: Config = new Config();
+const config: Config = new Config("./config.toml");
 export default config;

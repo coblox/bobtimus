@@ -2,6 +2,7 @@ import { Action, Entity } from "../gen/siren";
 import request from "request-promise-native";
 import { from, Observable } from "rxjs";
 import { map } from "rxjs/operators";
+import { Config } from "./config";
 
 interface Asset {
   name: string;
@@ -22,6 +23,12 @@ export interface Swap {
 }
 
 export class ComitNode {
+  config: Config;
+
+  constructor(config: Config) {
+    this.config = config;
+  }
+
   public getSwaps = (): Observable<Entity[]> => {
     const options = {
       method: "GET",

@@ -2,11 +2,12 @@ import nock from 'nock';
 
 import acceptedStub from "./stubs/accepted.json";
 import swapsAcceptDeclineStub from "./stubs/swaps_with_accept_decline.siren.json";
-import {ActionTriggerer} from "../src/action_triggerer";
+import {ActionExecutor} from "../src/action_executor";
 import {Datastore} from "../src/datastore";
 import {expect} from "chai";
 import {Swap} from "../src/comit_node_api";
 import {Action} from "../gen/siren";
+import {from} from "rxjs";
 
 describe("Action triggerer tests: ", () => {
 
@@ -21,10 +22,10 @@ describe("Action triggerer tests: ", () => {
     });
 
     it("should post accept action and get stubbed response", done => {
-        let actionTriggerer = new ActionTriggerer(new Datastore());
+        let actionTriggerer = new ActionExecutor(new Datastore());
         const swap = swapsAcceptDeclineStub.entities[0] as Swap;
         const acceptAction = swap.actions.find((action) => action.name === "accept") as Action;
-        actionTriggerer.triggerAction(acceptAction)
+        from(actionTriggerer.triggerAction(acceptAction))
             .subscribe(
                 (action_response) => {
                     expect(action_response).deep.equal(acceptedStub);

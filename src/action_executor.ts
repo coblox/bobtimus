@@ -3,19 +3,18 @@ import request from "request-promise-native";
 import {Action, Field} from "../gen/siren";
 import config from "./config";
 import {Datastore} from "./datastore";
-import {from, Observable} from "rxjs";
 
 
-export class ActionTriggerer {
+export class ActionExecutor {
   public datastore: Datastore;
 
   constructor(datastore: Datastore) {
     this.datastore = datastore;
   }
 
-  public triggerAction(
+  public async triggerAction(
     action: Action,
-  ): Observable<Response> {
+  ): Promise<Response> {
     let body: any = {};
     let url = config.prependUrlIfNeeded(action.href);
 
@@ -34,7 +33,7 @@ export class ActionTriggerer {
           }
         }
       });
-      Promise.all(promises);
+      await Promise.all(promises);
     }
 
     console.log(
@@ -53,7 +52,7 @@ export class ActionTriggerer {
       json: true,
     };
 
-    return from(request(options));
+    return request(options);
   }
 
   public async retrieveDataForField(field: Field): Promise<any> {

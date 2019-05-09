@@ -2,13 +2,13 @@ import {Entity} from "../gen/siren";
 import {Response} from "request";
 import {Swap} from "./comit_node_api";
 import {selectAction} from "./decision";
-import {ActionTriggerer} from "./action_triggerer";
-import {Observable, throwError} from "rxjs";
+import {ActionExecutor} from "./action_executor";
+import {from, Observable, throwError} from "rxjs";
 
 export class ActionProcessor {
-    private actionTriggerer: ActionTriggerer;
+    private actionTriggerer: ActionExecutor;
 
-    constructor(actionTriggerer: ActionTriggerer) {
+    constructor(actionTriggerer: ActionExecutor) {
         this.actionTriggerer = actionTriggerer;
     }
 
@@ -21,7 +21,7 @@ export class ActionProcessor {
             if (nextAction.isOk) {
                 const action = nextAction.unwrap();
                 console.debug("Will do " + action.title);
-                return this.actionTriggerer.triggerAction(action);
+                return from(this.actionTriggerer.triggerAction(action));
             } else {
                 return throwError(nextAction.error);
             }

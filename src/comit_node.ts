@@ -1,7 +1,7 @@
 import { Action, Entity } from "../gen/siren";
 import request from "request-promise-native";
-import {from, Observable} from "rxjs";
-import {map} from "rxjs/operators";
+import { from, Observable } from "rxjs";
+import { map } from "rxjs/operators";
 
 interface Asset {
   name: string;
@@ -23,14 +23,12 @@ export interface Swap {
 
 export class ComitNode {
   public getSwaps = (): Observable<Entity[]> => {
-
     const options = {
-      method: 'GET',
-      url: 'http://localhost:8000/swaps/rfc003/',
-      json: true,
+      method: "GET",
+      url: "http://localhost:8000/swaps/rfc003/",
+      json: true
     };
 
-    return from(request(options))
-        .pipe(map(response => response.entities));
-  }
+    return from(request(options)).pipe(map(response => response.entities));
+  };
 }

@@ -12,8 +12,8 @@ export function selectAction(swap: Swap): Result<Action, Error> {
     return Result.err(new Error("No action available"));
   }
 
-  const acceptAction = actions.find((action) => action.name === "accept");
-  const declineAction = actions.find((action) => action.name === "decline");
+  const acceptAction = actions.find(action => action.name === "accept");
+  const declineAction = actions.find(action => action.name === "decline");
 
   if (acceptAction) {
     const alphaAsset = new Big(swap.properties.parameters.alpha_asset.quantity);
@@ -23,7 +23,7 @@ export function selectAction(swap: Swap): Result<Action, Error> {
     const proposedRate = alphaAsset.div(betaAsset);
 
     const acceptableRate = new Big(config.ethBtc.rate.alpha).div(
-      new Big(config.ethBtc.rate.beta),
+      new Big(config.ethBtc.rate.beta)
     );
 
     if (proposedRate.gte(acceptableRate)) {

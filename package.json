@@ -25,13 +25,15 @@
   },
   "homepage": "https://github.com/coblox/bobtimus#readme",
   "dependencies": {
+    "@types/urijs": "^1.19.0",
     "@badrap/result": "^0.2.4",
     "big.js": "^5.2.2",
     "fs": "^0.0.1-security",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
     "rxjs": "^6.5.1",
-    "toml": "^3.0.0"
+    "toml": "^3.0.0",
+    "urijs": "^1.19.1"
   },
   "devDependencies": {
     "@types/big.js": "^4.0.5",

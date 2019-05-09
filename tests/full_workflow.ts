@@ -7,7 +7,7 @@ import acceptedStub from "./stubs/accepted.json";
 import swapsAcceptDeclineStub from "./stubs/swaps_with_accept_decline.siren.json";
 import { filter, flatMap, map, tap } from "rxjs/operators";
 import { ActionExecutor } from "../src/action_executor";
-import { ActionSelector } from "../src/action_processor";
+import { selectAction } from "../src/action_selector";
 import { Datastore } from "../src/datastore";
 
 describe("Full workflow tests: ", () => {
@@ -28,7 +28,7 @@ describe("Full workflow tests: ", () => {
     let success = false;
 
     ActionPoller.poll(range(0, 1))
-      .pipe(map(swap => ActionSelector.select(swap)))
+      .pipe(map(swap => selectAction(swap)))
       .pipe(
         tap(action_result => {
           expect(action_result.isOk).to.be.true;

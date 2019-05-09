@@ -1,6 +1,6 @@
 import {Entity} from "../gen/siren";
 import {Response} from "request";
-import {Swap} from "./comit_node_api";
+import {Swap} from "./comit_node";
 import {selectAction} from "./decision";
 import {ActionExecutor} from "./action_executor";
 import {from, Observable, throwError} from "rxjs";

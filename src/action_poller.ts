@@ -1,7 +1,7 @@
 import {from, Observable} from "rxjs";
 import {Response} from "request";
 import {flatMap, map, mergeMap} from "rxjs/operators";
-import {ComitNode} from "./comit_node_api";
+import {ComitNode} from "./comit_node";
 import {ActionProcessor} from "./action_processor";
 import {ActionExecutor} from "./action_executor";
 import {Datastore} from "./datastore";

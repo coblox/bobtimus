@@ -5,7 +5,7 @@ import swapsAcceptDeclineStub from "./stubs/swaps_with_accept_decline.siren.json
 import {ActionExecutor} from "../src/action_executor";
 import {Datastore} from "../src/datastore";
 import {expect} from "chai";
-import {Swap} from "../src/comit_node_api";
+import {Swap} from "../src/comit_node";
 import {Action} from "../gen/siren";
 import {from} from "rxjs";
 

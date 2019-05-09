@@ -1,6 +1,6 @@
 import { Response } from "request";
 import request from "request-promise-native";
-import { Action, Field } from "../gen/siren";
+import { Action } from "../gen/siren";
 import { Datastore } from "./datastore";
 import { Config } from "./config";
 
@@ -14,47 +14,45 @@ export class ActionExecutor {
   }
 
   public async execute(action: Action): Promise<Response> {
-    let body: any = {};
-    let url = this.config.prependUrlIfNeeded(action.href);
-
-    if (action.fields) {
-      const promises = action.fields.map(async field => {
-        const data: any = await this.retrieveDataForField(field);
-        if (data) {
-          if (action.method === "GET") {
-            console.log(data);
-            Object.entries(data)
-              .map(([key, val]) => `${key}=${val}`)
-              .forEach(query => url.addQuery(query));
-          } else {
-            body = { ...body, ...data };
-          }
-        }
-      });
-      await Promise.all(promises);
-    }
+    const options = await this.buildRequestFromAction(action);
 
     console.log(
-      `Doing a ${action.method} request to ${url} with body: ${JSON.stringify(
-        body
-      )}`
+      `Doing a ${options.method} request to ${
+        options.uri
+      } with body: ${JSON.stringify(options.body)}`
     );
-
-    const options = {
-      method: action.method,
-      uri: url.toString(),
-      body,
-      json: true
-    };
 
     return request(options);
   }
 
-  public async retrieveDataForField(field: Field): Promise<any> {
-    const data = await this.datastore.getData(field);
+  async buildRequestFromAction(action: Action) {
+    let data: any = {};
 
-    const res: any = {};
-    res[field.name] = data;
-    return res;
+    for (let field of action.fields || []) {
+      let value = await this.datastore.getData(field);
+      if (value) {
+        data[field.name] = value;
+      }
+    }
+
+    let method = action.method || "GET";
+    if (method === "GET") {
+      return {
+        method: method,
+        uri: this.config
+          .prependUrlIfNeeded(action.href)
+          .query(URI.buildQuery(data))
+          .toString(),
+        body: {},
+        json: false
+      };
+    } else {
+      return {
+        method: method,
+        uri: this.config.prependUrlIfNeeded(action.href).toString(),
+        body: data,
+        json: action.type === "application/json"
+      };
+    }
   }
 }

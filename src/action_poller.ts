@@ -13,7 +13,7 @@ const comitNode = new ComitNode(config);
 const actionExecutor = new ActionExecutor(datastore);
 const actionProcessor = new ActionProcessor(actionExecutor);
 
-export function start<T>(observable: Observable<T>): Observable<Response> {
+export function poll<T>(observable: Observable<T>): Observable<Response> {
   return observable
     .pipe(() => comitNode.getSwaps())
     .pipe(

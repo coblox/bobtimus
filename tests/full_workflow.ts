@@ -18,7 +18,7 @@ describe("Full workflow tests: ", () => {
   });
 
   it("should get actions and accept", done => {
-    ActionPoller.start(range(0, 1)).subscribe(
+    ActionPoller.poll(range(0, 1)).subscribe(
       action_response => {
         console.debug(action_response);
         expect(action_response).deep.equal(acceptedStub);

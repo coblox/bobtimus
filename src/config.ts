@@ -37,6 +37,3 @@ export class Config implements TomlConfig {
       : uri_path;
   }
 }
-
-const config: Config = new Config("./config.toml");
-export default config;

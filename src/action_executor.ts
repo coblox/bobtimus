@@ -1,19 +1,21 @@
 import { Response } from "request";
 import request from "request-promise-native";
 import { Action, Field } from "../gen/siren";
-import config from "./config";
 import { Datastore } from "./datastore";
+import { Config } from "./config";
 
 export class ActionExecutor {
-  public datastore: Datastore;
+  private datastore: Datastore;
+  private config: Config;
 
-  constructor(datastore: Datastore) {
+  constructor(config: Config, datastore: Datastore) {
     this.datastore = datastore;
+    this.config = config;
   }
 
   public async execute(action: Action): Promise<Response> {
     let body: any = {};
-    let url = config.prependUrlIfNeeded(action.href);
+    let url = this.config.prependUrlIfNeeded(action.href);
 
     if (action.fields) {
       const promises = action.fields.map(async field => {

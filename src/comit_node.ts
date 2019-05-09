@@ -32,7 +32,7 @@ export class ComitNode {
   public getSwaps = (): Observable<Entity[]> => {
     const options = {
       method: "GET",
-      url: "http://localhost:8000/swaps/rfc003/",
+      url: this.config.prependUrlIfNeeded("/swaps/rfc003").toString(),
       json: true
     };
 

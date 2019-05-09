@@ -7,6 +7,7 @@ import { expect } from "chai";
 import { Swap } from "../src/comit_node";
 import { Action } from "../gen/siren";
 import { from } from "rxjs";
+import { Config } from "../src/config";
 
 describe("Action triggerer tests: ", () => {
   beforeEach(() => {
@@ -20,7 +21,9 @@ describe("Action triggerer tests: ", () => {
   });
 
   it("should post accept action and get stubbed response", done => {
-    let actionTriggerer = new ActionExecutor(new Datastore());
+    const config = new Config("./config.toml");
+    const datastore = new Datastore();
+    const actionTriggerer = new ActionExecutor(config, datastore);
     const swap = swapsAcceptDeclineStub.entities[0] as Swap;
     const acceptAction = swap.actions.find(
       action => action.name === "accept"

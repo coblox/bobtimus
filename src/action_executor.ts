@@ -36,7 +36,9 @@ export class ActionExecutor {
     }
 
     if (action.type !== "application/json") {
-      console.log("Warning: only 'application/json' action type is supported, use at your own risk.")
+      console.log(
+        "Warning: only 'application/json' action type is supported, use at your own risk."
+      );
     }
 
     const method = action.method || "GET";
@@ -55,7 +57,7 @@ export class ActionExecutor {
         method,
         uri: this.config.prependUrlIfNeeded(action.href).toString(),
         body: data,
-        json: true,
+        json: true
       };
     }
   }

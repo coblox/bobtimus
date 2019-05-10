@@ -4,3 +4,4 @@ set -e
 
 yarn run prettier
 yarn run lint
+yarn run check

@@ -6,7 +6,7 @@ import { Config } from "./config";
 
 interface Asset {
   name: string;
-  quantity: string; // Convert to BN here?
+  quantity: string;
 }
 
 export interface Swap {

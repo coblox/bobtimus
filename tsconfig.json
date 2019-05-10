@@ -18,7 +18,6 @@
     "inlineSources": true
   },
   "include": [
-    "src/**/*",
-    "typings/**/*" // <-- don't forget this line!
+    "src/**/*"
   ]
 }

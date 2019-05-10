@@ -8,7 +8,7 @@
     "build": "mkdir -p ./gen && json2ts -i ./schema/siren.schema.json -o ./gen/siren.d.ts",
     "start": "yarn run build && ts-node -- ./src/index.ts",
     "start-dev": "yarn run build && nodemon --exec ./node_modules/.bin/ts-node -- ./src/index.ts",
-    "format": "prettier --write '{src,stubs}/**/*.ts' '*.json' && tslint -p . --fix",
+    "format": "tslint -p . --fix && prettier --write '{src,stubs}/**/*.ts' '*.json'",
     "lint": "tslint -p .",
     "prettier": "prettier --check '{src,stubs}/**/*.ts' '*.json'",
     "test": "./node_modules/.bin/mocha 'tests/**/*.ts' --reporter spec --require ts-node/register"
@@ -25,8 +25,8 @@
   },
   "homepage": "https://github.com/coblox/bobtimus#readme",
   "dependencies": {
-    "@types/urijs": "^1.19.0",
     "@badrap/result": "^0.2.4",
+    "@types/urijs": "^1.19.0",
     "big.js": "^5.2.2",
     "fs": "^0.0.1-security",
     "request": "^2.88.0",
@@ -51,6 +51,7 @@
     "ts-node": "^8.1.0",
     "tsc": "^1.20150623.0",
     "tslint": "^5.16.0",
+    "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.4.5"
   }
 }

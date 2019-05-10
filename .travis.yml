@@ -3,6 +3,7 @@ cache:
   directories:
     - "~/.cache/yarn"
 script:
+  - yarn install
   - yarn run prettier
   - yarn run lint
   - yarn run check

@@ -1,7 +1,7 @@
-import { Action, Entity } from "../gen/siren";
 import request from "request-promise-native";
 import { from, Observable } from "rxjs";
 import { map } from "rxjs/operators";
+import { Action, Entity } from "../gen/siren";
 import { Config } from "./config";
 
 interface Asset {
@@ -23,7 +23,7 @@ export interface Swap {
 }
 
 export class ComitNode {
-  config: Config;
+  public config: Config;
 
   constructor(config: Config) {
     this.config = config;

@@ -31,9 +31,9 @@ export class Config implements TomlConfig {
   }
 
   public prependUrlIfNeeded(path: string): uri.URI {
-    let uri_path = new URI(path);
-    return uri_path.is("relative")
+    const uriPath = new URI(path);
+    return uriPath.is("relative")
       ? new URI(this.comitNodeUrl).segment(path)
-      : uri_path;
+      : uriPath;
   }
 }

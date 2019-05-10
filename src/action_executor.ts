@@ -1,8 +1,8 @@
 import { Response } from "request";
 import request from "request-promise-native";
 import { Action } from "../gen/siren";
-import { Datastore } from "./datastore";
 import { Config } from "./config";
+import { Datastore } from "./datastore";
 
 export class ActionExecutor {
   private datastore: Datastore;
@@ -25,20 +25,20 @@ export class ActionExecutor {
     return request(options);
   }
 
-  async buildRequestFromAction(action: Action) {
-    let data: any = {};
+  public async buildRequestFromAction(action: Action) {
+    const data: any = {};
 
-    for (let field of action.fields || []) {
-      let value = await this.datastore.getData(field);
+    for (const field of action.fields || []) {
+      const value = await this.datastore.getData(field);
       if (value) {
         data[field.name] = value;
       }
     }
 
-    let method = action.method || "GET";
+    const method = action.method || "GET";
     if (method === "GET") {
       return {
-        method: method,
+        method,
         uri: this.config
           .prependUrlIfNeeded(action.href)
           .query(URI.buildQuery(data))
@@ -48,7 +48,7 @@ export class ActionExecutor {
       };
     } else {
       return {
-        method: method,
+        method,
         uri: this.config.prependUrlIfNeeded(action.href).toString(),
         body: data,
         json: action.type === "application/json"

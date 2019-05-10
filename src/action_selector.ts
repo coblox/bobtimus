@@ -1,7 +1,7 @@
+import { Result } from "@badrap/result/dist";
+import Big from "big.js";
 import { Action, Entity } from "../gen/siren";
 import { Swap } from "./comit_node";
-import Big from "big.js";
-import { Result } from "@badrap/result/dist";
 import { Config } from "./config";
 
 Big.DP = 30;

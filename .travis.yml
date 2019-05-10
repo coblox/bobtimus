@@ -6,6 +6,6 @@ script:
   - yarn install
   - yarn run prettier
   - yarn run lint
-  - yarn run check
   - yarn run build
+  - yarn run check
   - yarn run test

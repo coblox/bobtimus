@@ -1,21 +1,22 @@
 {
   "compilerOptions": {
-    "outDir": "dist",
-    "target": "es6",
-    "module": "commonjs",
-    "lib": ["es5", "es2015", "es2017", "es6", "dom"],
     "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "inlineSources": true,
+    "lib": ["es5", "es2015", "es2017", "es6", "dom"],
+    "module": "commonjs",
+    "moduleResolution": "node",
     "noEmit": true,
+    "noImplicitAny": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noImplicitAny": true,
+    "outDir": "dist",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
     "sourceMap": true,
-    "moduleResolution": "node",
-    "inlineSources": true
+    "strict": true,
+    "target": "es6"
   },
   "include": ["src/**/*"]
 }

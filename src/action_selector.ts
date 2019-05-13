@@ -19,7 +19,7 @@ export class ActionSelector {
 
       return this.selectSwapAction(swap);
     }
-    return Result.err(new Error("Internal Error: Not a swap action "));
+    return Result.err(new Error("Given entity is not a swap"));
   }
 
   private selectSwapAction(swap: Swap): Result<Action, Error> {

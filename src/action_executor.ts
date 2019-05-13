@@ -1,4 +1,3 @@
-import { Response } from "request";
 import request from "request-promise-native";
 import { Action } from "../gen/siren";
 import { Config } from "./config";
@@ -13,7 +12,7 @@ export class ActionExecutor {
     this.config = config;
   }
 
-  public async execute(action: Action): Promise<Response> {
+  public async execute(action: Action) {
     const options = await this.buildRequestFromAction(action);
 
     console.log(
@@ -36,7 +35,7 @@ export class ActionExecutor {
     }
 
     if (action.type !== "application/json") {
-      console.log(
+      throw new Error(
         "Warning: only 'application/json' action type is supported, use at your own risk."
       );
     }

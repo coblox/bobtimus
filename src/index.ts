@@ -13,8 +13,8 @@ const actionExecutor = new ActionExecutor(config, datastore);
 
 ActionPoller.poll(timer(0, 500))
   .pipe(map(swap => actionSelector.selectAction(swap)))
-  .pipe(tap(actionResult => console.log("Action Result:", actionResult)))
-  .pipe(filter(actionResult => actionResult.isOk))
+  .pipe(tap(result => console.log("Result:", result)))
+  .pipe(filter(result => result.isOk))
   .pipe(map(actionResult => actionResult.unwrap()))
   .pipe(map(action => actionExecutor.execute(action)))
   .pipe(flatMap(actionResponse => from(actionResponse)))

@@ -32,6 +32,7 @@ function btc_to_sat(value: number): Big {
   return btc.mul(satsPerBtc);
 }
 
+// Interfaces for the Blockchain
 export function broadcastTransaction(
   transaction: string
 ): Result<string, Error> {
@@ -39,17 +40,105 @@ export function broadcastTransaction(
   return bitcoinClient.sendRawTransaction(transaction);
 }
 
+/// Find the outputs for addresses generated with BIP32
+/// Using path m/0'/0'/k' and m/0'/1'/k'
+async function findHdOutputs(extendedPrivateKey: string): Promise<RpcUtxo[]> {
+  const scanobjects = [
+    {
+      desc: `combo(${extendedPrivateKey}/0'/0'/*')`,
+      range: 1000
+    },
+    {
+      desc: `combo(${extendedPrivateKey}/0'/1'/*')`,
+      range: 1000
+    }
+  ];
+
+  // Warning: this is a long blocking call
+  const result = await bitcoinClient.command(
+    "scantxoutset",
+    "start",
+    scanobjects
+  );
+  console.log(result);
+  if (
+    result === undefined ||
+    !result.success ||
+    result.unspents === undefined
+  ) {
+    throw new Error(`Transaction scan failed: ${result}`);
+  }
+  return result.unspents;
+}
+
+async function getOutputAddressFromTxId(
+  txId: string,
+  vout: number
+): Promise<string> {
+  const txHex = await bitcoinClient.getRawTransaction(txId);
+  if (typeof txHex !== "string") {
+    throw new Error(`Error retrieving transaction hex: ${txId}`);
+  }
+  const transaction: RpcTransaction = await bitcoinClient.decodeRawTransaction(
+    txHex
+  );
+  if (typeof transaction !== "object") {
+    throw new Error(`Error decoding transaction: ${txId}`);
+  }
+
+  return transaction.vout[vout].scriptPubKey.addresses[0]; // Not sure why `addresses` is an array
+}
+
 // Interfaces for coinselect
 export interface CsUtxo {
   txId: string;
   vout: number;
-  value: number;
+  value: number; // Satoshis
   address: string;
 }
 
 export interface CsTarget {
   address: string;
-  value: number;
+  value: number; // Satoshis
+}
+
+// Interfaces for bitcoin-core
+export interface RpcUtxo {
+  txid: string;
+  vout: number;
+  scriptPubKey: string;
+  amount: number; // Bitcoins
+  height: number;
+}
+
+export interface RpcTransaction {
+  txid: string;
+  hash: string;
+  version: number;
+  size: number;
+  vsize: number;
+  weight: number;
+  locktime: number;
+  vin: Array<{
+    txid: string;
+    vout: number;
+    scriptSig: {
+      asm: string;
+      hex: string;
+    };
+    sequence: number;
+  }>;
+  vout: Array<{
+    value: number; // Bitcoin
+    n: number; // Index
+    scriptPubKey: {
+      asm: string;
+      hex: string;
+      reqSigs: number;
+      type: "witness_v0_keyhash"; // Need to add the other types
+      addresses: string[];
+    };
+  }>;
 }
 
 export class Wallet {
@@ -85,29 +174,27 @@ export class Wallet {
     this.usedAddresses.set(address, [internal, this.nextDeriveId]);
 
     this.nextDeriveId += 1;
-    // Get bitcoind to watch transaction for us
-    // It's easier that or we use `scantxoutset`
-    // Not sure we can do without await
-    await bitcoinClient.importAddress(address);
     return address;
   }
 
   public async refreshUtxo() {
-    // Alternatively we can use an online blockchain explorer
-    const addresses = Array.from(this.usedAddresses.keys());
-    const utxos = await bitcoinClient.listUnspent(1, 9999999, addresses);
-    utxos.map((utxo: any) => {
+    const utxos: RpcUtxo[] = await findHdOutputs(this.hdRoot.toBase58());
+
+    const promises = utxos.map(async (utxo: RpcUtxo) => {
       const sats = btc_to_sat(utxo.amount);
 
+      const address = await getOutputAddressFromTxId(utxo.txid, utxo.vout);
+
       this.unspentOutputs.push({
-        address: utxo.address,
         txId: utxo.txid,
         vout: utxo.vout,
+        address,
         value: parseInt(sats.toFixed(), 10)
         // scriptPubKey: utxo.scriptPubKey,
         // redeemScript: utxo.redeemScript,
       });
     });
+    await Promise.all(promises);
     console.log("Available Utxos:", this.unspentOutputs);
   }
 
@@ -197,15 +284,26 @@ const wallet = new Wallet(
 );
 
 async function main() {
+  await generateIfNeeded();
+
   const address = await wallet.getNewAddress();
   await bitcoinClient.sendToAddress(address.toString(), 5.86);
   await bitcoinClient.generate(2);
+
   await wallet.refreshUtxo();
   const tx = await wallet.payToAddress(
     "bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x",
     "10000"
   );
   console.log("tx:", tx);
+}
+
+async function generateIfNeeded() {
+  const count = await bitcoinClient.getBlockCount();
+  console.log("Block height:", count);
+  if (count < 200) {
+    await bitcoinClient.generate(200 - count);
+  }
 }
 
 main();

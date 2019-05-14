@@ -43,7 +43,7 @@ export interface RpcTransaction {
 export class BitcoinCoreRpc implements BitcoinBlockchain {
   public bitcoinClient: any;
 
-  constructor(username: string, password: string, host: string, port: string) {
+  constructor(username: string, password: string, host: string, port: number) {
     this.bitcoinClient = new Client({
       protocol: "http",
       username,

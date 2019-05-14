@@ -34,7 +34,7 @@ export interface RpcTransaction {
       asm: string;
       hex: string;
       reqSigs: number;
-      type: "witness_v0_keyhash"; // Need to add the other types
+      type: string;
       addresses: string[];
     };
   }>;

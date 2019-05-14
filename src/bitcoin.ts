@@ -60,7 +60,6 @@ async function findHdOutputs(extendedPrivateKey: string): Promise<RpcUtxo[]> {
     "start",
     scanobjects
   );
-  console.log(result);
   if (
     result === undefined ||
     !result.success ||
@@ -143,7 +142,7 @@ export interface RpcTransaction {
 
 export class Wallet {
   public usedAddresses: Map<string, [boolean, number]>; // address, [internal, derivation id]
-  public unspentOutputs: CsUtxo[];
+  public unspentOutputs: Map<CsUtxo, boolean>; // Utxo, used
   public hdRoot: BIP32Interface;
   public gapLimit: number;
   public nextDeriveId: number;
@@ -159,7 +158,7 @@ export class Wallet {
     // TODO: All fields below need to be saved to a JSON file
     this.nextDeriveId = 0;
     this.usedAddresses = new Map<string, [boolean, number]>();
-    this.unspentOutputs = [];
+    this.unspentOutputs = new Map<CsUtxo, boolean>();
   }
 
   public async getNewAddress(internal: boolean = false) {
@@ -180,22 +179,24 @@ export class Wallet {
   public async refreshUtxo() {
     const utxos: RpcUtxo[] = await findHdOutputs(this.hdRoot.toBase58());
 
-    const promises = utxos.map(async (utxo: RpcUtxo) => {
-      const sats = btc_to_sat(utxo.amount);
+    const promises = utxos.map(async (rpcUtxo: RpcUtxo) => {
+      const sats = btc_to_sat(rpcUtxo.amount);
 
-      const address = await getOutputAddressFromTxId(utxo.txid, utxo.vout);
+      const address = await getOutputAddressFromTxId(
+        rpcUtxo.txid,
+        rpcUtxo.vout
+      );
 
-      this.unspentOutputs.push({
-        txId: utxo.txid,
-        vout: utxo.vout,
+      const utxo = {
+        txId: rpcUtxo.txid,
+        vout: rpcUtxo.vout,
         address,
         value: parseInt(sats.toFixed(), 10)
-        // scriptPubKey: utxo.scriptPubKey,
-        // redeemScript: utxo.redeemScript,
-      });
+      };
+      this.unspentOutputs.set(utxo, false);
     });
     await Promise.all(promises);
-    console.log("Available Utxos:", this.unspentOutputs);
+    console.log(`${Array.from(this.unspentOutputs.keys()).length} UTXOs found`);
   }
 
   public async payToAddress(
@@ -209,7 +210,7 @@ export class Wallet {
     };
 
     const { inputs, outputs, fee } = coinSelect(
-      this.unspentOutputs,
+      Array.from(this.unspentOutputs.keys()),
       [target],
       feeSatPerByte
     );
@@ -223,7 +224,7 @@ export class Wallet {
 
     const promises = outputs.map(async (output: CsTarget) => {
       if (!output.address) {
-        output.address = await this.getNewAddress();
+        output.address = await this.getNewAddress(true);
       }
       return txb.addOutput(output.address, output.value);
     });
@@ -241,6 +242,7 @@ export class Wallet {
       });
 
       txb.addInput(input.txId, input.vout, undefined, p2wpkh.output);
+      this.unspentOutputs.set(input, true); // Marks as used
     });
 
     let i = 0;
@@ -300,7 +302,6 @@ async function main() {
 
 async function generateIfNeeded() {
   const count = await bitcoinClient.getBlockCount();
-  console.log("Block height:", count);
   if (count < 200) {
     await bitcoinClient.generate(200 - count);
   }

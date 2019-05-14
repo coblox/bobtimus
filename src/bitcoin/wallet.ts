@@ -40,8 +40,6 @@ export class Wallet {
     network: Network
   ) {
     this.hdRoot = bip32.fromBase58(xPrivateKey, network);
-    // const chain = new bip32utils.Chain(hdNode);
-    // this.chain = chain;
     this.gapLimit = 500;
     this.network = network;
     this.blockchain = blockchain;

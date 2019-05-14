@@ -5,6 +5,13 @@ import { BitcoinCoreRpc } from "../src/bitcoin/bitcoincore_rpc";
 import { Wallet } from "../src/bitcoin/wallet";
 import { expect } from "chai";
 
+async function generateIfNeeded() {
+  const count = await bitcoinClient.getBlockCount();
+  if (count < 200) {
+    await bitcoinClient.generate(200 - count);
+  }
+}
+
 const bitcoinClient = new Client({
   protocol: "http",
   username: "bitcoin",
@@ -33,24 +40,26 @@ describe("Test Bitcoin modules", () => {
     await generateIfNeeded();
   });
 
-  it("Should find UTXOs", async () => {
+  beforeEach(async () => {
     const address = await wallet.getNewAddress();
     await bitcoinClient.sendToAddress(address.toString(), 5.86);
     await bitcoinClient.generate(1);
+  });
 
+  it("Should find UTXOs", async () => {
     expect(await wallet.refreshUtxo()).to.be.greaterThan(0);
   });
 
-  // const tx = await wallet.payToAddress(
-  //   "bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x",
-  //   "10000",
-  // )
-  // console.log("tx:", tx)
-});
+  it("Can pay to address", async () => {
+    await wallet.refreshUtxo();
 
-async function generateIfNeeded() {
-  const count = await bitcoinClient.getBlockCount();
-  if (count < 200) {
-    await bitcoinClient.generate(200 - count);
-  }
-}
+    const tx = await wallet.payToAddress(
+      "bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x",
+      "10000"
+    );
+    expect(tx).to.be.a("string");
+
+    let res = await bitcoinClient.getRawTransaction(tx);
+    expect(res).to.be.a("string");
+  });
+});

@@ -1,17 +1,54 @@
 import { GenericContainer } from "testcontainers";
+import crypto from "crypto";
 
-export default function BitcoindContainer() {
-  return new GenericContainer("coblox/bitcoin-core", "0.17.0")
+export default async function BitcoindContainer() {
+  let auth = new RpcAuth("bitcoin");
+  let authParameters = auth.encodeToAuthParameters();
+
+  const container = await new GenericContainer("coblox/bitcoin-core", "0.17.0")
     .withCmd([
       "-regtest",
       "-server",
       "-printtoconsole",
       "-rpcbind=0.0.0.0:18443",
-      "-rpcauth=bitcoin:cb77f0957de88ff388cf817ddbc7273$9eaa166ace0d94a29c6eceb831a42458e93faeb79f895a7ee4ce03f4343f8f55",
+      `-rpcauth=${authParameters}`,
       "-rpcallowip=0.0.0.0/0",
       "-debug=1",
       "-acceptnonstdtxn=0"
     ])
     .withExposedPorts(18443)
     .start();
+
+  return { auth, container };
+}
+
+export class RpcAuth {
+  public readonly username: string;
+  public readonly password: string;
+  private readonly salt: string;
+
+  constructor(
+    username: string,
+    password: string = randomValueHex(32),
+    salt: string = randomValueHex(16)
+  ) {
+    this.username = username;
+    this.password = password;
+    this.salt = salt;
+  }
+
+  public encodeToAuthParameters() {
+    let hmac = crypto.createHmac("sha256", this.salt);
+    hmac.write(this.password);
+    hmac.end();
+    let hash = hmac.read().toString("hex");
+    return `${this.username}:${this.salt}\$${hash}`;
+  }
+}
+
+function randomValueHex(len: number) {
+  return crypto
+    .randomBytes(Math.ceil(len / 2))
+    .toString("hex") // convert to hexadecimal format
+    .slice(0, len); // return required number of characters
 }

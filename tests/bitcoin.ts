@@ -26,19 +26,19 @@ describe("Test Bitcoin modules", () => {
 
   before(async function() {
     this.timeout(10000);
-    container = await BitcoindContainer();
+    let { auth, container } = await BitcoindContainer();
     let port = await container.getMappedPort(18443);
     let blockchain = new BitcoinCoreRpc(
-      "bitcoin",
-      "54pLR_f7-G6is32LP-7nbhzZSbJs_2zSATtZV_r05yg=",
+      auth.username,
+      auth.password,
       "127.0.0.1",
       port
     );
 
     bitcoinClient = new Client({
       protocol: "http",
-      username: "bitcoin",
-      password: "54pLR_f7-G6is32LP-7nbhzZSbJs_2zSATtZV_r05yg=",
+      username: auth.username,
+      password: auth.password,
       host: "127.0.0.1",
       port: port
     });
@@ -55,7 +55,7 @@ describe("Test Bitcoin modules", () => {
   });
 
   beforeEach(async () => {
-    const address = await wallet.getNewAddress();
+    const address = wallet.getNewAddress();
     for (let i = 0; i < 5; i++) {
       await bitcoinClient.sendToAddress(address.toString(), 0.75);
     }

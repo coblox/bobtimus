@@ -44,7 +44,7 @@ export class Wallet {
   private readonly network: Network;
   private readonly blockchain: BitcoinBlockchain;
   private readonly usedAddresses: UsedAddresses;
-  private unspentOutputs: Set<CsUtxo>;
+  private readonly unspentOutputs: CsUtxo[];
   private nextDeriveId: number;
 
   constructor(
@@ -59,12 +59,10 @@ export class Wallet {
     // TODO: All fields below need to be saved to a JSON file
     this.nextDeriveId = 0;
     this.usedAddresses = {};
-    this.unspentOutputs = new Set<CsUtxo>();
+    this.unspentOutputs = [];
   }
 
-  public async getNewAddress(
-    internal: DerivationType = DerivationType.External
-  ) {
+  public getNewAddress(internal: DerivationType = DerivationType.External) {
     const hd = this.deriveForId({ internal, id: this.nextDeriveId });
     const address = payments.p2wpkh({
       pubkey: hd.publicKey,
@@ -96,12 +94,12 @@ export class Wallet {
         address,
         value: resultUtxo.satAmount
       };
-      if (!this.unspentOutputs.has(utxo)) {
-        this.unspentOutputs.add(utxo);
+      if (this.unspentOutputs.indexOf(utxo) === -1) {
+        this.unspentOutputs.push(utxo);
       }
     });
     await Promise.all(promises);
-    const numberOfUtxos = Array.from(this.unspentOutputs.keys()).length;
+    const numberOfUtxos = this.unspentOutputs.length;
     console.log(`${numberOfUtxos} UTXOs found`);
     return numberOfUtxos;
   }
@@ -117,7 +115,7 @@ export class Wallet {
     };
 
     const { inputs, outputs, fee } = coinSelect(
-      Array.from(this.unspentOutputs.keys()),
+      Array.from(this.unspentOutputs.values()),
       [target],
       feeSatPerByte
     );
@@ -129,13 +127,12 @@ export class Wallet {
 
     const txb = new TransactionBuilder(this.network);
 
-    const promises = outputs.map(async (output: CsTarget) => {
+    for (const output of outputs) {
       if (!output.address) {
-        output.address = await this.getNewAddress(DerivationType.Internal);
+        output.address = this.getNewAddress(DerivationType.Internal);
       }
-      return txb.addOutput(output.address, output.value);
-    });
-    await Promise.all(promises);
+      txb.addOutput(output.address, output.value);
+    }
 
     const keypairs: ECPairInterface[] = [];
     const nInputs = inputs.length;
@@ -152,7 +149,13 @@ export class Wallet {
       });
 
       txb.addInput(input.txId, input.vout, undefined, p2wpkh.output);
-      this.unspentOutputs.delete(input);
+      const index = this.unspentOutputs.indexOf(input);
+      if (index === -1) {
+        throw new Error(
+          "Internal error: input just used was not found in unspentOutputs"
+        );
+      }
+      this.unspentOutputs.splice(index, 1);
     }
 
     for (let i = 0; i < nInputs; i++) {

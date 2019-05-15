@@ -25,12 +25,17 @@ interface CsTarget {
   value: number; // Satoshis
 }
 
+interface DerivationParameters {
+  internal: boolean;
+  id: number;
+}
+
 export class Wallet {
   private readonly hdRoot: BIP32Interface;
   private readonly network: Network;
   private readonly blockchain: BitcoinBlockchain;
-  private usedAddresses: Map<string, [boolean, number]>; // address, [internal, derivation id]
-  private unspentOutputs: Map<CsUtxo, boolean>; // Utxo, used
+  private usedAddresses: Map<string, DerivationParameters>;
+  private unspentOutputs: Set<CsUtxo>;
   private nextDeriveId: number;
 
   constructor(
@@ -44,12 +49,12 @@ export class Wallet {
 
     // TODO: All fields below need to be saved to a JSON file
     this.nextDeriveId = 0;
-    this.usedAddresses = new Map<string, [boolean, number]>();
-    this.unspentOutputs = new Map<CsUtxo, boolean>();
+    this.usedAddresses = new Map<string, DerivationParameters>();
+    this.unspentOutputs = new Set<CsUtxo>();
   }
 
   public async getNewAddress(internal: boolean = false) {
-    const hd = this.deriveForId(internal, this.nextDeriveId);
+    const hd = this.deriveForId({ internal, id: this.nextDeriveId });
     const address = payments.p2wpkh({
       pubkey: hd.publicKey,
       network: this.network
@@ -57,7 +62,7 @@ export class Wallet {
     if (!address) {
       throw new Error("issue deriving address from: " + hd);
     }
-    this.usedAddresses.set(address, [internal, this.nextDeriveId]);
+    this.usedAddresses.set(address, { internal, id: this.nextDeriveId });
 
     this.nextDeriveId += 1;
     return address;
@@ -80,7 +85,7 @@ export class Wallet {
         address,
         value: resultUtxo.satAmount
       };
-      this.unspentOutputs.set(utxo, false);
+      this.unspentOutputs.add(utxo);
     });
     await Promise.all(promises);
     const numberOfUtxos = Array.from(this.unspentOutputs.keys()).length;
@@ -131,7 +136,7 @@ export class Wallet {
       });
 
       txb.addInput(input.txId, input.vout, undefined, p2wpkh.output);
-      this.unspentOutputs.set(input, true); // Marks as used
+      this.unspentOutputs.delete(input);
     });
 
     let i = 0;
@@ -145,7 +150,7 @@ export class Wallet {
     return this.blockchain.broadcastTransaction(transaction);
   }
 
-  private deriveForId(internal: boolean, id: number) {
+  private deriveForId({ internal, id }: DerivationParameters) {
     return this.hdRoot
       .deriveHardened(0)
       .deriveHardened(internal ? 1 : 0)
@@ -157,8 +162,7 @@ export class Wallet {
     if (res === undefined) {
       throw new Error("Cannot find id of input's address " + address);
     }
-    const [internal, id] = res;
-    const hd = this.deriveForId(internal, id);
+    const hd = this.deriveForId(res);
     const key = hd.privateKey;
     if (key === undefined) {
       throw new Error(

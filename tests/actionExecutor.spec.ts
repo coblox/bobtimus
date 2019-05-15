@@ -1,13 +1,12 @@
 import nock from "nock";
+import { from } from "rxjs";
+import { Action } from "../gen/siren";
+import { ActionExecutor } from "../src/action_executor";
+import { Swap } from "../src/comit_node";
+import { Config } from "../src/config";
+import { Datastore } from "../src/datastore";
 import acceptedStub from "./stubs/accepted.json";
 import swapsAcceptDeclineStub from "./stubs/swaps_with_accept_decline.siren.json";
-import { ActionExecutor } from "../src/action_executor";
-import { Datastore } from "../src/datastore";
-import { expect } from "chai";
-import { Swap } from "../src/comit_node";
-import { Action } from "../gen/siren";
-import { from } from "rxjs";
-import { Config } from "../src/config";
 
 describe("Action triggerer tests: ", () => {
   beforeEach(() => {
@@ -29,11 +28,11 @@ describe("Action triggerer tests: ", () => {
       action => action.name === "accept"
     ) as Action;
     from(actionTriggerer.execute(acceptAction)).subscribe(
-      action_response => {
-        expect(action_response).deep.equal(acceptedStub);
+      actionResponse => {
+        expect(actionResponse).toStrictEqual(acceptedStub);
       },
       error => {
-        expect.fail(`error: ${error}`);
+        fail(error);
       },
       () => {
         done();

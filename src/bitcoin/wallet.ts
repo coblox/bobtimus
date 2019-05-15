@@ -71,7 +71,7 @@ export class Wallet {
       network: this.network
     }).address;
     if (!address) {
-      throw new Error("issue deriving address from: " + hd);
+      throw new Error("issue deriving address");
     }
     this.usedAddresses[address] = { internal, id: this.nextDeriveId };
 
@@ -138,7 +138,10 @@ export class Wallet {
     await Promise.all(promises);
 
     const keypairs: ECPairInterface[] = [];
-    inputs.forEach((input: CsUtxo) => {
+    const nInputs = inputs.length;
+
+    for (let i = 0; i < nInputs; i++) {
+      const input = inputs[i];
       const key = this.getPrivateKey(input.address);
       const pair = ECPair.fromPrivateKey(key, { network: this.network });
       keypairs.push(pair);
@@ -150,13 +153,17 @@ export class Wallet {
 
       txb.addInput(input.txId, input.vout, undefined, p2wpkh.output);
       this.unspentOutputs.delete(input);
-    });
+    }
 
-    let i = 0;
-    inputs.forEach((input: CsUtxo) => {
-      txb.sign(i, keypairs[i], undefined, Transaction.SIGHASH_ALL, input.value);
-      i++;
-    });
+    for (let i = 0; i < nInputs; i++) {
+      txb.sign(
+        i,
+        keypairs[i],
+        undefined,
+        Transaction.SIGHASH_ALL,
+        inputs[i].value
+      );
+    }
 
     const transaction = txb.build().toHex();
 
@@ -172,12 +179,12 @@ export class Wallet {
 
   private getPrivateKey(address: string) {
     const res = this.usedAddresses[address];
-    if (res === undefined) {
+    if (!res) {
       throw new Error("Cannot find id of input's address " + address);
     }
     const hd = this.deriveForId(res);
     const key = hd.privateKey;
-    if (key === undefined) {
+    if (!key) {
       throw new Error(
         "Internal Error: private key of freshly derived pair is undef"
       );

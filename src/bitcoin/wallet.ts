@@ -13,26 +13,25 @@ import coinSelect from "coinselect";
 import { BitcoinBlockchain, Utxo } from "./blockchain";
 
 // Interfaces for coinselect
-export interface CsUtxo {
+interface CsUtxo {
   txId: string;
   vout: number;
   value: number; // Satoshis
   address: string;
 }
 
-export interface CsTarget {
+interface CsTarget {
   address: string;
   value: number; // Satoshis
 }
 
 export class Wallet {
-  public usedAddresses: Map<string, [boolean, number]>; // address, [internal, derivation id]
-  public unspentOutputs: Map<CsUtxo, boolean>; // Utxo, used
-  public hdRoot: BIP32Interface;
-  public gapLimit: number;
-  public nextDeriveId: number;
-  public network: Network;
-  public blockchain: BitcoinBlockchain;
+  private readonly hdRoot: BIP32Interface;
+  private readonly network: Network;
+  private readonly blockchain: BitcoinBlockchain;
+  private usedAddresses: Map<string, [boolean, number]>; // address, [internal, derivation id]
+  private unspentOutputs: Map<CsUtxo, boolean>; // Utxo, used
+  private nextDeriveId: number;
 
   constructor(
     xPrivateKey: string,
@@ -40,7 +39,6 @@ export class Wallet {
     network: Network
   ) {
     this.hdRoot = bip32.fromBase58(xPrivateKey, network);
-    this.gapLimit = 500;
     this.network = network;
     this.blockchain = blockchain;
 

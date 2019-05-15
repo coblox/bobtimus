@@ -2,7 +2,7 @@
 import Client from "bitcoin-core";
 import { BitcoinBlockchain, Utxo } from "./blockchain";
 
-export interface RpcUtxo {
+interface RpcUtxo {
   txid: string;
   vout: number;
   scriptPubKey: string;
@@ -10,7 +10,7 @@ export interface RpcUtxo {
   height: number;
 }
 
-export interface RpcTransaction {
+interface RpcTransaction {
   txid: string;
   hash: string;
   version: number;
@@ -41,7 +41,7 @@ export interface RpcTransaction {
 }
 
 export class BitcoinCoreRpc implements BitcoinBlockchain {
-  public bitcoinClient: any;
+  private readonly bitcoinClient: any;
 
   constructor(username: string, password: string, host: string, port: number) {
     this.bitcoinClient = new Client({

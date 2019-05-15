@@ -4,7 +4,7 @@
   "description": "an autobot that automatically handles swaps as Bob",
   "main": "dist/index.js",
   "scripts": {
-    "postinstall": "git config core.hooksPath .githooks",
+    "postinstall": "git config core.hooksPath .githooks; (cd node_modules/testcontainers && yarn > /dev/null 2>&1 || exit 0;)",
     "check": "tsc",
     "gen": "mkdir -p ./gen && json2ts -i ./schema/siren.schema.json -o ./gen/siren.d.ts",
     "start": "yarn run build && ts-node -- ./src/index.ts",
@@ -12,7 +12,6 @@
     "fix": "tslint -p . --fix && prettier --write '**/*.{ts, js, json, yml}'",
     "lint": "tslint -p .",
     "prettier": "prettier --check '**/*.{ts, js, json, yml}'",
-    "pretest": "(cd node_modules/testcontainers && yarn > /dev/null 2>&1 || exit 0;)",
     "test": "jest"
   },
   "repository": {

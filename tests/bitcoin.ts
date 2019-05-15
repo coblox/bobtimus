@@ -49,7 +49,7 @@ describe("Test Bitcoin modules", () => {
       networks.regtest
     );
 
-    await sleep(5000);
+    await sleep(3000);
 
     await generateIfNeeded();
   });

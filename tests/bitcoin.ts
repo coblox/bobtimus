@@ -56,7 +56,9 @@ describe("Test Bitcoin modules", () => {
 
   beforeEach(async () => {
     const address = await wallet.getNewAddress();
-    await bitcoinClient.sendToAddress(address.toString(), 5.86);
+    for (let i = 0; i < 5; i++) {
+      await bitcoinClient.sendToAddress(address.toString(), 0.75);
+    }
     await bitcoinClient.generate(1);
   });
 
@@ -76,7 +78,7 @@ describe("Test Bitcoin modules", () => {
 
     const tx = await wallet.payToAddress(
       "bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x",
-      "10000"
+      "250000000" // Forces the use of several inputs
     );
     expect(tx).to.be.a("string");
 

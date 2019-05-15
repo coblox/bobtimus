@@ -68,7 +68,7 @@ export class EthereumWallet {
     });
   }
 
-  private async signAndSend(tx: EthereumTx) {
+  private signAndSend(tx: EthereumTx) {
     tx.sign(this.privateKey);
     const serializedTx = tx.serialize();
     const hex = "0x" + serializedTx.toString("hex");

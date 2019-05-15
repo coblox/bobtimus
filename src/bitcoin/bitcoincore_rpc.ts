@@ -76,11 +76,7 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
       "start",
       scanobjects
     );
-    if (
-      result === undefined ||
-      !result.success ||
-      result.unspents === undefined
-    ) {
+    if (!result || !result.success || result.unspents === undefined) {
       throw new Error(`Transaction scan failed: ${result}`);
     }
     return result.unspents.map((res: RpcUtxo) => {
@@ -97,7 +93,7 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
     txId: string,
     vout: number
   ): Promise<string> {
-    const txHex = await this.bitcoinClient.getRawTransaction(txId);
+    const txHex = await this.bitcoinClient.getRawTransaction(txId);``
     if (typeof txHex !== "string") {
       throw new Error(`Error retrieving transaction hex: ${txId}`);
     }

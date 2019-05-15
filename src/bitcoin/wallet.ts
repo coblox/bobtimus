@@ -30,11 +30,15 @@ interface DerivationParameters {
   id: number;
 }
 
+interface UsedAddresses {
+  [address: string]: DerivationParameters;
+}
+
 export class Wallet {
   private readonly hdRoot: BIP32Interface;
   private readonly network: Network;
   private readonly blockchain: BitcoinBlockchain;
-  private usedAddresses: Map<string, DerivationParameters>;
+  private readonly usedAddresses: UsedAddresses;
   private unspentOutputs: Set<CsUtxo>;
   private nextDeriveId: number;
 
@@ -49,7 +53,7 @@ export class Wallet {
 
     // TODO: All fields below need to be saved to a JSON file
     this.nextDeriveId = 0;
-    this.usedAddresses = new Map<string, DerivationParameters>();
+    this.usedAddresses = {};
     this.unspentOutputs = new Set<CsUtxo>();
   }
 
@@ -62,7 +66,7 @@ export class Wallet {
     if (!address) {
       throw new Error("issue deriving address from: " + hd);
     }
-    this.usedAddresses.set(address, { internal, id: this.nextDeriveId });
+    this.usedAddresses[address] = { internal, id: this.nextDeriveId };
 
     this.nextDeriveId += 1;
     return address;
@@ -85,7 +89,9 @@ export class Wallet {
         address,
         value: resultUtxo.satAmount
       };
-      this.unspentOutputs.add(utxo);
+      if (!this.unspentOutputs.has(utxo)) {
+        this.unspentOutputs.add(utxo);
+      }
     });
     await Promise.all(promises);
     const numberOfUtxos = Array.from(this.unspentOutputs.keys()).length;
@@ -158,7 +164,7 @@ export class Wallet {
   }
 
   private getPrivateKey(address: string) {
-    const res = this.usedAddresses.get(address);
+    const res = this.usedAddresses[address];
     if (res === undefined) {
       throw new Error("Cannot find id of input's address " + address);
     }

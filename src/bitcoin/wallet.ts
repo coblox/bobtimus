@@ -52,11 +52,11 @@ export class Wallet {
   private nextDeriveId: number;
 
   constructor(
-    xPrivateKey: string,
+    base58ExtendedPrivateKey: string,
     blockchain: BitcoinBlockchain,
     network: Network
   ) {
-    this.hdRoot = bip32.fromBase58(xPrivateKey, network);
+    this.hdRoot = bip32.fromBase58(base58ExtendedPrivateKey, network);
     this.network = network;
     this.blockchain = blockchain;
 
@@ -87,7 +87,7 @@ export class Wallet {
     );
 
     const promises = utxos.map(async (resultUtxo: Utxo) => {
-      const address = await this.blockchain.getOutputAddressFromTxId(
+      const address = await this.blockchain.getAddressAtOutpoint(
         resultUtxo.txId,
         resultUtxo.vout
       );
@@ -172,7 +172,7 @@ export class Wallet {
       );
     }
 
-    const transaction = txb.build().toHex();
+    const transaction = txb.build();
 
     return this.blockchain.broadcastTransaction(transaction);
   }

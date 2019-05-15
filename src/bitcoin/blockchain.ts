@@ -1,3 +1,5 @@
+import { Transaction } from "bitcoinjs-lib";
+
 export interface Utxo {
   txId: string;
   vout: number;
@@ -5,11 +7,11 @@ export interface Utxo {
 }
 
 export interface BitcoinBlockchain {
-  broadcastTransaction(transaction: string): Promise<string>;
+  broadcastTransaction(transaction: Transaction): Promise<string>;
 
   /// Find the outputs for addresses generated with BIP32
   /// Using path m/0'/0'/k' and m/0'/1'/k'
   findHdOutputs(extendedPrivateKey: string): Promise<Utxo[]>;
 
-  getOutputAddressFromTxId(txId: string, vout: number): Promise<string>;
+  getAddressAtOutpoint(txId: string, vout: number): Promise<string>;
 }

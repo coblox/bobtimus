@@ -1,5 +1,6 @@
 /// <reference path="./bitcoin-core.d.ts" />
 import Client from "bitcoin-core";
+import { Transaction } from "bitcoinjs-lib";
 import debug from "debug";
 import { BitcoinBlockchain, Utxo } from "./blockchain";
 
@@ -56,9 +57,10 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
     });
   }
 
-  public async broadcastTransaction(transaction: string): Promise<string> {
-    log("Broadcasting transaction ", transaction);
-    return this.bitcoinClient.sendRawTransaction(transaction);
+  public async broadcastTransaction(transaction: Transaction): Promise<string> {
+    const hex = transaction.toHex();
+    log("Broadcasting transaction ", hex);
+    return this.bitcoinClient.sendRawTransaction(hex);
   }
 
   public async findHdOutputs(extendedPrivateKey: string): Promise<Utxo[]> {
@@ -91,7 +93,7 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
     });
   }
 
-  public async getOutputAddressFromTxId(
+  public async getAddressAtOutpoint(
     txId: string,
     vout: number
   ): Promise<string> {

@@ -73,7 +73,7 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
       }
     ];
 
-    // Warning: this is a long blocking call
+    log("Starting `scantxoutset` which is a long blocking non-cached call");
     const result = await this.bitcoinClient.command(
       "scantxoutset",
       "start",
@@ -106,7 +106,7 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
       throw new Error(`Error decoding transaction: ${txId}`);
     }
 
-    return transaction.vout[vout].scriptPubKey.addresses[0]; // Not sure why `addresses` is an array
+    return transaction.vout[vout].scriptPubKey.addresses[0];
   }
 }
 

@@ -4,7 +4,7 @@ export interface Utxo {
   satAmount: number; // Satoshis
 }
 
-declare interface BitcoinBlockchain {
+export interface BitcoinBlockchain {
   broadcastTransaction(transaction: string): Promise<string>;
 
   /// Find the outputs for addresses generated with BIP32

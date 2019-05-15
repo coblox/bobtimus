@@ -25,8 +25,13 @@ interface CsTarget {
   value: number; // Satoshis
 }
 
+enum DerivationType {
+  Internal, // For change addresses
+  External // To receive payments
+}
+
 interface DerivationParameters {
-  internal: boolean;
+  internal: DerivationType;
   id: number;
 }
 
@@ -57,7 +62,9 @@ export class Wallet {
     this.unspentOutputs = new Set<CsUtxo>();
   }
 
-  public async getNewAddress(internal: boolean = false) {
+  public async getNewAddress(
+    internal: DerivationType = DerivationType.External
+  ) {
     const hd = this.deriveForId({ internal, id: this.nextDeriveId });
     const address = payments.p2wpkh({
       pubkey: hd.publicKey,
@@ -124,7 +131,7 @@ export class Wallet {
 
     const promises = outputs.map(async (output: CsTarget) => {
       if (!output.address) {
-        output.address = await this.getNewAddress(true);
+        output.address = await this.getNewAddress(DerivationType.Internal);
       }
       return txb.addOutput(output.address, output.value);
     });

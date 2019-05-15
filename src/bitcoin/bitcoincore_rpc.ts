@@ -1,6 +1,9 @@
 /// <reference path="./bitcoin-core.d.ts" />
 import Client from "bitcoin-core";
+import debug from "debug";
 import { BitcoinBlockchain, Utxo } from "./blockchain";
+
+const log = debug("bitcoin:core_rpc");
 
 interface RpcUtxo {
   txid: string;
@@ -54,7 +57,7 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
   }
 
   public async broadcastTransaction(transaction: string): Promise<string> {
-    console.log("Broadcasting transaction ", transaction);
+    log("Broadcasting transaction ", transaction);
     return this.bitcoinClient.sendRawTransaction(transaction);
   }
 

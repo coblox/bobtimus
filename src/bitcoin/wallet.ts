@@ -10,7 +10,11 @@ import {
 } from "bitcoinjs-lib";
 import { ECPairInterface } from "bitcoinjs-lib/types/ecpair";
 import coinSelect from "coinselect";
+import debug from "debug";
+import _ from "underscore";
 import { BitcoinBlockchain, Utxo } from "./blockchain";
+
+const log = debug("bitcoin:wallet");
 
 // Interfaces for coinselect
 interface CsUtxo {
@@ -94,13 +98,13 @@ export class Wallet {
         address,
         value: resultUtxo.satAmount
       };
-      if (this.unspentOutputs.indexOf(utxo) === -1) {
+      if (!this.unspentOutputs.some((e: CsUtxo) => _.isEqual(e, utxo))) {
         this.unspentOutputs.push(utxo);
       }
     });
     await Promise.all(promises);
     const numberOfUtxos = this.unspentOutputs.length;
-    console.log(`${numberOfUtxos} UTXOs found`);
+    log(`${numberOfUtxos} UTXOs found`);
     return numberOfUtxos;
   }
 
@@ -119,7 +123,7 @@ export class Wallet {
       [target],
       feeSatPerByte
     );
-    console.log("Fee (sats):", fee);
+    log("Fee (sats):", fee);
 
     if (!inputs || !outputs) {
       throw new Error("Was not able to fund the transaction");

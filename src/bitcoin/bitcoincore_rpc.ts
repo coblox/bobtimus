@@ -64,17 +64,14 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
     return this.bitcoinClient.sendRawTransaction(hex);
   }
 
-  public async findHdOutputs(extendedPrivateKey: string): Promise<Utxo[]> {
-    const scanobjects = [
-      {
-        desc: `combo(${extendedPrivateKey}/0'/0'/*')`,
+  public async findHdOutputs(extendedPublicKeys: string[]): Promise<Utxo[]> {
+    const scanobjects = extendedPublicKeys.map(exPubKey => {
+      dbg(`Send ${exPubKey} to bitcoind for scanning`);
+      return {
+        desc: `combo(${exPubKey}/*)`,
         range: 1000
-      },
-      {
-        desc: `combo(${extendedPrivateKey}/0'/1'/*')`,
-        range: 1000
-      }
-    ];
+      };
+    });
 
     warn("Starting `scantxoutset` which is a long blocking non-cached call");
     const result = await this.bitcoinClient.command(

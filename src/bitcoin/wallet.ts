@@ -87,9 +87,18 @@ export class Wallet {
   }
 
   public async refreshUtxo() {
-    const utxos: Utxo[] = await this.blockchain.findHdOutputs(
-      this.hdRoot.toBase58()
-    );
+    const utxos: Utxo[] = await this.blockchain.findHdOutputs([
+      this.hdRoot
+        .deriveHardened(0)
+        .deriveHardened(0)
+        .neutered()
+        .toBase58(),
+      this.hdRoot
+        .deriveHardened(0)
+        .deriveHardened(1)
+        .neutered()
+        .toBase58()
+    ]);
 
     const promises = utxos.map(async (resultUtxo: Utxo) => {
       const utxo: CsUtxo = {
@@ -175,7 +184,7 @@ export class Wallet {
     return this.hdRoot
       .deriveHardened(0)
       .deriveHardened(internal ? 1 : 0)
-      .deriveHardened(id);
+      .derive(id);
   }
 
   private getPrivateKey(address: string) {

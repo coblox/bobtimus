@@ -56,7 +56,7 @@ export interface BitcoinBlockchain {
 
   /// Find the outputs for addresses generated with BIP32
   /// Using path m/0'/0'/k' and m/0'/1'/k'
-  findHdOutputs(extendedPrivateKey: string): Promise<Utxo[]>;
+  findHdOutputs(extendedPublicKeys: string[]): Promise<Utxo[]>;
 }
 
 function isInt(n: number) {

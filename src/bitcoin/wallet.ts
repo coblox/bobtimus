@@ -11,7 +11,6 @@ import {
 import { ECPairInterface } from "bitcoinjs-lib/types/ecpair";
 import coinSelect from "coinselect";
 import debug from "debug";
-import _ from "underscore";
 import { BitcoinBlockchain, Satoshis, Utxo } from "./blockchain";
 
 const log = debug("bitcoin:wallet");
@@ -48,7 +47,7 @@ export class Wallet {
   private readonly network: Network;
   private readonly blockchain: BitcoinBlockchain;
   private readonly usedAddresses: UsedAddresses;
-  private readonly unspentOutputs: CsUtxo[];
+  private readonly unspentOutputs: Map<CsUtxo, undefined>;
   private nextDeriveId: number;
 
   constructor(
@@ -63,7 +62,7 @@ export class Wallet {
     // TODO: All fields below need to be saved to a JSON file
     this.nextDeriveId = 0;
     this.usedAddresses = {};
-    this.unspentOutputs = [];
+    this.unspentOutputs = new Map();
   }
 
   public getNewAddress(internal: DerivationType = DerivationType.External) {
@@ -98,12 +97,12 @@ export class Wallet {
         address,
         value: resultUtxo.amount.getSatoshis()
       };
-      if (!this.unspentOutputs.some((e: CsUtxo) => _.isEqual(e, utxo))) {
-        this.unspentOutputs.push(utxo);
+      if (!this.unspentOutputs.has(utxo)) {
+        this.unspentOutputs.set(utxo, undefined);
       }
     });
     await Promise.all(promises);
-    const numberOfUtxos = this.unspentOutputs.length;
+    const numberOfUtxos = this.unspentOutputs.size;
     log(`${numberOfUtxos} UTXOs found`);
     return numberOfUtxos;
   }
@@ -119,7 +118,7 @@ export class Wallet {
     };
 
     const { inputs, outputs, fee } = coinSelect(
-      Array.from(this.unspentOutputs.values()),
+      Array.from(this.unspentOutputs.keys()),
       [target],
       feeSatPerByte
     );
@@ -153,13 +152,7 @@ export class Wallet {
       });
 
       txb.addInput(input.txId, input.vout, undefined, p2wpkh.output);
-      const index = this.unspentOutputs.indexOf(input);
-      if (index === -1) {
-        throw new Error(
-          "Internal error: input just used was not found in unspentOutputs"
-        );
-      }
-      this.unspentOutputs.splice(index, 1);
+      this.unspentOutputs.delete(input);
     }
 
     for (let i = 0; i < nInputs; i++) {

@@ -4,7 +4,8 @@ import { Transaction } from "bitcoinjs-lib";
 import debug from "debug";
 import { Bitcoin, BitcoinBlockchain, Satoshis, Utxo } from "./blockchain";
 
-const log = debug("bitcoin:core_rpc");
+const dbg = debug("dbg:bitcoin:core_rpc");
+const warn = debug("warn:bitcoin:core_rpc");
 
 interface RpcUtxo {
   txid: string;
@@ -59,7 +60,7 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
 
   public async broadcastTransaction(transaction: Transaction): Promise<string> {
     const hex = transaction.toHex();
-    log("Broadcasting transaction ", hex);
+    dbg("Broadcasting transaction ", hex);
     return this.bitcoinClient.sendRawTransaction(hex);
   }
 
@@ -75,7 +76,7 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
       }
     ];
 
-    log("Starting `scantxoutset` which is a long blocking non-cached call");
+    warn("Starting `scantxoutset` which is a long blocking non-cached call");
     const result = await this.bitcoinClient.command(
       "scantxoutset",
       "start",

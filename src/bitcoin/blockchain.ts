@@ -1,4 +1,7 @@
 import { Transaction } from "bitcoinjs-lib";
+import debug from "debug";
+
+const warn = debug("warn:bitcoin:blockchain");
 
 const SATS_IN_BITCOIN = 100000000;
 
@@ -28,15 +31,18 @@ export class Satoshis {
   private readonly inner: number;
 
   constructor(sats: string | number) {
+    let inner: number;
     if (typeof sats === "string") {
-      this.inner = parseFloat(sats);
+      inner = parseFloat(sats);
     } else {
-      this.inner = sats;
+      inner = sats;
     }
 
-    if (!isInt(this.inner)) {
-      throw new Error("Only integer Satoshis are supported");
+    if (!isInt(inner)) {
+      warn("Only whole Satoshis are supported, precision has been lost");
+      inner = Math.round(inner);
     }
+    this.inner = inner;
   }
 
   public getSatoshis() {

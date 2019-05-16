@@ -1,12 +1,8 @@
 import BN from "bn.js";
 import utils from "ethereumjs-util";
 import Web3 from "web3";
-import {
-  EthereumWallet,
-  Web3EthereumBlockchainConnector
-} from "../../src/wallets/ethereum";
+import { EthereumWallet } from "../../src/wallets/ethereum";
 import containerTest from "../containerTest";
-import { EthereumBlockchainConnectorStub } from "../ethereumBlockchainConnectorStub";
 import EthereumHarness from "../ethereumHarness";
 import parityTestContainer from "../parityTestContainer";
 
@@ -41,11 +37,7 @@ describe("Ethereum Wallet", () => {
           `http://localhost:${container.getMappedPort(8545)}`
         )
       );
-      const wallet = new EthereumWallet(
-        new Web3EthereumBlockchainConnector(web3),
-        privateKey,
-        1
-      );
+      const wallet = new EthereumWallet(web3, privateKey, 1);
 
       const amountFounded = await fundAddressOfPrivateKey(web3, privateKey);
       const amountToTransfer = amountFounded.divn(2);
@@ -70,56 +62,4 @@ describe("Ethereum Wallet", () => {
     }),
     20000
   );
-
-  test("given transaction params without data, fails for `deployContract`", () => {
-    const wallet = new EthereumWallet(
-      new EthereumBlockchainConnectorStub(),
-      privateKey,
-      1
-    );
-
-    expect(
-      wallet.deployContract({
-        gasLimit: new BN(100_000),
-        gasPrice: new BN(0)
-      })
-    ).rejects.toMatchInlineSnapshot(
-      `[Error: Contract deployments must have \`data\`.]`
-    );
-  });
-
-  test("given transaction params with a `to` address, fails for `deployContract`", async () => {
-    const wallet = new EthereumWallet(
-      new EthereumBlockchainConnectorStub(),
-      privateKey,
-      1
-    );
-
-    expect(
-      wallet.deployContract({
-        gasLimit: new BN(100_000),
-        gasPrice: new BN(0),
-        to: "0x0000000000000000000000000000000000000000"
-      })
-    ).rejects.toMatchInlineSnapshot(
-      `[Error: Contract deployments must not set a \`to\` address.]`
-    );
-  });
-
-  test("given transaction params without a `to` address and without `data`, fails for `sendTransactionTo`", async () => {
-    const wallet = new EthereumWallet(
-      new EthereumBlockchainConnectorStub(),
-      privateKey,
-      1
-    );
-
-    expect(
-      wallet.deployContract({
-        gasLimit: new BN(100_000),
-        gasPrice: new BN(0)
-      })
-    ).rejects.toMatchInlineSnapshot(
-      `[Error: Contract deployments must have \`data\`.]`
-    );
-  });
 });

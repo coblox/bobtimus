@@ -40,7 +40,7 @@ enum DerivationType {
 }
 
 interface DerivationParameters {
-  internal: DerivationType;
+  type: DerivationType;
   id: number;
 }
 
@@ -71,8 +71,13 @@ export class Wallet {
     this.unspentOutputs = new Map();
   }
 
-  public getNewAddress(internal: DerivationType = DerivationType.External) {
-    const hd = this.deriveForId({ internal, id: this.nextDeriveId });
+  public getNewAddress(
+    derivationType: DerivationType = DerivationType.External
+  ) {
+    const hd = this.deriveForId({
+      type: derivationType,
+      id: this.nextDeriveId
+    });
     const address = payments.p2wpkh({
       pubkey: hd.publicKey,
       network: this.network
@@ -80,7 +85,10 @@ export class Wallet {
     if (!address) {
       throw new Error("issue deriving address");
     }
-    this.usedAddresses[address] = { internal, id: this.nextDeriveId };
+    this.usedAddresses[address] = {
+      type: derivationType,
+      id: this.nextDeriveId
+    };
 
     this.nextDeriveId += 1;
     return address;
@@ -120,7 +128,7 @@ export class Wallet {
   public async payToAddress(
     address: string,
     amount: Satoshis,
-    feeSatPerByte: number = 55
+    feeSatPerByte: number
   ) {
     const target: CsTarget = {
       address,
@@ -147,14 +155,14 @@ export class Wallet {
       txb.addOutput(output.address, output.value);
     }
 
-    const keypairs: ECPairInterface[] = [];
     const nInputs = inputs.length;
+    const keypairs: ECPairInterface[] = new Array(nInputs);
 
     for (let i = 0; i < nInputs; i++) {
       const input: CsUtxo = inputs[i];
       const key = this.getPrivateKey(input.address);
       const pair = ECPair.fromPrivateKey(key, { network: this.network });
-      keypairs.push(pair);
+      keypairs[i] = pair;
 
       const p2wpkh = payments.p2wpkh({
         pubkey: pair.publicKey,
@@ -180,10 +188,10 @@ export class Wallet {
     return this.blockchain.broadcastTransaction(transaction);
   }
 
-  private deriveForId({ internal, id }: DerivationParameters) {
+  private deriveForId({ type, id }: DerivationParameters) {
     return this.hdRoot
       .deriveHardened(0)
-      .deriveHardened(internal ? 1 : 0)
+      .deriveHardened(type === DerivationType.Internal ? 1 : 0)
       .derive(id);
   }
 

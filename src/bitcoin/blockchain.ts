@@ -23,7 +23,7 @@ export class Satoshis {
       sats = btc * SATS_IN_BITCOIN;
     }
 
-    if (!isInt(sats)) {
+    if (!Number.isInteger(sats)) {
       throw new Error("Only integer Satoshis are supported");
     }
 
@@ -39,7 +39,7 @@ export class Satoshis {
       inner = sats;
     }
 
-    if (!isInt(inner)) {
+    if (!Number.isInteger(inner)) {
       warn("Only whole Satoshis are supported, precision has been lost");
       inner = Math.round(inner);
     }
@@ -57,8 +57,4 @@ export interface BitcoinBlockchain {
   /// Find the outputs for addresses generated with BIP32
   /// Using path m/0'/0'/k' and m/0'/1'/k'
   findHdOutputs(extendedPublicKeys: string[]): Promise<Utxo[]>;
-}
-
-function isInt(n: number) {
-  return n % 1 === 0;
 }

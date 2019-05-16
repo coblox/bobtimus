@@ -79,7 +79,8 @@ describe("Test Bitcoin modules", () => {
 
     const tx = await wallet.payToAddress(
       "bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x",
-      new Satoshis(250000000) // Forces the use of several inputs
+      new Satoshis(250000000), // Forces the use of several inputs
+      55
     );
     expect(tx).to.be.a("string");
 

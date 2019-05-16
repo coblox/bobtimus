@@ -92,7 +92,7 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
         address
       };
     });
-    return await Promise.all(promises);
+    return Promise.all(promises);
   }
 
   private async getAddressAtOutpoint(

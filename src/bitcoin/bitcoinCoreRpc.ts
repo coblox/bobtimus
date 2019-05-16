@@ -2,10 +2,11 @@
 import Client from "bitcoin-core";
 import { Transaction } from "bitcoinjs-lib";
 import debug from "debug";
+import { BitcoinConfig } from "../config";
 import { Bitcoin, BitcoinBlockchain, Satoshis, Utxo } from "./blockchain";
 
-const dbg = debug("dbg:bitcoin:core_rpc");
-const warn = debug("warn:bitcoin:core_rpc");
+const warn = debug("bobtimus:warn:bitcoin:core_rpc");
+const dbg = debug("bobtimus:dbg:bitcoin:core_rpc");
 
 interface RpcUtxo {
   txid: string;
@@ -46,6 +47,33 @@ interface RpcTransaction {
 }
 
 export class BitcoinCoreRpc implements BitcoinBlockchain {
+  public static fromConfig(config: BitcoinConfig): BitcoinCoreRpc {
+    if (config.type === "coreRpc") {
+      if (
+        !config.rpcUsername ||
+        !config.rpcPassword ||
+        !config.rpcHost ||
+        !config.rpcPort
+      ) {
+        throw new Error(
+          `rpcUsername(${config.rpcUsername}), rpcPassword(${
+            config.rpcPassword
+          }), rpcHost(${config.rpcHost}), rpcPort(${
+            config.rpcPort
+          }) are mandatory for coreRpc Bitcoin blockchain type`
+        );
+      }
+
+      return new BitcoinCoreRpc(
+        config.rpcUsername,
+        config.rpcPassword,
+        config.rpcHost,
+        config.rpcPort
+      );
+    } else {
+      throw new Error("Bitcoin blockchain type not supported");
+    }
+  }
   private readonly bitcoinClient: any;
 
   constructor(username: string, password: string, host: string, port: number) {

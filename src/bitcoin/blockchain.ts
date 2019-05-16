@@ -1,7 +1,7 @@
-import { Transaction } from "bitcoinjs-lib";
+import { networks, Transaction } from "bitcoinjs-lib";
 import debug from "debug";
 
-const warn = debug("warn:bitcoin:blockchain");
+const warn = debug("bobtimus:warn:bitcoin:blockchain");
 
 const SATS_IN_BITCOIN = 100000000;
 
@@ -57,4 +57,18 @@ export interface BitcoinBlockchain {
   /// Find the outputs for addresses generated with BIP32
   /// Using path m/0'/0'/k' and m/0'/1'/k'
   findHdOutputs(extendedPublicKeys: string[]): Promise<Utxo[]>;
+}
+
+// TODO: push that to bitcoinjs-lib
+export function networkFromString(network: string) {
+  switch (network) {
+    case "regtest":
+      return networks.regtest;
+    case "testnet":
+      return networks.testnet;
+    case "mainnet":
+      return networks.bitcoin;
+    default:
+      throw new Error(`Unsupported bitcoin network ${network}`);
+  }
 }

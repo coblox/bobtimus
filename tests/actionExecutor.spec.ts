@@ -6,7 +6,7 @@ import { Swap } from "../src/comitNode";
 import { Config } from "../src/config";
 import { Datastore } from "../src/datastore";
 import acceptedStub from "./stubs/accepted.json";
-import swapsAcceptDeclineStub from "./stubs/swaps_with_accept_decline.siren.json";
+import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
 
 describe("Action triggerer tests: ", () => {
   beforeEach(() => {
@@ -20,8 +20,8 @@ describe("Action triggerer tests: ", () => {
   });
 
   it("should post accept action and get stubbed response", done => {
-    const config = new Config("./config.toml");
-    const datastore = new Datastore();
+    const config = new Config("./tests/config.toml");
+    const datastore = new Datastore(config);
     const actionTriggerer = new ActionExecutor(config, datastore);
     const swap = swapsAcceptDeclineStub.entities[0] as Swap;
     const acceptAction = swap.actions.find(

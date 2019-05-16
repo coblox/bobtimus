@@ -27,7 +27,9 @@
   "homepage": "https://github.com/coblox/bobtimus#readme",
   "dependencies": {
     "@badrap/result": "^0.2.4",
+    "@iarna/toml": "^2.2.3",
     "big.js": "^5.2.2",
+    "bip39": "^3.0.2",
     "bitcoin-core": "^2.0.0",
     "bitcoinjs-lib": "^5.0.3",
     "coinselect": "^3.1.11",
@@ -43,6 +45,7 @@
   },
   "devDependencies": {
     "@types/big.js": "^4.0.5",
+    "@types/bip39": "^2.4.2",
     "@types/bitcoinjs-lib": "^4.0.1",
     "@types/debug": "^4.1.4",
     "@types/dockerode": "^2.5.16",

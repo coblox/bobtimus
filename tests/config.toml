@@ -1,0 +1,28 @@
+comitNodeUrl = "http://localhost:8000"
+seedWords = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"
+
+[sellBitcoin.buyEther]
+# Bob sells Bitcoin (beta) and buys Ether (alpha)
+# Rate is defined as follow: for 1 bitcoin I want at least 100 ether
+# However, quantity are variable
+bitcoin = "100000000"
+ether = "10000000000000000000"
+
+[sellEther.buyBitcoin]
+# Bob sells Ether (beta) and buys Bitcoin (alpha)
+# Rate is defined as follow: for 1 ether I want at least 0.001 bitcoin
+# However, quantity are variable
+bitcoin = "100000000"
+ether = "10000000000000000000"
+
+[bitcoin]
+type = "coreRpc"
+# TODO: handle cookie file
+rpcUsername = "bitcoin"
+rpcPassword = "password"
+rpcHost = "127.0.0.1"
+rpcPort = 18443
+network = "regtest"
+
+[ethereum]
+web3Endpoint = "http://localhost:8545"

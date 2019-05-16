@@ -1,7 +1,10 @@
+import debug from "debug";
 import request from "request-promise-native";
 import { Action } from "../gen/siren";
 import { Config } from "./config";
 import { Datastore } from "./datastore";
+
+const dbg = debug("bobtimus:dbg:actionExecutor");
 
 export class ActionExecutor {
   private datastore: Datastore;
@@ -15,7 +18,7 @@ export class ActionExecutor {
   public async execute(action: Action) {
     const options = await this.buildRequestFromAction(action);
 
-    console.log(
+    dbg(
       `Doing a ${options.method} request to ${
         options.uri
       } with body: ${JSON.stringify(options.body)}`

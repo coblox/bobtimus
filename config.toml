@@ -1,8 +1,0 @@
-comitNodeUrl = "http://localhost:8000"
-
-[ethBtc.rate]
-# Bob sells Bitcoin (beta) and buys Ether (alpha)
-# Rate is defined as follow: for 1 bitcoin I want at least 100 eth
-# However, quantity are variable
-alpha = "100000000"
-beta = "10000000000000000000"

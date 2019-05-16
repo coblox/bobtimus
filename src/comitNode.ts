@@ -4,6 +4,11 @@ import { map } from "rxjs/operators";
 import { Action, Entity } from "../gen/siren";
 import { Config } from "./config";
 
+interface Ledger {
+  name: string;
+  network: string;
+}
+
 interface Asset {
   name: string;
   quantity: string;
@@ -15,7 +20,9 @@ export interface Swap {
     protocol: string;
     status: string;
     parameters: {
+      alpha_ledger: Ledger;
       alpha_asset: Asset;
+      beta_ledger: Ledger;
       beta_asset: Asset;
     };
   };

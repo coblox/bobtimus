@@ -1,8 +1,11 @@
 import { Result } from "@badrap/result/dist";
 import Big from "big.js";
+import debug from "debug";
 import { Action, Entity } from "../gen/siren";
 import { Swap } from "./comitNode";
 import { Config } from "./config";
+
+const dbg = debug("bobtimus:dbg:actionSelector");
 
 Big.DP = 30;
 
@@ -32,16 +35,53 @@ export class ActionSelector {
     const declineAction = actions.find(action => action.name === "decline");
 
     if (acceptAction) {
-      const alphaAsset = new Big(
+      const alphaLedger = swap.properties.parameters.alpha_ledger.name;
+      const betaLedger = swap.properties.parameters.beta_ledger.name;
+      const alphaAsset = swap.properties.parameters.alpha_asset.name;
+      const betaAsset = swap.properties.parameters.beta_asset.name;
+
+      dbg(
+        `selection Action for ${alphaLedger}-${alphaAsset}/${betaLedger}-${betaAsset}`
+      );
+
+      if (
+        !this.config.isSupported(alphaLedger, alphaAsset) ||
+        !this.config.isSupported(betaLedger, betaAsset)
+      ) {
+        return Result.err(
+          new Error(
+            `Ledger combination is not supported (${alphaLedger}:${alphaAsset}/${betaLedger}:${betaAsset})`
+          )
+        );
+      }
+
+      const alphaQuantity = new Big(
         swap.properties.parameters.alpha_asset.quantity
       );
-      const betaAsset = new Big(swap.properties.parameters.beta_asset.quantity);
+      const betaQuantity = new Big(
+        swap.properties.parameters.beta_asset.quantity
+      );
       // Bob always buys Alpha
       // Calculate rate as alpha / beta
-      const proposedRate = alphaAsset.div(betaAsset);
+      const proposedRate = alphaQuantity.div(betaQuantity);
 
-      const acceptableRate = new Big(this.config.ethBtc.rate.alpha).div(
-        new Big(this.config.ethBtc.rate.beta)
+      const acceptableRate = this.config.getRate(
+        alphaLedger,
+        alphaAsset,
+        betaLedger,
+        betaAsset
+      );
+
+      if (!acceptableRate) {
+        return Result.err(
+          new Error(
+            `Rate is not configured (${alphaLedger}:${alphaAsset}/${betaLedger}:${betaAsset})`
+          )
+        );
+      }
+
+      dbg(
+        `Proposed rate: ${proposedRate.toFixed()}, Acceptable rate: ${acceptableRate.toFixed()}`
       );
 
       if (proposedRate.gte(acceptableRate)) {

@@ -1,13 +1,14 @@
 import nock from "nock";
 import { from, range } from "rxjs";
 import { filter, flatMap, map, tap } from "rxjs/operators";
-import { ActionExecutor } from "../src/actionExecutor";
-import poll from "../src/actionPoller";
-import { ActionSelector } from "../src/actionSelector";
-import { Config } from "../src/config";
-import { Datastore } from "../src/datastore";
-import acceptedStub from "./stubs/accepted.json";
-import swapsAcceptDeclineStub from "./stubs/swaps_with_accept_decline.siren.json";
+import { ActionExecutor } from "../../src/actionExecutor";
+import poll from "../../src/actionPoller";
+import { ActionSelector } from "../../src/actionSelector";
+import { ComitNode } from "../../src/comitNode";
+import { Config } from "../../src/config";
+import { Datastore } from "../../src/datastore";
+import acceptedStub from "./../stubs/accepted.json";
+import swapsAcceptDeclineStub from "./../stubs/etherBitcoin/swapsWithAcceptDecline.siren.json";
 
 describe("Full workflow tests: ", () => {
   beforeEach(() => {
@@ -20,15 +21,16 @@ describe("Full workflow tests: ", () => {
       .reply(200, acceptedStub);
   });
 
-  const config = new Config("./config.toml");
-  const datastore = new Datastore();
+  const config = new Config("./tests/config.toml");
+  const datastore = new Datastore(config);
   const actionSelector = new ActionSelector(config);
   const actionExecutor = new ActionExecutor(config, datastore);
+  const comitNode = new ComitNode(config);
 
   it("should get actions and accept", done => {
     let success = false;
 
-    poll(range(0, 1))
+    poll(comitNode, range(0, 1))
       .pipe(map(swap => actionSelector.selectAction(swap)))
       .pipe(
         tap(actionResult => {

@@ -1,0 +1,20 @@
+comitNodeUrl = "http://localhost:8000"
+
+[sellBitcoin.buyEther]
+ether = "100000000"
+bitcoin = "10000000000000000000"
+
+[sellEther.buyBitcoin]
+ether = "100000000"
+bitcoin = "10000000000000000000"
+
+[bitcoin]
+type = "coreRpc"
+rpcUsername = "bitcoin"
+rpcPassword = "password"
+rpcHost = "127.0.0.1"
+rpcPort = 18443
+network = "regtest"
+
+[ethereum]
+web3Endpoint = "http://localhost:8545"

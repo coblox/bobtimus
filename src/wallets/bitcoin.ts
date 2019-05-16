@@ -1,6 +1,5 @@
 /// <reference path="../bitcoin/coinselect.d.ts" />
 import {
-  bip32,
   BIP32Interface,
   ECPair,
   Network,
@@ -13,7 +12,7 @@ import coinSelect from "coinselect";
 import debug from "debug";
 import { BitcoinBlockchain, Satoshis, Utxo } from "../bitcoin/blockchain";
 
-const log = debug("bitcoin:wallet");
+const log = debug("bobtimus:bitcoin:wallet");
 
 // Interfaces for coinselect
 interface CsUtxo {
@@ -57,15 +56,15 @@ export class BitcoinWallet {
   private nextDeriveId: number;
 
   constructor(
-    base58ExtendedPrivateKey: string,
+    hdRoot: BIP32Interface,
     blockchain: BitcoinBlockchain,
     network: Network
   ) {
-    this.hdRoot = bip32.fromBase58(base58ExtendedPrivateKey, network);
+    this.hdRoot = hdRoot;
     this.network = network;
     this.blockchain = blockchain;
 
-    // TODO: All fields below need to be saved to a JSON file
+    // TODO: All fields below need to be saved to a JSON file. See #13
     this.nextDeriveId = 0;
     this.usedAddresses = {};
     this.unspentOutputs = new Map();
@@ -94,16 +93,21 @@ export class BitcoinWallet {
     return address;
   }
 
+  // m/0'/0'/* m/0'/1'/*
+
+  // k/0' k/1'
+
+  // k = m/0'
+  // k' = m/1'
+
   public async refreshUtxo() {
+    // `.neutered()` removes the private key, meaning that we passed the extended
+    // public key in base58 to Bitcoin Core RPC
     const utxos: Utxo[] = await this.blockchain.findHdOutputs([
-      this.hdRoot
-        .deriveHardened(0)
-        .deriveHardened(0)
+      this.getParentKeyToAddresses(DerivationType.Internal)
         .neutered()
         .toBase58(),
-      this.hdRoot
-        .deriveHardened(0)
-        .deriveHardened(1)
+      this.getParentKeyToAddresses(DerivationType.External)
         .neutered()
         .toBase58()
     ]);
@@ -189,10 +193,18 @@ export class BitcoinWallet {
   }
 
   private deriveForId({ type, id }: DerivationParameters) {
-    return this.hdRoot
-      .deriveHardened(0)
-      .deriveHardened(type === DerivationType.Internal ? 1 : 0)
-      .derive(id);
+    return this.getParentKeyToAddresses(type).derive(id);
+  }
+
+  /// An "account key" k (ie, m/n' with m the master key) should be
+  /// passed to the bitcoin wallet. Then 2 keys are derived:
+  /// k/0' (= m/n'/0') for external addresses, iᵗʰ external address is k/0'/i (= m/n'/0'/i)
+  /// k/1' (= m/n'/1') for internal addresses iᵗʰ internal address is k/1'/i (= m/n'/1'/i)
+  /// This returns the key that is then used to directly derive the addresses, ie k/0' or k/1'
+  private getParentKeyToAddresses(derivationType: DerivationType) {
+    return this.hdRoot.deriveHardened(
+      derivationType === DerivationType.Internal ? 1 : 0
+    );
   }
 
   private getPrivateKey(address: string) {

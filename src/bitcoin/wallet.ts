@@ -23,6 +23,12 @@ interface CsUtxo {
   address: string;
 }
 
+function toKey(utxo: CsUtxo) {
+  return (
+    utxo.txId + utxo.vout.toString() + utxo.value.toString() + utxo.address
+  );
+}
+
 interface CsTarget {
   address: string;
   value: number; // Satoshis
@@ -47,7 +53,7 @@ export class Wallet {
   private readonly network: Network;
   private readonly blockchain: BitcoinBlockchain;
   private readonly usedAddresses: UsedAddresses;
-  private readonly unspentOutputs: Map<CsUtxo, undefined>;
+  private readonly unspentOutputs: Map<string, CsUtxo>;
   private nextDeriveId: number;
 
   constructor(
@@ -86,19 +92,14 @@ export class Wallet {
     );
 
     const promises = utxos.map(async (resultUtxo: Utxo) => {
-      const address = await this.blockchain.getAddressAtOutpoint(
-        resultUtxo.txId,
-        resultUtxo.vout
-      );
-
       const utxo: CsUtxo = {
         txId: resultUtxo.txId,
         vout: resultUtxo.vout,
-        address,
+        address: resultUtxo.address,
         value: resultUtxo.amount.getSatoshis()
       };
-      if (!this.unspentOutputs.has(utxo)) {
-        this.unspentOutputs.set(utxo, undefined);
+      if (!this.unspentOutputs.has(toKey(utxo))) {
+        this.unspentOutputs.set(toKey(utxo), utxo);
       }
     });
     await Promise.all(promises);
@@ -118,7 +119,7 @@ export class Wallet {
     };
 
     const { inputs, outputs, fee } = coinSelect(
-      Array.from(this.unspentOutputs.keys()),
+      Array.from(this.unspentOutputs.values()),
       [target],
       feeSatPerByte
     );
@@ -141,7 +142,7 @@ export class Wallet {
     const nInputs = inputs.length;
 
     for (let i = 0; i < nInputs; i++) {
-      const input = inputs[i];
+      const input: CsUtxo = inputs[i];
       const key = this.getPrivateKey(input.address);
       const pair = ECPair.fromPrivateKey(key, { network: this.network });
       keypairs.push(pair);
@@ -152,7 +153,7 @@ export class Wallet {
       });
 
       txb.addInput(input.txId, input.vout, undefined, p2wpkh.output);
-      this.unspentOutputs.delete(input);
+      this.unspentOutputs.delete(toKey(input));
     }
 
     for (let i = 0; i < nInputs; i++) {

@@ -85,16 +85,20 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
     if (!result || !result.success || result.unspents === undefined) {
       throw new Error(`Transaction scan failed: ${result}`);
     }
-    return result.unspents.map((res: RpcUtxo) => {
+    const promises = result.unspents.map(async (res: RpcUtxo) => {
+      const address = await this.getAddressAtOutpoint(res.txid, res.vout);
+
       return {
         txId: res.txid,
         vout: res.vout,
-        amount: Satoshis.fromBitcoin(res.amount)
+        amount: Satoshis.fromBitcoin(res.amount),
+        address
       };
     });
+    return await Promise.all(promises);
   }
 
-  public async getAddressAtOutpoint(
+  private async getAddressAtOutpoint(
     txId: string,
     vout: number
   ): Promise<string> {

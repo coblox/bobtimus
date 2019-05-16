@@ -2,6 +2,7 @@ import BN from "bn.js";
 import EthereumTx from "ethereumjs-tx";
 import utils from "ethereumjs-util";
 import Web3 from "web3";
+import { EthereumBlockchainConnector } from "./ethereumBlockchainConnector";
 
 interface TransactionParams {
   to?: string;
@@ -11,15 +12,36 @@ interface TransactionParams {
   gasLimit: BN;
 }
 
-export class EthereumWallet {
+export class Web3EthereumBlockchainConnector
+  implements EthereumBlockchainConnector {
   private web3: Web3;
+
+  constructor(web3: Web3) {
+    this.web3 = web3;
+  }
+
+  public getNonce(address: string) {
+    return this.web3.eth.getTransactionCount(address);
+  }
+
+  public sendSignedTransaction(hex: string) {
+    return this.web3.eth.sendSignedTransaction(hex);
+  }
+}
+
+export class EthereumWallet {
+  private ethereum: EthereumBlockchainConnector;
   private chainId: number;
   private privateKey: Buffer;
   private account: string;
 
-  constructor(web3: Web3, privateKey: Buffer, chainId: number) {
+  constructor(
+    ethereum: EthereumBlockchainConnector,
+    privateKey: Buffer,
+    chainId: number
+  ) {
     this.chainId = chainId;
-    this.web3 = web3;
+    this.ethereum = ethereum;
     this.account = "0x" + utils.privateToAddress(privateKey).toString("hex");
     this.privateKey = privateKey;
   }
@@ -55,7 +77,7 @@ export class EthereumWallet {
     gasLimit,
     gasPrice
   }: TransactionParams) {
-    const nonce = await this.web3.eth.getTransactionCount(this.account);
+    const nonce = await this.ethereum.getNonce(this.account);
 
     return new EthereumTx({
       nonce: `0x${new BN(nonce).toString("hex")}`,
@@ -68,11 +90,11 @@ export class EthereumWallet {
     });
   }
 
-  private signAndSend(tx: EthereumTx) {
+  private async signAndSend(tx: EthereumTx) {
     tx.sign(this.privateKey);
     const serializedTx = tx.serialize();
     const hex = "0x" + serializedTx.toString("hex");
 
-    return this.web3.eth.sendSignedTransaction(hex);
+    return this.ethereum.sendSignedTransaction(hex);
   }
 }

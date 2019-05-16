@@ -6,6 +6,7 @@ import { Wallet } from "../src/bitcoin/wallet";
 import { expect } from "chai";
 import { StartedTestContainer } from "testcontainers/dist/test-container";
 import BitcoindContainer from "./bitcoind_container";
+import { Satoshis } from "../src/bitcoin/blockchain";
 
 async function generateIfNeeded() {
   const count = await bitcoinClient.getBlockCount();
@@ -78,7 +79,7 @@ describe("Test Bitcoin modules", () => {
 
     const tx = await wallet.payToAddress(
       "bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x",
-      "250000000" // Forces the use of several inputs
+      new Satoshis(250000000) // Forces the use of several inputs
     );
     expect(tx).to.be.a("string");
 

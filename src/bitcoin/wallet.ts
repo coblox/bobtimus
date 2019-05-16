@@ -12,7 +12,7 @@ import { ECPairInterface } from "bitcoinjs-lib/types/ecpair";
 import coinSelect from "coinselect";
 import debug from "debug";
 import _ from "underscore";
-import { BitcoinBlockchain, Utxo } from "./blockchain";
+import { BitcoinBlockchain, Satoshis, Utxo } from "./blockchain";
 
 const log = debug("bitcoin:wallet");
 
@@ -96,7 +96,7 @@ export class Wallet {
         txId: resultUtxo.txId,
         vout: resultUtxo.vout,
         address,
-        value: resultUtxo.satAmount
+        value: resultUtxo.amount.getSatoshis()
       };
       if (!this.unspentOutputs.some((e: CsUtxo) => _.isEqual(e, utxo))) {
         this.unspentOutputs.push(utxo);
@@ -110,12 +110,12 @@ export class Wallet {
 
   public async payToAddress(
     address: string,
-    satAmount: string,
+    amount: Satoshis,
     feeSatPerByte: number = 55
   ) {
     const target: CsTarget = {
       address,
-      value: parseInt(satAmount, 10)
+      value: amount.getSatoshis()
     };
 
     const { inputs, outputs, fee } = coinSelect(

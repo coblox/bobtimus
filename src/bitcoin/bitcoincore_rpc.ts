@@ -2,7 +2,7 @@
 import Client from "bitcoin-core";
 import { Transaction } from "bitcoinjs-lib";
 import debug from "debug";
-import { BitcoinBlockchain, Utxo } from "./blockchain";
+import { Bitcoin, BitcoinBlockchain, Satoshis, Utxo } from "./blockchain";
 
 const log = debug("bitcoin:core_rpc");
 
@@ -10,7 +10,7 @@ interface RpcUtxo {
   txid: string;
   vout: number;
   scriptPubKey: string;
-  amount: number; // Bitcoin
+  amount: Bitcoin;
   height: number;
 }
 
@@ -32,7 +32,7 @@ interface RpcTransaction {
     sequence: number;
   }>;
   vout: Array<{
-    value: number; // Bitcoin
+    value: Bitcoin;
     n: number; // Index
     scriptPubKey: {
       asm: string;
@@ -88,7 +88,7 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
       return {
         txId: res.txid,
         vout: res.vout,
-        satAmount: btc_to_sat(res.amount)
+        amount: Satoshis.fromBitcoin(res.amount)
       };
     });
   }
@@ -110,8 +110,4 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
 
     return transaction.vout[vout].scriptPubKey.addresses[0];
   }
-}
-
-function btc_to_sat(value: number): number {
-  return value * 100000000;
 }

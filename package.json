@@ -9,9 +9,9 @@
     "gen": "mkdir -p ./gen && json2ts -i ./schema/siren.schema.json -o ./gen/siren.d.ts",
     "start": "yarn run build && ts-node -- ./src/index.ts",
     "start-dev": "yarn run build && nodemon --exec ./node_modules/.bin/ts-node -- ./src/index.ts",
-    "fix": "tslint -p . --fix && prettier --write '**/*.{ts, js, json, yml}'",
+    "fix": "tslint -p . --fix && prettier --write '**/*.{ts,js,json,yml}'",
     "lint": "tslint -p .",
-    "prettier": "prettier --check '**/*.{ts, js, json, yml}'",
+    "prettier": "prettier --check '**/*.{ts,js,json,yml}'",
     "test": "jest"
   },
   "repository": {

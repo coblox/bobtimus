@@ -71,7 +71,7 @@ describe("Test Bitcoin modules", () => {
   });
 
   it("Should find UTXOs", async () => {
-    expect(await wallet.refreshUtxo()).to.be.greaterThan(0);
+    expect(await wallet.refreshUtxo()).to.eq(5);
   });
 
   it("Can pay to address", async () => {

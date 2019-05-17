@@ -1,7 +1,7 @@
 import { GenericContainer } from "testcontainers";
 
 export default function parityTestContainer() {
-  return new GenericContainer("parity/parity", "v2.5.0")
+  return new GenericContainer("parity/parity", "v2.5.1")
     .withCmd([
       "--config=dev",
       "--jsonrpc-apis=all",

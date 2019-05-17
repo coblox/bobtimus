@@ -88,23 +88,30 @@ describe("Ethereum Wallet", () => {
       });
       expect(deploymentReceipt.contractAddress).not.toBeUndefined();
 
+      // wait for parity to mine the transaction
+      await new Promise(resolve => setTimeout(resolve, 10000));
+
       const contract = new web3.eth.Contract(GreeterABI as AbiItem[]);
       const methodCall = contract.methods.greet("Thomas").encodeABI();
 
       // need to trim `0x` from generated data
       const invocationData = Buffer.from(methodCall.substring(2), "hex");
 
-      await wallet.sendTransactionTo({
+      const receipt = await wallet.sendTransactionTo({
         to: deploymentReceipt.contractAddress || "", // get around the typechecker
-        gasPrice: new BN(0),
+        gasPrice: new BN(10),
         gasLimit: new BN(1_000_000),
         data: invocationData
       });
 
-      const events = await contract.getPastEvents("Message");
+      expect(receipt.logs).toHaveLength(1);
 
-      expect(events).toHaveLength(1);
+      const data = receipt.logs[0].data;
+      const logData = Buffer.from(data.substring(2), "hex").toString("utf8");
+
+      expect(logData).toContain("Hello");
+      expect(logData).toContain("Thomas");
     }),
-    20000
+    30000
   );
 });

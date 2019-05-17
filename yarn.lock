@@ -352,6 +352,11 @@
   resolved "https://registry.yarnpkg.com/@types/cli-color/-/cli-color-0.3.29.tgz#c83a71fe02c8c7e1ccec048dd6a2458d1f6c96ea"
   integrity sha1-yDpx/gLIx+HM7ASN1qJFjR9sluo=
 
+"@types/debug@^4.1.4":
+  version "4.1.4"
+  resolved "https://registry.yarnpkg.com/@types/debug/-/debug-4.1.4.tgz#56eec47706f0fd0b7c694eae2f3172e6b0b769da"
+  integrity sha512-D9MyoQFI7iP5VdpEyPZyjjqIJ8Y8EDNQFIFVLOmeg1rI1xiHOChyUPMPRUVfqFCerxfE+yS3vMyj37F6IdtOoQ==
+
 "@types/ethereumjs-tx@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@types/ethereumjs-tx/-/ethereumjs-tx-1.0.1.tgz#31a46b858a51ec4395959b2ae37f5064a8688fbd"
@@ -1063,6 +1068,11 @@ builtin-modules@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/builtin-modules/-/builtin-modules-1.1.1.tgz#270f076c5a72c02f5b65a47df94c5fe3a278892f"
   integrity sha1-Jw8HbFpywC9bZaR9+Uxf46J4iS8=
+
+byline@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/byline/-/byline-5.0.0.tgz#741c5216468eadc457b03410118ad77de8c1ddb1"
+  integrity sha1-dBxSFkaOrcRXsDQQEYrXfejB3bE=
 
 bytes@3.0.0:
   version "3.0.0"
@@ -5546,10 +5556,12 @@ test-exclude@^5.2.3:
     read-pkg-up "^4.0.0"
     require-main-filename "^2.0.0"
 
-"testcontainers@https://github.com/coblox/testcontainers-node#add-start-cmd":
-  version "1.1.17"
-  resolved "https://github.com/coblox/testcontainers-node#669d1be91e7b6a3d0543c7e6df5dec4f8261a158"
+testcontainers@1.1.18:
+  version "1.1.18"
+  resolved "https://registry.yarnpkg.com/testcontainers/-/testcontainers-1.1.18.tgz#e8f2ca13db5c5082fc4d87b9ec0a42c6e50a1f64"
+  integrity sha512-BmaT22oaf0SZISqkUyMCLhZuu7WLDmv8PUqhIY/cO7vjEKCBQ2uS6xah2OCd5Gw+C7ubVMUgUhjZIQNFRI4VvA==
   dependencies:
+    byline "^5.0.0"
     debug "^4.1.1"
     dockerode "^2.5.8"
     get-port "^4.1.0"

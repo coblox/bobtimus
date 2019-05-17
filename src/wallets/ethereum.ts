@@ -39,10 +39,7 @@ export class EthereumWallet {
   public async sendTransactionTo(
     params: SharedTransactionParams & SendTransactionToParams
   ) {
-    const tx = await this.paramsToTransaction({
-      ...params,
-      data: params.data ? params.data : Buffer.from([])
-    });
+    const tx = await this.paramsToTransaction(params);
 
     return this.signAndSend(tx);
   }
@@ -65,12 +62,12 @@ export class EthereumWallet {
     const nonce = await this.web3.eth.getTransactionCount(this.account);
 
     return new EthereumTx({
-      nonce: `0x${new BN(nonce).toString("hex")}`,
-      gasPrice: `0x${gasPrice.toString("hex")}`,
-      gasLimit: `0x${gasLimit.toString("hex")}`,
+      nonce: new BN(nonce).toBuffer(),
+      gasPrice: gasPrice.toBuffer(),
+      gasLimit: gasLimit.toBuffer(),
       to,
       data,
-      value: `0x${value.toString("hex")}`,
+      value: value.toBuffer(),
       chainId: this.chainId
     });
   }

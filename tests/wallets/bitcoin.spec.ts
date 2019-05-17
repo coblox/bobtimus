@@ -10,7 +10,7 @@ import sleep from "../sleep";
 
 describe("Bitcoin wallet", () => {
   it(
-    "should find UTXOs",
+    "should find all UTXOs after paying to address derived from extended pub key",
     containerTest(bitcoindTestContainer, async ({ container, auth }) => {
       const port = await container.getMappedPort(18443);
       const blockchain = new BitcoinCoreRpc(
@@ -48,7 +48,7 @@ describe("Bitcoin wallet", () => {
   );
 
   it(
-    "Can pay to address",
+    "can use multiple UTXOs for paying to foreign address",
     containerTest(bitcoindTestContainer, async ({ container, auth }) => {
       const port = await container.getMappedPort(18443);
       const blockchain = new BitcoinCoreRpc(

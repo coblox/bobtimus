@@ -1,7 +1,7 @@
 /// <reference path="../../src/bitcoin/bitcoin-core.d.ts" />
 import Client from "bitcoin-core";
 import { networks } from "bitcoinjs-lib";
-import { BitcoinCoreRpc } from "../../src/bitcoin/bitcoincore_rpc";
+import { BitcoinCoreRpc } from "../../src/bitcoin/bitcoinCoreRpc";
 import { Satoshis } from "../../src/bitcoin/blockchain";
 import { BitcoinWallet } from "../../src/wallets/bitcoin";
 import bitcoindTestContainer from "../containers/bitcoindTestContainer";

@@ -94,4 +94,43 @@ describe("Bitcoin wallet", () => {
     }),
     10000
   );
+
+  it(
+    "should find all UTXOs of addresses derived from extended key",
+    containerTest(bitcoindTestContainer, async ({ container, auth }) => {
+      const port = await container.getMappedPort(18443);
+      const blockchain = new BitcoinCoreRpc(
+        auth.username,
+        auth.password,
+        "127.0.0.1",
+        port
+      );
+      const bitcoinClient = new Client({
+        protocol: "http",
+        username: auth.username,
+        password: auth.password,
+        host: "127.0.0.1",
+        port
+      });
+
+      const wallet = new BitcoinWallet(
+        "tprv8ZgxMBicQKsPdSqbVeq56smMTGXHdLACXLvb5YXyk3zv4TPeTaQ6BZWeFxoVeikyfJD5vuYsKjTKaurDZDDmZGzGDMMxXzAZgAYQSrpmoUH",
+        blockchain,
+        networks.regtest
+      );
+
+      await sleep(3000);
+      await bitcoinClient.generate(200);
+
+      for (let i = 0; i < 1000; i++) {
+        const address = wallet.getNewAddress();
+
+        await bitcoinClient.sendToAddress(address.toString(), 0.75);
+        await bitcoinClient.generate(1);
+      }
+
+      expect(await wallet.refreshUtxo()).toEqual(1000);
+    }),
+    100000
+  );
 });

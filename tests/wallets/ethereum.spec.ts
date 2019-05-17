@@ -89,6 +89,7 @@ describe("Ethereum Wallet", () => {
       expect(deploymentReceipt.contractAddress).not.toBeUndefined();
 
       // wait for parity to mine the transaction
+      // parity sometimes takes up to 4 seconds to actually mine the transaction even though it already returned the receipt. this is how we cater for that.
       await new Promise(resolve => setTimeout(resolve, 10000));
 
       const contract = new web3.eth.Contract(GreeterABI as AbiItem[]);

@@ -1,15 +1,12 @@
-/// <reference path="../src/bitcoin/bitcoin-core.d.ts" />
+/// <reference path="../../src/bitcoin/bitcoin-core.d.ts" />
 import Client from "bitcoin-core";
 import { networks } from "bitcoinjs-lib";
-import { BitcoinCoreRpc } from "../src/bitcoin/bitcoincore_rpc";
-import { Satoshis } from "../src/bitcoin/blockchain";
-import { Wallet } from "../src/bitcoin/wallet";
-import bitcoindTestContainer from "./bitcoindTestContainer";
-import containerTest from "./containerTest";
-
-function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+import { BitcoinCoreRpc } from "../../src/bitcoin/bitcoincore_rpc";
+import { Satoshis } from "../../src/bitcoin/blockchain";
+import { BitcoinWallet } from "../../src/wallets/bitcoin";
+import bitcoindTestContainer from "../containers/bitcoindTestContainer";
+import containerTest from "../containerTest";
+import sleep from "../sleep";
 
 describe("Bitcoin wallet", () => {
   it(
@@ -30,7 +27,7 @@ describe("Bitcoin wallet", () => {
         port
       });
 
-      const wallet = new Wallet(
+      const wallet = new BitcoinWallet(
         "tprv8ZgxMBicQKsPdSqbVeq56smMTGXHdLACXLvb5YXyk3zv4TPeTaQ6BZWeFxoVeikyfJD5vuYsKjTKaurDZDDmZGzGDMMxXzAZgAYQSrpmoUH",
         blockchain,
         networks.regtest
@@ -68,7 +65,7 @@ describe("Bitcoin wallet", () => {
         port
       });
 
-      const wallet = new Wallet(
+      const wallet = new BitcoinWallet(
         "tprv8ZgxMBicQKsPdSqbVeq56smMTGXHdLACXLvb5YXyk3zv4TPeTaQ6BZWeFxoVeikyfJD5vuYsKjTKaurDZDDmZGzGDMMxXzAZgAYQSrpmoUH",
         blockchain,
         networks.regtest
@@ -94,6 +91,7 @@ describe("Bitcoin wallet", () => {
 
       const res = await bitcoinClient.getRawTransaction(tx);
       expect(typeof res).toBe("string");
-    })
+    }),
+    10000
   );
 });

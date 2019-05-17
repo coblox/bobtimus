@@ -1,9 +1,9 @@
 import nock from "nock";
 import { from, range } from "rxjs";
 import { filter, flatMap, map, tap } from "rxjs/operators";
-import { ActionExecutor } from "../src/action_executor";
-import * as ActionPoller from "../src/action_poller";
-import { ActionSelector } from "../src/action_selector";
+import { ActionExecutor } from "../src/actionExecutor";
+import poll from "../src/actionPoller";
+import { ActionSelector } from "../src/actionSelector";
 import { Config } from "../src/config";
 import { Datastore } from "../src/datastore";
 import acceptedStub from "./stubs/accepted.json";
@@ -28,7 +28,7 @@ describe("Full workflow tests: ", () => {
   it("should get actions and accept", done => {
     let success = false;
 
-    ActionPoller.poll(range(0, 1))
+    poll(range(0, 1))
       .pipe(map(swap => actionSelector.selectAction(swap)))
       .pipe(
         tap(actionResult => {

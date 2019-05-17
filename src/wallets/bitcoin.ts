@@ -1,4 +1,4 @@
-/// <reference path="./coinselect.d.ts" />
+/// <reference path="../bitcoin/coinselect.d.ts" />
 import {
   bip32,
   BIP32Interface,
@@ -11,7 +11,7 @@ import {
 import { ECPairInterface } from "bitcoinjs-lib/types/ecpair";
 import coinSelect from "coinselect";
 import debug from "debug";
-import { BitcoinBlockchain, Satoshis, Utxo } from "./blockchain";
+import { BitcoinBlockchain, Satoshis, Utxo } from "../bitcoin/blockchain";
 
 const log = debug("bitcoin:wallet");
 
@@ -48,7 +48,7 @@ interface UsedAddresses {
   [address: string]: DerivationParameters;
 }
 
-export class Wallet {
+export class BitcoinWallet {
   private readonly hdRoot: BIP32Interface;
   private readonly network: Network;
   private readonly blockchain: BitcoinBlockchain;

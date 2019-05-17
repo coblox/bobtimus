@@ -1,8 +1,8 @@
 import nock from "nock";
 import { from } from "rxjs";
 import { Action } from "../gen/siren";
-import { ActionExecutor } from "../src/action_executor";
-import { Swap } from "../src/comit_node";
+import { ActionExecutor } from "../src/actionExecutor";
+import { Swap } from "../src/comitNode";
 import { Config } from "../src/config";
 import { Datastore } from "../src/datastore";
 import acceptedStub from "./stubs/accepted.json";

@@ -3,10 +3,11 @@ import utils from "ethereumjs-util";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 import { EthereumWallet } from "../../src/wallets/ethereum";
+import parityTestContainer from "../containers/parityTestContainer";
 import containerTest from "../containerTest";
 import EthereumHarness from "../ethereumHarness";
 import GreeterABI from "../GreeterABI.json";
-import parityTestContainer from "../parityTestContainer";
+import sleep from "../sleep";
 
 async function fundAddressOfPrivateKey(web3: Web3, privateKey: Buffer) {
   const initialFunding = new BN(web3.utils.toWei("10", "ether"));
@@ -90,7 +91,7 @@ describe("Ethereum Wallet", () => {
 
       // wait for parity to mine the transaction
       // parity sometimes takes up to 4 seconds to actually mine the transaction even though it already returned the receipt. this is how we cater for that.
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      await sleep(10000);
 
       const contract = new web3.eth.Contract(GreeterABI as AbiItem[]);
       const methodCall = contract.methods.greet("Thomas").encodeABI();

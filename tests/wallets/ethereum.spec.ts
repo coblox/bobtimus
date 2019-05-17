@@ -35,7 +35,7 @@ const greeterContractCode = Buffer.from(
 describe("Ethereum Wallet", () => {
   test(
     "given initial funding, should transfer half of it with locally signed transaction",
-    containerTest(parityTestContainer, async container => {
+    containerTest(parityTestContainer, async ({ container }) => {
       const targetAddress = "0xcb777414c38e426c7038a7c4908751f5e864f7ad";
 
       const web3 = new Web3(
@@ -71,7 +71,7 @@ describe("Ethereum Wallet", () => {
 
   test(
     "should be able to deploy and invoke greeter contract",
-    containerTest(parityTestContainer, async container => {
+    containerTest(parityTestContainer, async ({ container }) => {
       const web3 = new Web3(
         new Web3.providers.HttpProvider(
           `http://localhost:${container.getMappedPort(8545)}`

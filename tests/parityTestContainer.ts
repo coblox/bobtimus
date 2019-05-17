@@ -1,7 +1,7 @@
 import { GenericContainer } from "testcontainers";
 
-export default function parityTestContainer() {
-  return new GenericContainer("parity/parity", "v2.5.1")
+export default async function parityTestContainer() {
+  const container = await new GenericContainer("parity/parity", "v2.5.1")
     .withCmd([
       "--config=dev",
       "--jsonrpc-apis=all",
@@ -12,4 +12,6 @@ export default function parityTestContainer() {
     ])
     .withExposedPorts(8545)
     .start();
+
+  return { container };
 }

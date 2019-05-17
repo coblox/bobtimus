@@ -1,19 +1,22 @@
 import { StartedTestContainer } from "testcontainers/dist/test-container";
 import DoneCallback = jest.DoneCallback;
 
-export default function containerTest<C extends StartedTestContainer>(
-  containerFactory: () => Promise<C>,
-  testFn: (container: C) => Promise<void>
+export default function containerTest<
+  C extends StartedTestContainer,
+  P extends { container: C }
+>(
+  parameterFactory: () => Promise<P>,
+  testFn: (parameters: P) => Promise<void>
 ) {
   return async (done: DoneCallback) => {
-    const container = await containerFactory();
+    const parameters = await parameterFactory();
 
     try {
-      await testFn(container);
-      await container.stop();
+      await testFn(parameters);
+      await parameters.container.stop();
       done();
     } catch (e) {
-      await container.stop();
+      await parameters.container.stop();
       done(e);
     }
   };

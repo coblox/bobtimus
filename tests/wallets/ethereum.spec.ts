@@ -91,6 +91,7 @@ describe("Ethereum Wallet", () => {
 
       // wait for parity to mine the transaction
       // parity sometimes takes up to 4 seconds to actually mine the transaction even though it already returned the receipt. this is how we cater for that.
+      // See https://github.com/paritytech/parity-ethereum/issues/10672 for details
       await sleep(10000);
 
       const contract = new web3.eth.Contract(GreeterABI as AbiItem[]);

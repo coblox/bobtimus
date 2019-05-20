@@ -1,9 +1,9 @@
-import { GenericContainer } from "testcontainers";
 import crypto from "crypto";
+import { GenericContainer } from "testcontainers";
 
-export default async function BitcoindContainer() {
-  let auth = new RpcAuth("bitcoin");
-  let authParameters = auth.encodeToAuthParameters();
+export default async function bitcoindTestContainer() {
+  const auth = new RpcAuth("bitcoin");
+  const authParameters = auth.encodeToAuthParameters();
 
   const container = await new GenericContainer("coblox/bitcoin-core", "0.17.0")
     .withCmd([
@@ -38,10 +38,10 @@ export class RpcAuth {
   }
 
   public encodeToAuthParameters() {
-    let hmac = crypto.createHmac("sha256", this.salt);
+    const hmac = crypto.createHmac("sha256", this.salt);
     hmac.write(this.password);
     hmac.end();
-    let hash = hmac.read().toString("hex");
+    const hash = hmac.read().toString("hex");
     return `${this.username}:${this.salt}\$${hash}`;
   }
 }

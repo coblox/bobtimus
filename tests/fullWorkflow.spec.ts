@@ -1,15 +1,13 @@
-import "mocha";
 import nock from "nock";
-import * as ActionPoller from "../src/action_poller";
-import { expect } from "chai";
 import { from, range } from "rxjs";
+import { filter, flatMap, map, tap } from "rxjs/operators";
+import { ActionExecutor } from "../src/actionExecutor";
+import poll from "../src/actionPoller";
+import { ActionSelector } from "../src/actionSelector";
+import { Config } from "../src/config";
+import { Datastore } from "../src/datastore";
 import acceptedStub from "./stubs/accepted.json";
 import swapsAcceptDeclineStub from "./stubs/swaps_with_accept_decline.siren.json";
-import { filter, flatMap, map, tap } from "rxjs/operators";
-import { ActionExecutor } from "../src/action_executor";
-import { ActionSelector } from "../src/action_selector";
-import { Datastore } from "../src/datastore";
-import { Config } from "../src/config";
 
 describe("Full workflow tests: ", () => {
   beforeEach(() => {
@@ -30,29 +28,28 @@ describe("Full workflow tests: ", () => {
   it("should get actions and accept", done => {
     let success = false;
 
-    ActionPoller.poll(range(0, 1))
+    poll(range(0, 1))
       .pipe(map(swap => actionSelector.selectAction(swap)))
       .pipe(
-        tap(action_result => {
-          expect(action_result.isOk).to.be.true;
+        tap(actionResult => {
+          expect(actionResult.isOk).toBeTruthy();
         })
       )
       .pipe(filter(action => action.isOk))
-      .pipe(map(action_result => action_result.unwrap()))
+      .pipe(map(actionResult => actionResult.unwrap()))
       .pipe(map(action => actionExecutor.execute(action)))
-      .pipe(flatMap(action_response => from(action_response)))
+      .pipe(flatMap(actionResponse => from(actionResponse)))
       .subscribe(
-        action_response => {
+        actionResponse => {
           success = true;
-          console.debug(action_response);
-          expect(action_response).deep.equal(acceptedStub);
+          console.debug(actionResponse);
+          expect(actionResponse).toStrictEqual(acceptedStub);
         },
         error => {
-          console.log(error);
-          expect.fail(`error: ${error}`);
+          fail(error);
         },
         () => {
-          expect(success).to.be.true;
+          expect(success).toBeTruthy();
           done();
         }
       );

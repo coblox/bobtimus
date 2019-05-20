@@ -1,8 +1,8 @@
 import { from, timer } from "rxjs";
 import { filter, flatMap, map, tap } from "rxjs/operators";
-import { ActionExecutor } from "./action_executor";
-import { default as ActionPoller } from "./action_poller";
-import { ActionSelector } from "./action_selector";
+import { ActionExecutor } from "./actionExecutor";
+import poll from "./actionPoller";
+import { ActionSelector } from "./actionSelector";
 import { Config } from "./config";
 import { Datastore } from "./datastore";
 
@@ -11,7 +11,7 @@ const datastore = new Datastore();
 const actionSelector = new ActionSelector(config);
 const actionExecutor = new ActionExecutor(config, datastore);
 
-ActionPoller.poll(timer(0, 500))
+poll(timer(0, 500))
   .pipe(map(swap => actionSelector.selectAction(swap)))
   .pipe(tap(result => console.log("Result:", result)))
   .pipe(filter(result => result.isOk))

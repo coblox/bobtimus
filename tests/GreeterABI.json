@@ -1,0 +1,33 @@
+[
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "greeting",
+        "type": "string"
+      }
+    ],
+    "name": "greet",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "name": "Message",
+    "type": "event"
+  }
+]

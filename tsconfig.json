@@ -16,6 +16,5 @@
     "sourceMap": true,
     "strict": true,
     "target": "es6"
-  },
-  "include": ["src/**/*"]
+  }
 }

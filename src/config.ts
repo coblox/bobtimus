@@ -1,4 +1,4 @@
-import TOML, { JsonMap } from "@iarna/toml";
+import TOML from "@iarna/toml";
 import Big from "big.js";
 import { generateMnemonic, mnemonicToSeedSync } from "bip39";
 import debug from "debug";
@@ -6,20 +6,7 @@ import * as fs from "fs";
 import URI from "urijs";
 
 const info = debug("bobtimus:info:config");
-
-interface SellBitcoinSwapConfig extends JsonMap {
-  buyEther: {
-    bitcoin: string;
-    ether: string;
-  };
-}
-
-interface SellEtherSwapConfig extends JsonMap {
-  buyBitcoin: {
-    bitcoin: string;
-    ether: string;
-  };
-}
+const warn = debug("bobtimus:warn:config");
 
 export interface BitcoinConfig {
   type: "coreRpc";
@@ -34,18 +21,23 @@ export interface EthereumConfig {
   web3Endpoint: string;
 }
 
+interface Rates {
+  [ticker: string]: {
+    [base: string]: {
+      buy: number;
+      sell: number;
+    };
+  };
+}
+
 interface TomlConfig {
   comitNodeUrl: string;
   seedWords?: string;
-  sellBitcoin?: SellBitcoinSwapConfig;
-  sellEther?: SellEtherSwapConfig;
-  bitcoin?: BitcoinConfig;
-  ethereum?: EthereumConfig;
-}
-
-interface Rates {
-  sellBitcoin?: SellBitcoinSwapConfig;
-  sellEther?: SellEtherSwapConfig;
+  rates: Rates;
+  ledgers: {
+    bitcoin?: BitcoinConfig;
+    ethereum?: EthereumConfig;
+  };
 }
 
 export class Config {
@@ -58,12 +50,14 @@ export class Config {
   constructor(filePath: string) {
     const parsedConfig: any = TOML.parse(fs.readFileSync(filePath, "utf8"));
     const config: TomlConfig = parsedConfig;
-    this.rates = {};
-    this.rates.sellBitcoin = config.sellBitcoin;
-    this.rates.sellEther = config.sellEther;
+    if (!config.ledgers) {
+      throw new Error("At least one ledger must be present in the config file");
+    }
+    this.bitcoinConfig = config.ledgers.bitcoin;
+    this.ethereumConfig = config.ledgers.ethereum;
 
-    this.bitcoinConfig = config.bitcoin;
-    this.ethereumConfig = config.ethereum;
+    validateRates(config.rates);
+    this.rates = config.rates;
 
     if (!config.comitNodeUrl) {
       throw new Error("comitNodeUrl must be present in the config file");
@@ -102,45 +96,65 @@ export class Config {
     }
   }
 
+  /// Returns Alpha divided by Beta (Beta-Alpha in exchange terms) rate based on the configuration
   public getRate(
     alphaLedger: string,
     alphaAsset: string,
     betaLedger: string,
     betaAsset: string
   ) {
+    const one = new Big(1);
     const rates = this.rates;
-    let alphaQuantityThreshold: Big;
-    let betaQuantityThreshold: Big;
     switch (alphaLedger + alphaAsset + betaLedger + betaAsset) {
       case "ethereumetherbitcoinbitcoin": {
         // Ether is Alpha, Bitcoin is Beta
         // Bob sells Bitcoin, buys Ether
-        if (!rates.sellBitcoin || !rates.sellBitcoin.buyEther) {
-          info("sellBitcoin.buyEther is not configured, cannot return a rate");
+        if (rates.bitcoin && rates.bitcoin.ether) {
+          // bitcoin.ether is configured meaning
+          // that the "sell" rate is when Bob "sells" bitcoin
+          // the stored rate is BTC-ETH or ETH (Alpha) divided by BTC (Beta)
+          return rates.bitcoin.ether.sell
+            ? new Big(rates.bitcoin.ether.sell)
+            : undefined;
+        } else if (rates.ether && rates.ether.bitcoin) {
+          // ether.bitcoin is configured meaning
+          // that the "buy" rate is when Bob "buy" ether
+          // the stored rate is ETH-BTC or BTC (Beta) divided by ETH (Alpha)
+          // We want to return Alpha divided by Beta rate hence need to ⁻¹ it
+          return rates.ether.bitcoin.buy
+            ? one.div(new Big(rates.ether.bitcoin.buy))
+            : undefined;
+        } else {
           return undefined;
         }
-        alphaQuantityThreshold = new Big(rates.sellBitcoin.buyEther.ether);
-        betaQuantityThreshold = new Big(rates.sellBitcoin.buyEther.bitcoin);
-        break;
       }
       case "bitcoinbitcoinethereumether": {
         // Bitcoin is Alpha, Ether is Beta
         // Bob sells Ether, buys Bitcoin
-        if (!rates.sellEther || !rates.sellEther.buyBitcoin) {
-          info("sellEther.buyBitcoin is not configured, cannot return a rate");
+        if (rates.bitcoin && rates.bitcoin.ether) {
+          // bitcoin.ether is configured meaning
+          // that the "buy" rate is when Bob "buys" bitcoin
+          // the stored rate is BTC-ETH or ETH (Beta) divided by BTC (Alpha)
+          // We want to return Alpha divided by Beta rate hence need to ⁻¹ it
+          return rates.bitcoin.ether.buy
+            ? one.div(new Big(rates.bitcoin.ether.buy))
+            : undefined;
+        } else if (rates.ether && rates.ether.bitcoin) {
+          // ether.bitcoin is configured meaning
+          // that the "sell" rate is when Bob "sell" ether
+          // the stored rate is ETH-BTC or BTC (Beta) divided by ETH (Alpha)
+          return rates.ether.bitcoin.sell
+            ? new Big(rates.ether.bitcoin.sell)
+            : undefined;
+        } else {
           return undefined;
         }
-        alphaQuantityThreshold = new Big(rates.sellEther.buyBitcoin.bitcoin);
-        betaQuantityThreshold = new Big(rates.sellEther.buyBitcoin.ether);
-        break;
       }
       default: {
         info(`This combination is not yet supported`);
         return undefined;
       }
     }
-
-    return alphaQuantityThreshold.div(betaQuantityThreshold);
   }
 }
 
@@ -167,5 +181,41 @@ function backupAndWriteConfig(filePath: string, config: TomlConfig) {
       }
       info("Config file was generated and saved");
     });
+  });
+}
+
+function validateRates(rates: Rates) {
+  if (
+    rates.bitcoin &&
+    rates.bitcoin.ether &&
+    rates.ether &&
+    rates.ether.bitcoin
+  ) {
+    throw new Error(
+      "bitcoin/ether pair must be configured only once in a [rates.ether.bitcoin] XOR [rates.bitcoin.ether] section"
+    );
+  }
+
+  const pairs = [];
+
+  if (rates.bitcoin && rates.bitcoin.ether) {
+    pairs.push(rates.bitcoin.ether);
+  }
+  if (rates.ether && rates.ether.bitcoin) {
+    pairs.push(rates.ether.bitcoin);
+  }
+
+  pairs.forEach((pair: any) => {
+    if (!pair.sell && !pair.buy) {
+      throw new Error(
+        `buy or sell rate (or both) needs to be present in configuration file for ${pair}`
+      );
+    }
+
+    if (pair.sell > pair.buy) {
+      warn(
+        `Your sell rate is higher than your buy rate, you are unlikely to make money on ${pair}`
+      );
+    }
   });
 }

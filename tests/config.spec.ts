@@ -87,13 +87,9 @@ describe("Config tests", () => {
 
     expect(configAfter.comitNodeUrl).toBeDefined();
     expect(configAfter.comitNodeUrl).toEqual(configBefore.comitNodeUrl);
-    expect(configAfter.sellBitcoin).toBeDefined();
-    expect(configAfter.sellBitcoin).toEqual(configBefore.sellBitcoin);
-    expect(configAfter.sellEther).toBeDefined();
-    expect(configAfter.sellEther).toEqual(configBefore.sellEther);
-    expect(configAfter.bitcoin).toBeDefined();
-    expect(configAfter.bitcoin).toEqual(configBefore.bitcoin);
-    expect(configAfter.ethereum).toBeDefined();
-    expect(configAfter.ethereum).toEqual(configBefore.ethereum);
+    expect(configAfter.rates).toBeDefined();
+    expect(configAfter.rates).toEqual(configBefore.rates);
+    expect(configAfter.ledgers).toBeDefined();
+    expect(configAfter.ledgers).toEqual(configBefore.ledgers);
   });
 });

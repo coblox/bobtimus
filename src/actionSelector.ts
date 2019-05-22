@@ -2,7 +2,7 @@ import { Result } from "@badrap/result/dist";
 import Big from "big.js";
 import debug from "debug";
 import { Action, Entity } from "../gen/siren";
-import { contains, Swap } from "./comitNode";
+import { contains, Swap, toNominalUnit } from "./comitNode";
 import { Config } from "./config";
 
 const dbg = debug("bobtimus:dbg:actionSelector");
@@ -55,14 +55,21 @@ export class ActionSelector {
         );
       }
 
-      const alphaQuantity = new Big(
-        swap.properties.parameters.alpha_asset.quantity
+      const alphaQuantity = toNominalUnit(
+        swap.properties.parameters.alpha_asset
       );
-      const betaQuantity = new Big(
-        swap.properties.parameters.beta_asset.quantity
-      );
+      const betaQuantity = toNominalUnit(swap.properties.parameters.beta_asset);
+
+      if (!alphaQuantity || !betaQuantity) {
+        return Result.err(
+          new Error(
+            `Internal Error: Asset not supported (${alphaAsset}: ${alphaQuantity}, ${betaAsset}: ${betaQuantity}).`
+          )
+        );
+      }
+
       // Bob always buys Alpha
-      // Calculate rate as alpha / beta
+      // Calculate rate as alpha divided by beta
       const proposedRate = alphaQuantity.div(betaQuantity);
 
       const acceptableRate = this.config.getRate(

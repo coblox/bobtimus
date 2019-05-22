@@ -1,21 +1,17 @@
 comitNodeUrl = "http://localhost:8000"
 seedWords = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"
 
-[sellBitcoin.buyEther]
-# Bob sells Bitcoin (beta) and buys Ether (alpha)
-# Rate is defined as follow: for 1 bitcoin I want at least 100 ether
-# However, quantity are variable
-bitcoin = "100000000"
-ether = "10000000000000000000"
+[rates.ether.bitcoin]
+# Aiming for a "centralised exchange" feeling
+# ETH-BTC Rate is the number of Bitcoins for 1 Ether (so maths are BTC divided by ETH)
+# sell = Sell Ether
+# buy = Buy Ether
+# Cannot have [ether.bitcoin] and [bitcoin.ether] in same config file
+# These are all nominal units (Bitcoin, Ether, *not* Satoshi/Wei)
+sell = 0.0095
+buy = 0.0105
 
-[sellEther.buyBitcoin]
-# Bob sells Ether (beta) and buys Bitcoin (alpha)
-# Rate is defined as follow: for 1 ether I want at least 0.001 bitcoin
-# However, quantity are variable
-bitcoin = "100000000"
-ether = "10000000000000000000"
-
-[bitcoin]
+[ledgers.bitcoin]
 type = "coreRpc"
 # TODO: handle cookie file
 rpcUsername = "bitcoin"
@@ -24,5 +20,5 @@ rpcHost = "127.0.0.1"
 rpcPort = 18443
 network = "regtest"
 
-[ethereum]
+[ledgers.ethereum]
 web3Endpoint = "http://localhost:8545"

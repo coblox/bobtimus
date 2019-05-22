@@ -11,7 +11,7 @@
         "parameters": {
           "alpha_asset": {
             "name": "ether",
-            "quantity": "10000000000000000000"
+            "quantity": "110000000000000000000"
           },
           "alpha_ledger": {
             "name": "ethereum",

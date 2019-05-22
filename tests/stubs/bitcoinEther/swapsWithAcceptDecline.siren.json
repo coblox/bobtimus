@@ -19,7 +19,7 @@
           },
           "beta_asset": {
             "name": "ether",
-            "quantity": "10000000000000000000"
+            "quantity": "90000000000000000000"
           },
           "beta_ledger": {
             "name": "ethereum",

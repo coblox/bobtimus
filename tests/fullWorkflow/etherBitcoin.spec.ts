@@ -10,6 +10,26 @@ import { Datastore } from "../../src/datastore";
 import acceptedStub from "./../stubs/accepted.json";
 import swapsAcceptDeclineStub from "./../stubs/etherBitcoin/swapsWithAcceptDecline.siren.json";
 
+const config = new Config({
+  comitNodeUrl: "http://localhost:8000",
+  seedWords:
+    "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
+  rates: { ether: { bitcoin: { sell: 0.0095, buy: 0.0105 } } },
+  ledgers: {
+    bitcoin: {
+      type: "coreRpc",
+      rpcUsername: "bitcoin",
+      rpcPassword: "password",
+      rpcHost: "127.0.0.1",
+      rpcPort: 18443,
+      network: "regtest"
+    },
+    ethereum: {
+      web3Endpoint: "http://localhost:8545"
+    }
+  }
+});
+
 describe("Full workflow tests: ", () => {
   beforeEach(() => {
     nock("http://localhost:8000")
@@ -21,7 +41,6 @@ describe("Full workflow tests: ", () => {
       .reply(200, acceptedStub);
   });
 
-  const config = new Config("./tests/configs/default.toml");
   const datastore = new Datastore(config);
   const actionSelector = new ActionSelector(config);
   const actionExecutor = new ActionExecutor(config, datastore);

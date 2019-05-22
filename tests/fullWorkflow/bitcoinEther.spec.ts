@@ -21,7 +21,25 @@ describe("Full workflow tests: ", () => {
       .reply(200, acceptedStub);
   });
 
-  const config = new Config("./tests/configs/default.toml");
+  const config = new Config({
+    comitNodeUrl: "http://localhost:8000",
+    seedWords:
+      "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
+    rates: { ether: { bitcoin: { sell: 0.0095, buy: 0.0105 } } },
+    ledgers: {
+      bitcoin: {
+        type: "coreRpc",
+        rpcUsername: "bitcoin",
+        rpcPassword: "password",
+        rpcHost: "127.0.0.1",
+        rpcPort: 18443,
+        network: "regtest"
+      },
+      ethereum: {
+        web3Endpoint: "http://localhost:8545"
+      }
+    }
+  });
   const datastore = new Datastore(config);
   const actionSelector = new ActionSelector(config);
   const actionExecutor = new ActionExecutor(config, datastore);

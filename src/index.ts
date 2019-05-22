@@ -12,7 +12,7 @@ const info = debug("bobtimus:info:index");
 const err = debug("bobtimus:ERROR:index");
 const dbg = debug("bobtimus:dbg:index");
 
-const config = new Config("./config.toml");
+const config = Config.fromFile("./config.toml");
 const comitNode = new ComitNode(config);
 const datastore = new Datastore(config);
 const actionSelector = new ActionSelector(config);

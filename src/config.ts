@@ -41,40 +41,45 @@ interface TomlConfig {
 }
 
 export class Config {
+  public static fromFile(filePath: string) {
+    const parsedConfig: any = TOML.parse(fs.readFileSync(filePath, "utf8"));
+    const tomlConfig: TomlConfig = parsedConfig;
+    return new Config(tomlConfig, filePath);
+  }
   public comitNodeUrl: string;
   public rates: Rates;
   public seed: Buffer;
   public bitcoinConfig?: BitcoinConfig;
   public ethereumConfig?: EthereumConfig;
 
-  constructor(filePath: string) {
-    const parsedConfig: any = TOML.parse(fs.readFileSync(filePath, "utf8"));
-    const config: TomlConfig = parsedConfig;
-    if (!config.ledgers) {
+  constructor(tomlConfig: TomlConfig, filePath?: string) {
+    if (!tomlConfig.ledgers) {
       throw new Error("At least one ledger must be present in the config file");
     }
-    this.bitcoinConfig = config.ledgers.bitcoin;
-    this.ethereumConfig = config.ledgers.ethereum;
+    this.bitcoinConfig = tomlConfig.ledgers.bitcoin;
+    this.ethereumConfig = tomlConfig.ledgers.ethereum;
 
-    validateRates(config.rates);
-    this.rates = config.rates;
+    validateRates(tomlConfig.rates);
+    this.rates = tomlConfig.rates;
 
-    if (!config.comitNodeUrl) {
+    if (!tomlConfig.comitNodeUrl) {
       throw new Error("comitNodeUrl must be present in the config file");
     } else {
-      this.comitNodeUrl = config.comitNodeUrl;
+      this.comitNodeUrl = tomlConfig.comitNodeUrl;
     }
 
-    if (config.seedWords) {
-      this.seed = mnemonicToSeedSync(config.seedWords);
+    if (tomlConfig.seedWords) {
+      this.seed = mnemonicToSeedSync(tomlConfig.seedWords);
     } else {
       info!("Generating seed words");
       const seedWords = generateMnemonic(256);
       this.seed = mnemonicToSeedSync(seedWords);
 
-      const tomlConfig = config;
-      Object.assign(tomlConfig, { seedWords });
-      backupAndWriteConfig(filePath, tomlConfig);
+      if (filePath) {
+        const configToWrite = tomlConfig;
+        Object.assign(configToWrite, { seedWords });
+        backupAndWriteConfig(filePath, configToWrite);
+      }
     }
   }
 

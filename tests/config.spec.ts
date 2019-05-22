@@ -31,7 +31,7 @@ function cleanUpFiles(dir: string) {
 
 describe("Config tests", () => {
   it("should parse the config and being able to prepend with configured uri", () => {
-    const config = new Config("./tests/configs/default.toml");
+    const config = Config.fromFile("./tests/configs/default.toml");
 
     const uriString = "http://localhost:8000/swaps/rfc003";
     const uriWithPath: uri.URI = new URI(uriString);
@@ -50,9 +50,9 @@ describe("Config tests", () => {
   });
 
   it("should throw an error when parsing a config file with duplicate rates", () => {
-    expect(() => new Config("./tests/configs/dupeRates.toml")).toThrowError(
-      "XOR"
-    );
+    expect(() =>
+      Config.fromFile("./tests/configs/dupeRates.toml")
+    ).toThrowError("XOR");
   });
 
   it("should write seed words in the config file if they are not present", async () => {
@@ -62,7 +62,7 @@ describe("Config tests", () => {
     const configBefore = TOML.parse(fs.readFileSync(filename, "utf8"));
     expect(configBefore.seedWords).toBeUndefined();
 
-    const config = new Config(filename);
+    const config = Config.fromFile(filename);
 
     // Wait for the new config file to be written
     await sleep(100);
@@ -86,8 +86,7 @@ describe("Config tests", () => {
     const configBefore = TOML.parse(fs.readFileSync(filename, "utf8"));
     expect(configBefore.seedWords).toBeUndefined();
 
-    // @ts-ignore: we do not want to use this variable
-    const config = new Config(filename);
+    Config.fromFile(filename);
 
     // Wait for the new config file to be written
     await sleep(100);

@@ -52,7 +52,7 @@ export class EthereumWallet {
     return this.signAndSend(tx);
   }
 
-  public async getAddress() {
+  public getAddress() {
     return this.account;
   }
 

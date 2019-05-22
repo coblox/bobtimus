@@ -2,7 +2,7 @@ import { Result } from "@badrap/result/dist";
 import Big from "big.js";
 import debug from "debug";
 import { Action, Entity } from "../gen/siren";
-import { Swap } from "./comitNode";
+import { contains, Swap } from "./comitNode";
 import { Config } from "./config";
 
 const dbg = debug("bobtimus:dbg:actionSelector");
@@ -17,7 +17,7 @@ export class ActionSelector {
   }
 
   public selectAction(entity: Entity): Result<Action, Error> {
-    if (entity.class && entity.class.some((e: string) => e === "swap")) {
+    if (entity.class && contains(entity.class, "swap")) {
       const swap = entity as Swap;
 
       return this.selectSwapAction(swap);
@@ -50,7 +50,7 @@ export class ActionSelector {
       ) {
         return Result.err(
           new Error(
-            `Ledger combination is not supported (${alphaLedger}:${alphaAsset}/${betaLedger}:${betaAsset})`
+            `Ledger-Asset not supported (${alphaLedger}:${alphaAsset}/${betaLedger}:${betaAsset})`
           )
         );
       }
@@ -75,7 +75,7 @@ export class ActionSelector {
       if (!acceptableRate) {
         return Result.err(
           new Error(
-            `Rate is not configured (${alphaLedger}:${alphaAsset}/${betaLedger}:${betaAsset})`
+            `Rate is not configured to buy ${alphaLedger}:${alphaAsset} & sell ${betaLedger}:${betaAsset}`
           )
         );
       }

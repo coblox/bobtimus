@@ -3,6 +3,7 @@ import Web3 from "web3";
 import { Field } from "../gen/siren";
 import { BitcoinCoreRpc } from "./bitcoin/bitcoinCoreRpc";
 import { networkFromString } from "./bitcoin/blockchain";
+import { contains } from "./comitNode";
 import { BitcoinConfig, Config, EthereumConfig } from "./config";
 import { BitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
@@ -30,20 +31,20 @@ export class Datastore {
   }
 
   public async getData(field: Field) {
-    if (field.class.some((e: string) => e === "ethereum")) {
-      if (this.ethereumWallet) {
-        if (field.class.some((e: string) => e === "address")) {
-          return await this.ethereumWallet.getAddress();
-        }
-      }
+    if (
+      this.ethereumWallet &&
+      contains(field.class, "ethereum") &&
+      contains(field.class, "address")
+    ) {
+      return await this.ethereumWallet.getAddress();
     }
 
-    if (field.class.some((e: string) => e === "bitcoin")) {
-      if (this.bitcoinWallet) {
-        if (field.class.some((e: string) => e === "address")) {
-          return await this.bitcoinWallet.getNewAddress();
-        }
-      }
+    if (
+      this.bitcoinWallet &&
+      contains(field.class, "bitcoin") &&
+      contains(field.class, "address")
+    ) {
+      return await this.bitcoinWallet.getNewAddress();
     }
   }
 }

@@ -56,9 +56,11 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
         !config.rpcPort
       ) {
         throw new Error(
-          `rpcUsername(${config.rpcUsername}), rpcPassword(${
-            config.rpcPassword
-          }), rpcHost(${config.rpcHost}), rpcPort(${
+          `rpcUsername(${
+            config.rpcUsername
+          }), rpcPassword(${!!config.rpcPassword}), rpcHost(${
+            config.rpcHost
+          }), rpcPort(${
             config.rpcPort
           }) are mandatory for coreRpc Bitcoin blockchain type`
         );

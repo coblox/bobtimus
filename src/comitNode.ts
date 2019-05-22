@@ -4,6 +4,10 @@ import { map } from "rxjs/operators";
 import { Action, Entity } from "../gen/siren";
 import { Config } from "./config";
 
+export function contains(array: any[], value: any) {
+  return array.some((e: any) => e === value);
+}
+
 interface Ledger {
   name: string;
   network: string;

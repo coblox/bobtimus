@@ -31,7 +31,7 @@ function cleanUpFiles(dir: string) {
 
 describe("Config tests", () => {
   it("should parse the config and being able to prepend with configured uri", () => {
-    const config = new Config("./tests/config.toml");
+    const config = new Config("./tests/configs/default.toml");
 
     const uriString = "http://localhost:8000/swaps/rfc003";
     const uriWithPath: uri.URI = new URI(uriString);
@@ -49,8 +49,16 @@ describe("Config tests", () => {
     );
   });
 
+  it("should throw an error when parsing a config file with duplicate rates", () => {
+    expect(() => new Config("./tests/configs/dupeRates.toml")).toThrowError(
+      "XOR"
+    );
+  });
+
   it("should write seed words in the config file if they are not present", async () => {
-    const { dir, filename } = copyConfigFile("./tests/noSeedConfig.toml");
+    const { dir, filename } = copyConfigFile(
+      "./tests/configs/noSeedWords.toml"
+    );
     const configBefore = TOML.parse(fs.readFileSync(filename, "utf8"));
     expect(configBefore.seedWords).toBeUndefined();
 
@@ -71,7 +79,9 @@ describe("Config tests", () => {
   });
 
   it("should write a backup file with same parameters if no seed is present", async () => {
-    const { dir, filename } = copyConfigFile("./tests/noSeedConfig.toml");
+    const { dir, filename } = copyConfigFile(
+      "./tests/configs/noSeedWords.toml"
+    );
 
     const configBefore = TOML.parse(fs.readFileSync(filename, "utf8"));
     expect(configBefore.seedWords).toBeUndefined();

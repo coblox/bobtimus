@@ -20,7 +20,7 @@ describe("Action triggerer tests: ", () => {
   });
 
   it("should post accept action and get stubbed response", done => {
-    const config = new Config("./tests/config.toml");
+    const config = new Config("./tests/configs/default.toml");
     const datastore = new Datastore(config);
     const actionTriggerer = new ActionExecutor(config, datastore);
     const swap = swapsAcceptDeclineStub.entities[0] as Swap;

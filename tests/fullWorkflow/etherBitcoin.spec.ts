@@ -21,7 +21,7 @@ describe("Full workflow tests: ", () => {
       .reply(200, acceptedStub);
   });
 
-  const config = new Config("./tests/config.toml");
+  const config = new Config("./tests/configs/default.toml");
   const datastore = new Datastore(config);
   const actionSelector = new ActionSelector(config);
   const actionExecutor = new ActionExecutor(config, datastore);

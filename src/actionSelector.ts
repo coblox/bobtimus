@@ -2,7 +2,7 @@ import { Result } from "@badrap/result/dist";
 import Big from "big.js";
 import debug from "debug";
 import { Action, Entity } from "../gen/siren";
-import { contains, Swap, toNominalUnit } from "./comitNode";
+import { Swap, toNominalUnit } from "./comitNode";
 import { Config } from "./config";
 
 const dbg = debug("bobtimus:dbg:actionSelector");
@@ -17,7 +17,7 @@ export class ActionSelector {
   }
 
   public selectAction(entity: Entity): Result<Action, Error> {
-    if (entity.class && contains(entity.class, "swap")) {
+    if (entity.class && entity.class.includes("swap")) {
       const swap = entity as Swap;
 
       return this.selectSwapAction(swap);

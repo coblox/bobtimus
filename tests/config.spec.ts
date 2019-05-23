@@ -60,7 +60,6 @@ describe("Config tests", () => {
 
     const configAfter = TOML.parse(fs.readFileSync(filename, "utf8"));
     cleanUpFiles(dir);
-    console.log(configAfter);
     const seedWords = configAfter.seedWords as string;
 
     expect(seedWords).toBeDefined();

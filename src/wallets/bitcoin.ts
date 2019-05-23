@@ -1,5 +1,6 @@
 /// <reference path="../bitcoin/coinselect.d.ts" />
 import {
+  bip32,
   BIP32Interface,
   ECPair,
   Network,
@@ -10,7 +11,13 @@ import {
 import { ECPairInterface } from "bitcoinjs-lib/types/ecpair";
 import coinSelect from "coinselect";
 import debug from "debug";
-import { BitcoinBlockchain, Satoshis, Utxo } from "../bitcoin/blockchain";
+import {
+  BitcoinBlockchain,
+  networkFromString,
+  Satoshis,
+  Utxo
+} from "../bitcoin/blockchain";
+import { BitcoinConfig } from "../config";
 
 const log = debug("bobtimus:bitcoin:wallet");
 
@@ -48,9 +55,22 @@ interface UsedAddresses {
 }
 
 export class BitcoinWallet {
-  private readonly hdRoot: BIP32Interface;
-  private readonly network: Network;
+  /// accountIndex is the account number (hardened) that will be passed to the bitcoin Wallet
+  /// ie, m/i'. Best practice to use different accounts for different blockchain in case an extended
+  /// private key get leaked.
+  public static fromConfig(
+    bitcoinConfig: BitcoinConfig,
+    bitcoinBlockchain: BitcoinBlockchain,
+    seed: Buffer,
+    accountIndex: number
+  ) {
+    const network = networkFromString(bitcoinConfig.network);
+    const hdRoot = bip32.fromSeed(seed, network).deriveHardened(accountIndex);
+    return new BitcoinWallet(hdRoot, bitcoinBlockchain, network);
+  }
+  public readonly network: Network;
   private readonly blockchain: BitcoinBlockchain;
+  private readonly hdRoot: BIP32Interface;
   private readonly usedAddresses: UsedAddresses;
   private readonly unspentOutputs: Map<string, CsUtxo>;
   private nextDeriveId: number;

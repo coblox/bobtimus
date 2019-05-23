@@ -4,9 +4,16 @@ import { filter, flatMap, map, tap } from "rxjs/operators";
 import { ActionExecutor } from "../../src/actionExecutor";
 import poll from "../../src/actionPoller";
 import { ActionSelector } from "../../src/actionSelector";
+import { BitcoinCoreRpc } from "../../src/bitcoin/bitcoinCoreRpc";
 import { ComitNode } from "../../src/comitNode";
 import { Config } from "../../src/config";
 import { Datastore } from "../../src/datastore";
+import { BitcoinWallet } from "../../src/wallets/bitcoin";
+import { EthereumWallet } from "../../src/wallets/ethereum";
+import {
+  emptyTransactionReceipt,
+  getLedgerExecutorThrowsOnAll
+} from "../ledgerExecutor";
 import acceptedStub from "./../stubs/accepted.json";
 import swapsAcceptDeclineStub from "./../stubs/etherBitcoin/swapsWithAcceptDecline.siren.json";
 
@@ -29,8 +36,22 @@ const config = new Config({
     }
   }
 });
-
-describe("Full workflow tests: ", () => {
+// @ts-ignore: config.bitcoinConfig is expected to exist
+const bitcoinBlockchain = BitcoinCoreRpc.fromConfig(config.bitcoinConfig);
+const bitcoinWallet = BitcoinWallet.fromConfig(
+  // @ts-ignore: config.bitcoinConfig is expected to exist
+  config.bitcoinConfig,
+  bitcoinBlockchain,
+  config.seed,
+  0
+);
+const ethereumWallet = EthereumWallet.fromConfig(
+  // @ts-ignore: config.ethereumConfig is expected to exist
+  config.ethereumConfig,
+  config.seed,
+  1
+);
+describe("Alpha Ether/Beta Bitcoin Full workflow tests: ", () => {
   beforeEach(() => {
     nock("http://localhost:8000")
       .get("/swaps/rfc003")
@@ -41,9 +62,15 @@ describe("Full workflow tests: ", () => {
       .reply(200, acceptedStub);
   });
 
-  const datastore = new Datastore(config);
+  const datastore = new Datastore({ ethereumWallet, bitcoinWallet });
   const actionSelector = new ActionSelector(config);
-  const actionExecutor = new ActionExecutor(config, datastore);
+  const mockEthereumDeployContract = jest.fn(() => {
+    return Promise.resolve(emptyTransactionReceipt);
+  });
+
+  const ledgerExecutor = getLedgerExecutorThrowsOnAll();
+  ledgerExecutor.ethereumDeployContract = mockEthereumDeployContract;
+  const actionExecutor = new ActionExecutor(config, datastore, ledgerExecutor);
   const comitNode = new ComitNode(config);
 
   it("should get actions and accept", done => {

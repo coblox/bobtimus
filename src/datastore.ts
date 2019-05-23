@@ -1,32 +1,20 @@
-import { bip32 } from "bitcoinjs-lib";
-import Web3 from "web3";
 import { Field } from "../gen/siren";
-import { BitcoinCoreRpc } from "./bitcoin/bitcoinCoreRpc";
-import { networkFromString } from "./bitcoin/blockchain";
-import { BitcoinConfig, Config, EthereumConfig } from "./config";
 import { BitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
+import { Wallets } from "./wallets/wallets";
 
-export class Datastore {
-  public ethereumWallet?: EthereumWallet;
-  public bitcoinWallet?: BitcoinWallet;
+export interface IDatastore {
+  getData: (field: Field) => any;
+}
 
-  constructor(config: Config) {
-    if (config.bitcoinConfig) {
-      this.bitcoinWallet = initializeBitcoin(
-        config.bitcoinConfig,
-        config.seed,
-        0
-      );
-    }
+// TODO: test this
+export class Datastore implements IDatastore {
+  private readonly ethereumWallet?: EthereumWallet;
+  private readonly bitcoinWallet?: BitcoinWallet;
 
-    if (config.ethereumConfig) {
-      this.ethereumWallet = initializeEthereum(
-        config.ethereumConfig,
-        config.seed,
-        1
-      );
-    }
+  constructor({ ethereumWallet, bitcoinWallet }: Wallets) {
+    this.ethereumWallet = ethereumWallet;
+    this.bitcoinWallet = bitcoinWallet;
   }
 
   public async getData(field: Field) {
@@ -46,41 +34,4 @@ export class Datastore {
       return await this.bitcoinWallet.getNewAddress();
     }
   }
-}
-
-/// accountIndex is the account number (hardened) that will be passed to the bitcoin Wallet
-/// ie, m/i'. Best practice to use different accounts for different blockchain in case an extended
-/// private key get leaked.
-
-export function initializeBitcoin(
-  bitcoinConfig: BitcoinConfig,
-  seed: Buffer,
-  accountIndex: number
-) {
-  const bitcoinBlockchain = BitcoinCoreRpc.fromConfig(bitcoinConfig);
-
-  const network = networkFromString(bitcoinConfig.network);
-  const hdRoot = bip32.fromSeed(seed, network).deriveHardened(accountIndex);
-  return new BitcoinWallet(hdRoot, bitcoinBlockchain, network);
-}
-
-export function initializeEthereum(
-  ethereumConfig: EthereumConfig,
-  seed: Buffer,
-  accountIndex: number
-) {
-  const web3 = new Web3(
-    new Web3.providers.HttpProvider(ethereumConfig.web3Endpoint)
-  );
-
-  const privateKey = bip32.fromSeed(seed).deriveHardened(accountIndex)
-    .privateKey;
-
-  if (!privateKey) {
-    throw new Error(
-      "Internal Error, freshly derived HD key does not have the private key."
-    );
-  }
-
-  return new EthereumWallet(web3, privateKey, 1);
 }

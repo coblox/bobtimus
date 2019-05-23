@@ -33,8 +33,18 @@ export class ActionSelector {
 
     const acceptAction = actions.find(action => action.name === "accept");
     const declineAction = actions.find(action => action.name === "decline");
+    const deployAction = actions.find(action => action.name === "deploy");
+    const fundAction = actions.find(action => action.name === "fund");
+    const redeemAction = actions.find(action => action.name === "redeem");
+    const refundAction = actions.find(action => action.name === "refund");
 
-    if (acceptAction) {
+    if (redeemAction) {
+      return Result.ok(redeemAction);
+    } else if (fundAction) {
+      return Result.ok(fundAction);
+    } else if (deployAction) {
+      return Result.ok(deployAction);
+    } else if (acceptAction) {
       const alphaLedger = swap.properties.parameters.alpha_ledger.name;
       const betaLedger = swap.properties.parameters.beta_ledger.name;
       const alphaAsset = swap.properties.parameters.alpha_asset.name;
@@ -95,6 +105,9 @@ export class ActionSelector {
       } else {
         return Result.err(new Error("Decline action is unavailable"));
       }
+    } else if (refundAction) {
+      // Only refund action available, doing nothing for now
+      Result.err(new Error("not implemented"));
     }
 
     return Result.err(new Error("not implemented"));

@@ -40,46 +40,36 @@ interface TomlConfig {
 }
 
 export class Config {
-  public static fromFile(filePath: string) {
+  public static async fromFile(filePath: string) {
     const parsedConfig: any = TOML.parse(fs.readFileSync(filePath, "utf8"));
     const tomlConfig: TomlConfig = parsedConfig;
-    return new Config(tomlConfig, filePath);
+
+    if (!tomlConfig.seedWords) {
+      log!("Generating seed words");
+      const seedWords = generateMnemonic(256);
+      Object.assign(tomlConfig, { seedWords });
+      await backupAndWriteConfig(filePath, tomlConfig);
+    }
+
+    return new Config(tomlConfig);
   }
+
   public comitNodeUrl: string;
   public rates: Rates;
   public seed: Buffer;
   public bitcoinConfig?: BitcoinConfig;
   public ethereumConfig?: EthereumConfig;
 
-  constructor(tomlConfig: TomlConfig, filePath?: string) {
-    if (!tomlConfig.ledgers) {
-      throw new Error("At least one ledger must be present in the config file");
-    }
-    this.bitcoinConfig = tomlConfig.ledgers.bitcoin;
-    this.ethereumConfig = tomlConfig.ledgers.ethereum;
+  constructor(tomlConfig: TomlConfig) {
+    const ledgers = throwIfFalse(tomlConfig, "ledgers");
+    this.bitcoinConfig = ledgers.bitcoin;
+    this.ethereumConfig = ledgers.ethereum;
 
     validateRates(tomlConfig.rates);
     this.rates = tomlConfig.rates;
 
-    if (!tomlConfig.comitNodeUrl) {
-      throw new Error("comitNodeUrl must be present in the config file");
-    } else {
-      this.comitNodeUrl = tomlConfig.comitNodeUrl;
-    }
-
-    if (tomlConfig.seedWords) {
-      this.seed = mnemonicToSeedSync(tomlConfig.seedWords);
-    } else {
-      log!("Generating seed words");
-      const seedWords = generateMnemonic(256);
-      this.seed = mnemonicToSeedSync(seedWords);
-
-      if (filePath) {
-        const configToWrite = tomlConfig;
-        Object.assign(configToWrite, { seedWords });
-        backupAndWriteConfig(filePath, configToWrite);
-      }
-    }
+    this.comitNodeUrl = throwIfFalse(tomlConfig, "comitNodeUrl");
+    this.seed = mnemonicToSeedSync(throwIfFalse(tomlConfig, "seedWords"));
   }
 
   public prependUrlIfNeeded(path: string): uri.URI {
@@ -162,7 +152,7 @@ export class Config {
   }
 }
 
-function backupAndWriteConfig(filePath: string, config: TomlConfig) {
+async function backupAndWriteConfig(filePath: string, config: TomlConfig) {
   const now = new Date();
   const datePostfix =
     now.getFullYear().toString() +
@@ -171,21 +161,11 @@ function backupAndWriteConfig(filePath: string, config: TomlConfig) {
     now.getHours().toString() +
     now.getSeconds().toString();
   const backupPath = filePath + ".backup." + datePostfix;
-  fs.copyFile(filePath, backupPath, err => {
-    if (err) {
-      throw err;
-    }
+  await fs.copyFileSync(filePath, backupPath);
 
-    const jsonMap: any = config;
-    const toml = TOML.stringify(jsonMap);
-
-    fs.writeFile(filePath, toml, err => {
-      if (err) {
-        throw err;
-      }
-      log("Config file was generated and saved");
-    });
-  });
+  const jsonMap: any = config;
+  const toml = TOML.stringify(jsonMap);
+  fs.writeFileSync(filePath, toml);
 }
 
 function validateRates(rates: Rates) {
@@ -222,4 +202,11 @@ function validateRates(rates: Rates) {
       );
     }
   });
+}
+
+function throwIfFalse(obj: any, prop: string) {
+  if (!obj[prop]) {
+    throw new Error(`${prop} must be present in the config file`);
+  }
+  return obj[prop];
 }

@@ -4,7 +4,6 @@ import * as fs from "fs";
 import tmp from "tmp";
 import URI from "urijs";
 import { Config } from "../src/config";
-import sleep from "./sleep";
 
 /// Copies the file to not modify a file tracked by git when running the test
 /// Uses a dedicated folder to make the cleanup easier
@@ -30,8 +29,8 @@ function cleanUpFiles(dir: string) {
 }
 
 describe("Config tests", () => {
-  it("should parse the config and being able to prepend with configured uri", () => {
-    const config = Config.fromFile("./tests/configs/default.toml");
+  it("should parse the config and being able to prepend with configured uri", async () => {
+    const config = await Config.fromFile("./tests/configs/default.toml");
 
     const uriString = "http://localhost:8000/swaps/rfc003";
     const uriWithPath: uri.URI = new URI(uriString);
@@ -55,44 +54,24 @@ describe("Config tests", () => {
     ).toThrowError("XOR");
   });
 
-  it("should write seed words in the config file if they are not present", async () => {
+  it("should write seed words in the config file if they are not present, keeping same parameters", async () => {
     const { dir, filename } = copyConfigFile(
       "./tests/configs/noSeedWords.toml"
     );
     const configBefore = TOML.parse(fs.readFileSync(filename, "utf8"));
     expect(configBefore.seedWords).toBeUndefined();
 
-    const config = Config.fromFile(filename);
-
-    // Wait for the new config file to be written
-    await sleep(100);
+    const config = await Config.fromFile(filename);
 
     const configAfter = TOML.parse(fs.readFileSync(filename, "utf8"));
     cleanUpFiles(dir);
-
+    console.log(configAfter);
     const seedWords = configAfter.seedWords as string;
 
-    expect(config.seed).toBeDefined();
     expect(seedWords).toBeDefined();
     const seed = mnemonicToSeedSync(seedWords);
+    expect(config.seed).toBeDefined();
     expect(config.seed).toEqual(seed);
-  });
-
-  it("should write a backup file with same parameters if no seed is present", async () => {
-    const { dir, filename } = copyConfigFile(
-      "./tests/configs/noSeedWords.toml"
-    );
-
-    const configBefore = TOML.parse(fs.readFileSync(filename, "utf8"));
-    expect(configBefore.seedWords).toBeUndefined();
-
-    Config.fromFile(filename);
-
-    // Wait for the new config file to be written
-    await sleep(100);
-
-    const configAfter = TOML.parse(fs.readFileSync(filename, "utf8"));
-    cleanUpFiles(dir);
 
     expect(configAfter.comitNodeUrl).toBeDefined();
     expect(configAfter.comitNodeUrl).toEqual(configBefore.comitNodeUrl);

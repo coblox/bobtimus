@@ -69,13 +69,10 @@ export class ActionSelector {
       }
 
       // Bob always buys Alpha
-      // Calculate rate as alpha divided by beta
+      // Calculate rate as buy divided by sell
       const proposedRate = alphaQuantity.div(betaQuantity);
-
-      const acceptableRate = this.config.getRate(
-        alphaLedger,
+      const acceptableRate = this.config.getBuyDivBySellRate(
         alphaAsset,
-        betaLedger,
         betaAsset
       );
 

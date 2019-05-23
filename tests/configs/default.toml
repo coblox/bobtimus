@@ -3,7 +3,7 @@ seedWords = "abandon abandon abandon abandon abandon abandon abandon abandon aba
 
 [rates.ether.bitcoin]
 # Aiming for a "centralised exchange" feeling
-# ETH-BTC Rate is the number of Bitcoins for 1 Ether (so maths are BTC divided by ETH)
+# ETH-BTC (ether.bitcoin) Rate is the number of Bitcoins for 1 Ether (so maths are BTC divided by ETH)
 # sell = Sell Ether
 # buy = Buy Ether
 # Cannot have [ether.bitcoin] and [bitcoin.ether] in same config file

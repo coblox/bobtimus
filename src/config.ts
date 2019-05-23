@@ -90,31 +90,25 @@ export class Config {
     }
   }
 
-  /// Returns Alpha divided by Beta (Beta-Alpha in exchange terms) rate based on the configuration
-  public getRate(
-    alphaLedger: string,
-    alphaAsset: string,
-    betaLedger: string,
-    betaAsset: string
-  ) {
+  /// Returns Buy divided by Sell (Sell-Beta in exchange terms) rate based on the configuration
+  public getBuyDivBySellRate(buyAsset: string, sellAsset: string) {
     const one = new Big(1);
     const rates = this.rates;
-    switch (alphaLedger + alphaAsset + betaLedger + betaAsset) {
-      case "ethereumetherbitcoinbitcoin": {
-        // Ether is Alpha, Bitcoin is Beta
-        // Bob sells Bitcoin, buys Ether
+    switch (buyAsset + sellAsset) {
+      case "etherbitcoin": {
+        // buys Ether, sells Bitcoin
         if (rates.bitcoin && rates.bitcoin.ether) {
           // bitcoin.ether is configured meaning
           // that the "sell" rate is when Bob "sells" bitcoin
-          // the stored rate is BTC-ETH or ETH (Alpha) divided by BTC (Beta)
+          // the stored rate is BTC-ETH or ETH (Buy) divided by BTC (Sell)
           return rates.bitcoin.ether.sell
             ? new Big(rates.bitcoin.ether.sell)
             : undefined;
         } else if (rates.ether && rates.ether.bitcoin) {
           // ether.bitcoin is configured meaning
           // that the "buy" rate is when Bob "buy" ether
-          // the stored rate is ETH-BTC or BTC (Beta) divided by ETH (Alpha)
-          // We want to return Alpha divided by Beta rate hence need to ⁻¹ it
+          // the stored rate is ETH-BTC or BTC (Sell) divided by ETH (Buy)
+          // We want to return Buy divided by Sell rate hence need to ⁻¹ it
           return rates.ether.bitcoin.buy
             ? one.div(new Big(rates.ether.bitcoin.buy))
             : undefined;
@@ -122,21 +116,20 @@ export class Config {
           return undefined;
         }
       }
-      case "bitcoinbitcoinethereumether": {
-        // Bitcoin is Alpha, Ether is Beta
-        // Bob sells Ether, buys Bitcoin
+      case "bitcoinether": {
+        // Buys Bitcoin, Sell Ether
         if (rates.bitcoin && rates.bitcoin.ether) {
           // bitcoin.ether is configured meaning
           // that the "buy" rate is when Bob "buys" bitcoin
-          // the stored rate is BTC-ETH or ETH (Beta) divided by BTC (Alpha)
-          // We want to return Alpha divided by Beta rate hence need to ⁻¹ it
+          // the stored rate is BTC-ETH or ETH (SEll) divided by BTC (Buy)
+          // We want to return Buy divided by Sell rate hence need to ⁻¹ it
           return rates.bitcoin.ether.buy
             ? one.div(new Big(rates.bitcoin.ether.buy))
             : undefined;
         } else if (rates.ether && rates.ether.bitcoin) {
           // ether.bitcoin is configured meaning
           // that the "sell" rate is when Bob "sell" ether
-          // the stored rate is ETH-BTC or BTC (Beta) divided by ETH (Alpha)
+          // the stored rate is ETH-BTC or BTC (Sell) divided by ETH (Buy)
           return rates.ether.bitcoin.sell
             ? new Big(rates.ether.bitcoin.sell)
             : undefined;

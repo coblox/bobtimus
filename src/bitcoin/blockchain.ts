@@ -1,7 +1,7 @@
 import { networks, Transaction } from "bitcoinjs-lib";
 import debug from "debug";
 
-const warn = debug("bobtimus:warn:bitcoin:blockchain");
+const log = debug("bobtimus:bitcoin:blockchain");
 
 const SATS_IN_BITCOIN = 100000000;
 
@@ -40,7 +40,7 @@ export class Satoshis {
     }
 
     if (!Number.isInteger(inner)) {
-      warn("Only whole Satoshis are supported, precision has been lost");
+      log("Only whole Satoshis are supported, precision has been lost");
       inner = Math.round(inner);
     }
     this.inner = inner;

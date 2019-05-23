@@ -8,9 +8,7 @@ import { ComitNode } from "./comitNode";
 import { Config } from "./config";
 import { Datastore } from "./datastore";
 
-const info = debug("bobtimus:info:index");
-const err = debug("bobtimus:ERROR:index");
-const dbg = debug("bobtimus:dbg:index");
+const log = debug("bobtimus:index");
 
 const config = Config.fromFile("./config.toml");
 const comitNode = new ComitNode(config);
@@ -26,7 +24,7 @@ poll(comitNode, timer(0, 500))
   .pipe(map(action => actionExecutor.execute(action)))
   .pipe(flatMap(actionResponse => from(actionResponse)))
   .subscribe(
-    swap => info("success: " + swap),
-    error => err("error: " + error),
-    () => dbg("done")
+    swap => log("success: " + swap),
+    error => log("error: " + error),
+    () => log("done")
   );

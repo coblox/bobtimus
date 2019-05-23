@@ -5,7 +5,7 @@ import { Action, Entity } from "../gen/siren";
 import { Swap, toNominalUnit } from "./comitNode";
 import { Config } from "./config";
 
-const dbg = debug("bobtimus:dbg:actionSelector");
+const log = debug("bobtimus:actionSelector");
 
 Big.DP = 30;
 
@@ -40,7 +40,7 @@ export class ActionSelector {
       const alphaAsset = swap.properties.parameters.alpha_asset.name;
       const betaAsset = swap.properties.parameters.beta_asset.name;
 
-      dbg(
+      log(
         `selection Action for ${alphaLedger}-${alphaAsset}/${betaLedger}-${betaAsset}`
       );
 
@@ -87,7 +87,7 @@ export class ActionSelector {
         );
       }
 
-      dbg(
+      log(
         `Proposed rate: ${proposedRate.toFixed()}, Acceptable rate: ${acceptableRate.toFixed()}`
       );
 

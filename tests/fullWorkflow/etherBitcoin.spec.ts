@@ -63,7 +63,6 @@ describe("Full workflow tests: ", () => {
       .subscribe(
         actionResponse => {
           success = true;
-          console.debug(actionResponse);
           expect(actionResponse).toStrictEqual(acceptedStub);
         },
         error => {

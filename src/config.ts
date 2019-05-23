@@ -5,8 +5,7 @@ import debug from "debug";
 import * as fs from "fs";
 import URI from "urijs";
 
-const info = debug("bobtimus:info:config");
-const warn = debug("bobtimus:warn:config");
+const log = debug("bobtimus:config");
 
 export interface BitcoinConfig {
   type: "coreRpc";
@@ -71,7 +70,7 @@ export class Config {
     if (tomlConfig.seedWords) {
       this.seed = mnemonicToSeedSync(tomlConfig.seedWords);
     } else {
-      info!("Generating seed words");
+      log!("Generating seed words");
       const seedWords = generateMnemonic(256);
       this.seed = mnemonicToSeedSync(seedWords);
 
@@ -156,7 +155,7 @@ export class Config {
         }
       }
       default: {
-        info(`This combination is not yet supported`);
+        log(`This combination is not yet supported`);
         return undefined;
       }
     }
@@ -184,7 +183,7 @@ function backupAndWriteConfig(filePath: string, config: TomlConfig) {
       if (err) {
         throw err;
       }
-      info("Config file was generated and saved");
+      log("Config file was generated and saved");
     });
   });
 }
@@ -218,7 +217,7 @@ function validateRates(rates: Rates) {
     }
 
     if (pair.sell > pair.buy) {
-      warn(
+      log(
         `Your sell rate is higher than your buy rate, you are unlikely to make money on ${pair}`
       );
     }

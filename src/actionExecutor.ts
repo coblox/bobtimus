@@ -4,7 +4,7 @@ import { Action } from "../gen/siren";
 import { Config } from "./config";
 import { Datastore } from "./datastore";
 
-const dbg = debug("bobtimus:dbg:actionExecutor");
+const log = debug("bobtimus:actionExecutor");
 
 export class ActionExecutor {
   private datastore: Datastore;
@@ -18,7 +18,7 @@ export class ActionExecutor {
   public async execute(action: Action) {
     const options = await this.buildRequestFromAction(action);
 
-    dbg(
+    log(
       `Doing a ${options.method} request to ${
         options.uri
       } with body: ${JSON.stringify(options.body)}`

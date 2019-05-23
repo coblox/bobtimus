@@ -10,25 +10,21 @@ import { Datastore } from "./datastore";
 
 const log = debug("bobtimus:index");
 
-async function main() {
-  const config = await Config.fromFile("./config.toml");
-  const comitNode = new ComitNode(config);
-  const datastore = new Datastore(config);
-  const actionSelector = new ActionSelector(config);
-  const actionExecutor = new ActionExecutor(config, datastore);
+const config = Config.fromFile("./config.toml");
+const comitNode = new ComitNode(config);
+const datastore = new Datastore(config);
+const actionSelector = new ActionSelector(config);
+const actionExecutor = new ActionExecutor(config, datastore);
 
-  poll(comitNode, timer(0, 500))
-    .pipe(map(swap => actionSelector.selectAction(swap)))
-    .pipe(tap(result => console.log("Result:", result)))
-    .pipe(filter(result => result.isOk))
-    .pipe(map(actionResult => actionResult.unwrap()))
-    .pipe(map(action => actionExecutor.execute(action)))
-    .pipe(flatMap(actionResponse => from(actionResponse)))
-    .subscribe(
-      swap => log("success: " + swap),
-      error => log("error: " + error),
-      () => log("done")
-    );
-}
-
-main();
+poll(comitNode, timer(0, 500))
+  .pipe(map(swap => actionSelector.selectAction(swap)))
+  .pipe(tap(result => console.log("Result:", result)))
+  .pipe(filter(result => result.isOk))
+  .pipe(map(actionResult => actionResult.unwrap()))
+  .pipe(map(action => actionExecutor.execute(action)))
+  .pipe(flatMap(actionResponse => from(actionResponse)))
+  .subscribe(
+    swap => log("success: " + swap),
+    error => log("error: " + error),
+    () => log("done")
+  );

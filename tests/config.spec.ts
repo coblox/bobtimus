@@ -30,8 +30,8 @@ function cleanUpFiles(dir: string) {
 }
 
 describe("Config tests", () => {
-  it("should parse the config and being able to prepend with configured uri", async () => {
-    const config = await Config.fromFile("./tests/configs/default.toml");
+  it("should parse the config and being able to prepend with configured uri", () => {
+    const config = Config.fromFile("./tests/configs/default.toml");
 
     const uriString = "http://localhost:8000/swaps/rfc003";
     const uriWithPath: uri.URI = new URI(uriString);
@@ -49,14 +49,14 @@ describe("Config tests", () => {
     );
   });
 
-  it("should write seed words in the config file if they are not present, keeping same parameters", async () => {
+  it("should write seed words in the config file if they are not present, keeping same parameters", () => {
     const { dir, filename } = copyConfigFile(
       "./tests/configs/noSeedWords.toml"
     );
     const configBefore = TOML.parse(fs.readFileSync(filename, "utf8"));
     expect(configBefore.seedWords).toBeUndefined();
 
-    const config = await Config.fromFile(filename);
+    const config = Config.fromFile(filename);
 
     const configAfter = TOML.parse(fs.readFileSync(filename, "utf8"));
     cleanUpFiles(dir);

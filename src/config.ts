@@ -40,7 +40,7 @@ interface TomlConfig {
 }
 
 export class Config {
-  public static async fromFile(filePath: string) {
+  public static fromFile(filePath: string) {
     const parsedConfig: any = TOML.parse(fs.readFileSync(filePath, "utf8"));
     const tomlConfig: TomlConfig = parsedConfig;
 
@@ -48,7 +48,7 @@ export class Config {
       log!("Generating seed words");
       const seedWords = generateMnemonic(256);
       Object.assign(tomlConfig, { seedWords });
-      await backupAndWriteConfig(filePath, tomlConfig);
+      backupAndWriteConfig(filePath, tomlConfig);
     }
 
     return new Config(tomlConfig);
@@ -145,7 +145,7 @@ export class Config {
   }
 }
 
-async function backupAndWriteConfig(filePath: string, config: TomlConfig) {
+function backupAndWriteConfig(filePath: string, config: TomlConfig) {
   const now = new Date();
   const datePostfix =
     now.getFullYear().toString() +
@@ -154,7 +154,7 @@ async function backupAndWriteConfig(filePath: string, config: TomlConfig) {
     now.getHours().toString() +
     now.getSeconds().toString();
   const backupPath = filePath + ".backup." + datePostfix;
-  await fs.copyFileSync(filePath, backupPath);
+  fs.copyFileSync(filePath, backupPath);
 
   const jsonMap: any = config;
   const toml = TOML.stringify(jsonMap);

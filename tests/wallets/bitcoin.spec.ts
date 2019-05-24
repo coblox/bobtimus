@@ -1,6 +1,6 @@
 /// <reference path="../../src/bitcoin/bitcoin-core.d.ts" />
 import Client from "bitcoin-core";
-import { networks } from "bitcoinjs-lib";
+import { bip32, networks } from "bitcoinjs-lib";
 import { BitcoinCoreRpc } from "../../src/bitcoin/bitcoinCoreRpc";
 import { Satoshis } from "../../src/bitcoin/blockchain";
 import { BitcoinWallet } from "../../src/wallets/bitcoin";
@@ -28,7 +28,10 @@ describe("Bitcoin wallet", () => {
       });
 
       const wallet = new BitcoinWallet(
-        "tprv8ZgxMBicQKsPdSqbVeq56smMTGXHdLACXLvb5YXyk3zv4TPeTaQ6BZWeFxoVeikyfJD5vuYsKjTKaurDZDDmZGzGDMMxXzAZgAYQSrpmoUH",
+        bip32.fromBase58(
+          "tprv8ZgxMBicQKsPdSqbVeq56smMTGXHdLACXLvb5YXyk3zv4TPeTaQ6BZWeFxoVeikyfJD5vuYsKjTKaurDZDDmZGzGDMMxXzAZgAYQSrpmoUH",
+          networks.regtest
+        ),
         blockchain,
         networks.regtest
       );
@@ -66,7 +69,10 @@ describe("Bitcoin wallet", () => {
       });
 
       const wallet = new BitcoinWallet(
-        "tprv8ZgxMBicQKsPdSqbVeq56smMTGXHdLACXLvb5YXyk3zv4TPeTaQ6BZWeFxoVeikyfJD5vuYsKjTKaurDZDDmZGzGDMMxXzAZgAYQSrpmoUH",
+        bip32.fromBase58(
+          "tprv8ZgxMBicQKsPdSqbVeq56smMTGXHdLACXLvb5YXyk3zv4TPeTaQ6BZWeFxoVeikyfJD5vuYsKjTKaurDZDDmZGzGDMMxXzAZgAYQSrpmoUH",
+          networks.regtest
+        ),
         blockchain,
         networks.regtest
       );

@@ -1,8 +1,11 @@
 import { Result } from "@badrap/result/dist";
 import Big from "big.js";
+import debug from "debug";
 import { Action, Entity } from "../gen/siren";
-import { Swap } from "./comitNode";
+import { Swap, toNominalUnit } from "./comitNode";
 import { Config } from "./config";
+
+const log = debug("bobtimus:actionSelector");
 
 Big.DP = 30;
 
@@ -14,7 +17,7 @@ export class ActionSelector {
   }
 
   public selectAction(entity: Entity): Result<Action, Error> {
-    if (entity.class && entity.class.some((e: string) => e === "swap")) {
+    if (entity.class && entity.class.includes("swap")) {
       const swap = entity as Swap;
 
       return this.selectSwapAction(swap);
@@ -32,16 +35,57 @@ export class ActionSelector {
     const declineAction = actions.find(action => action.name === "decline");
 
     if (acceptAction) {
-      const alphaAsset = new Big(
-        swap.properties.parameters.alpha_asset.quantity
-      );
-      const betaAsset = new Big(swap.properties.parameters.beta_asset.quantity);
-      // Bob always buys Alpha
-      // Calculate rate as alpha / beta
-      const proposedRate = alphaAsset.div(betaAsset);
+      const alphaLedger = swap.properties.parameters.alpha_ledger.name;
+      const betaLedger = swap.properties.parameters.beta_ledger.name;
+      const alphaAsset = swap.properties.parameters.alpha_asset.name;
+      const betaAsset = swap.properties.parameters.beta_asset.name;
 
-      const acceptableRate = new Big(this.config.ethBtc.rate.alpha).div(
-        new Big(this.config.ethBtc.rate.beta)
+      log(
+        `selection Action for ${alphaLedger}-${alphaAsset}/${betaLedger}-${betaAsset}`
+      );
+
+      if (
+        !this.config.isSupported(alphaLedger, alphaAsset) ||
+        !this.config.isSupported(betaLedger, betaAsset)
+      ) {
+        return Result.err(
+          new Error(
+            `Ledger-Asset not supported (${alphaLedger}:${alphaAsset}/${betaLedger}:${betaAsset})`
+          )
+        );
+      }
+
+      const alphaQuantity = toNominalUnit(
+        swap.properties.parameters.alpha_asset
+      );
+      const betaQuantity = toNominalUnit(swap.properties.parameters.beta_asset);
+
+      if (!alphaQuantity || !betaQuantity) {
+        return Result.err(
+          new Error(
+            `Internal Error: Asset not supported (${alphaAsset}: ${alphaQuantity}, ${betaAsset}: ${betaQuantity}).`
+          )
+        );
+      }
+
+      // Bob always buys Alpha
+      // Calculate rate as buy divided by sell
+      const proposedRate = alphaQuantity.div(betaQuantity);
+      const acceptableRate = this.config.getBuyDivBySellRate(
+        alphaAsset,
+        betaAsset
+      );
+
+      if (!acceptableRate) {
+        return Result.err(
+          new Error(
+            `Rate is not configured to buy ${alphaLedger}:${alphaAsset} & sell ${betaLedger}:${betaAsset}`
+          )
+        );
+      }
+
+      log(
+        `Proposed rate: ${proposedRate.toFixed()}, Acceptable rate: ${acceptableRate.toFixed()}`
       );
 
       if (proposedRate.gte(acceptableRate)) {

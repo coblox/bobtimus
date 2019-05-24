@@ -1,0 +1,16 @@
+comitNodeUrl = "http://localhost:8000"
+
+[rates.ether.bitcoin]
+sell = 0.0095
+buy = 0.0105
+
+[ledgers.bitcoin]
+type = "coreRpc"
+rpcUsername = "bitcoin"
+rpcPassword = "password"
+rpcHost = "127.0.0.1"
+rpcPort = 18443
+network = "regtest"
+
+[ledgers.ethereum]
+web3Endpoint = "http://localhost:8545"

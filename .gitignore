@@ -1,9 +1,13 @@
+# Config file backups
+*.toml.backup.*
+# Temporary config files
+tmp/
+
 # Logs
 logs
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 
 # Runtime data
 pids

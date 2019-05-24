@@ -2,10 +2,10 @@
 import Client from "bitcoin-core";
 import { Transaction } from "bitcoinjs-lib";
 import debug from "debug";
+import { BitcoinConfig } from "../config";
 import { Bitcoin, BitcoinBlockchain, Satoshis, Utxo } from "./blockchain";
 
-const dbg = debug("dbg:bitcoin:core_rpc");
-const warn = debug("warn:bitcoin:core_rpc");
+const log = debug("bobtimus:bitcoin:core_rpc");
 
 interface RpcUtxo {
   txid: string;
@@ -46,6 +46,35 @@ interface RpcTransaction {
 }
 
 export class BitcoinCoreRpc implements BitcoinBlockchain {
+  public static fromConfig(config: BitcoinConfig): BitcoinCoreRpc {
+    if (config.type === "coreRpc") {
+      if (
+        !config.rpcUsername ||
+        !config.rpcPassword ||
+        !config.rpcHost ||
+        !config.rpcPort
+      ) {
+        throw new Error(
+          `rpcUsername(${
+            config.rpcUsername
+          }), rpcPassword(${!!config.rpcPassword}), rpcHost(${
+            config.rpcHost
+          }), rpcPort(${
+            config.rpcPort
+          }) are mandatory for coreRpc Bitcoin blockchain type`
+        );
+      }
+
+      return new BitcoinCoreRpc(
+        config.rpcUsername,
+        config.rpcPassword,
+        config.rpcHost,
+        config.rpcPort
+      );
+    } else {
+      throw new Error("Bitcoin blockchain type not supported");
+    }
+  }
   private readonly bitcoinClient: any;
 
   constructor(username: string, password: string, host: string, port: number) {
@@ -60,20 +89,20 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
 
   public async broadcastTransaction(transaction: Transaction): Promise<string> {
     const hex = transaction.toHex();
-    dbg("Broadcasting transaction ", hex);
+    log("Broadcasting transaction ", hex);
     return this.bitcoinClient.sendRawTransaction(hex);
   }
 
   public async findHdOutputs(extendedPublicKeys: string[]): Promise<Utxo[]> {
     const scanobjects = extendedPublicKeys.map(exPubKey => {
-      dbg(`Send ${exPubKey} to bitcoind for scanning`);
+      log(`Send ${exPubKey} to bitcoind for scanning`);
       return {
         desc: `combo(${exPubKey}/*)`,
         range: 1000
       };
     });
 
-    warn("Starting `scantxoutset` which is a long blocking non-cached call");
+    log("Starting `scantxoutset` which is a long blocking non-cached call");
     const result = await this.bitcoinClient.command(
       "scantxoutset",
       "start",

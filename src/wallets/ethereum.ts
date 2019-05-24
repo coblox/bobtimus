@@ -52,6 +52,10 @@ export class EthereumWallet {
     return this.signAndSend(tx);
   }
 
+  public getAddress() {
+    return this.account;
+  }
+
   private async paramsToTransaction({
     to,
     data,

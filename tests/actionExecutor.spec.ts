@@ -6,7 +6,27 @@ import { Swap } from "../src/comitNode";
 import { Config } from "../src/config";
 import { Datastore } from "../src/datastore";
 import acceptedStub from "./stubs/accepted.json";
-import swapsAcceptDeclineStub from "./stubs/swaps_with_accept_decline.siren.json";
+import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
+
+const config = new Config({
+  comitNodeUrl: "http://localhost:8000",
+  seedWords:
+    "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
+  rates: { ether: { bitcoin: { sell: 0.0095, buy: 0.0105 } } },
+  ledgers: {
+    bitcoin: {
+      type: "coreRpc",
+      rpcUsername: "bitcoin",
+      rpcPassword: "password",
+      rpcHost: "127.0.0.1",
+      rpcPort: 18443,
+      network: "regtest"
+    },
+    ethereum: {
+      web3Endpoint: "http://localhost:8545"
+    }
+  }
+});
 
 describe("Action triggerer tests: ", () => {
   beforeEach(() => {
@@ -20,8 +40,7 @@ describe("Action triggerer tests: ", () => {
   });
 
   it("should post accept action and get stubbed response", done => {
-    const config = new Config("./config.toml");
-    const datastore = new Datastore();
+    const datastore = new Datastore(config);
     const actionTriggerer = new ActionExecutor(config, datastore);
     const swap = swapsAcceptDeclineStub.entities[0] as Swap;
     const acceptAction = swap.actions.find(

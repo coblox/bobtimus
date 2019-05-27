@@ -1,8 +1,10 @@
 import { Network, Transaction } from "bitcoinjs-lib";
 import BN = require("bn.js");
 import { TransactionReceipt } from "web3-core/types";
+import { FeeService as BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import { BitcoinBlockchain, Satoshis } from "./bitcoin/blockchain";
 import { hexToBuffer } from "./comitNode";
+import { FeeService as EthereumFeeService } from "./ethereum/ethereumFeeService";
 import { BitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
 import { Wallets } from "./wallets/wallets";
@@ -45,25 +47,32 @@ export class LedgerExecutor implements ILedgerExecutor {
   private readonly bitcoinBlockchain?: BitcoinBlockchain;
   private readonly bitcoinWallet?: BitcoinWallet;
   private readonly ethereumWallet?: EthereumWallet;
+  private readonly bitcoinFeeService: BitcoinFeeService;
+  private readonly ethereumFeeService: EthereumFeeService;
 
   constructor(
     { bitcoinWallet, ethereumWallet }: Wallets,
-    { bitcoinBlockchain }: Ledgers
+    { bitcoinBlockchain }: Ledgers,
+    bitcoinFeeService: BitcoinFeeService,
+    ethereumFeeService: EthereumFeeService
   ) {
     this.bitcoinBlockchain = bitcoinBlockchain;
     this.bitcoinWallet = bitcoinWallet;
     this.ethereumWallet = ethereumWallet;
+    this.bitcoinFeeService = bitcoinFeeService;
+    this.ethereumFeeService = ethereumFeeService;
   }
 
-  public bitcoinPayToAddress(
+  public async bitcoinPayToAddress(
     address: string,
     amount: Satoshis,
     network: Network
   ) {
     const bitcoinWallet = this.validateBitcoinWallet(network);
 
-    // TODO: decide strategy for Bitcoin fees
-    return bitcoinWallet.payToAddress(address, amount, 150);
+    const satsPerByte = await this.bitcoinFeeService.retrieveSatsPerByte();
+
+    return bitcoinWallet.payToAddress(address, amount, satsPerByte);
   }
 
   public bitcoinBroadcastTransaction(transaction: Transaction) {
@@ -72,22 +81,26 @@ export class LedgerExecutor implements ILedgerExecutor {
     return bitcoinBlockchain.broadcastTransaction(transaction);
   }
 
-  public ethereumDeployContract(
+  public async ethereumDeployContract(
     params: EthereumSharedTransactionParams & EthereumDeployContractParams
   ) {
     const ethereumWallet = this.validateEthereumWallet(params.network);
-    // TODO: decide gas price strategy
-    const parameters = Object.assign(params, { gasPrice: new BN(100) });
+
+    const gasPrice = await this.ethereumFeeService.retrieveGasPrice();
+
+    const parameters = Object.assign(params, { gasPrice });
     return ethereumWallet.deployContract(parameters);
   }
 
-  public ethereumSendTransactionTo(
+  public async ethereumSendTransactionTo(
     params: EthereumSharedTransactionParams & EthereumSendTransactionToParams
   ) {
     const ethereumWallet = this.validateEthereumWallet(params.network);
-    // TODO: decide gas price strategy
+
+    const gasPrice = await this.ethereumFeeService.retrieveGasPrice();
+
     const parameters = {
-      gasPrice: new BN(100),
+      gasPrice,
       gasLimit: params.gasLimit,
       to: params.to
     };

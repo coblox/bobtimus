@@ -152,7 +152,7 @@ export class BitcoinWallet {
   public async payToAddress(
     address: string,
     amount: Satoshis,
-    feeSatPerByte: number
+    feeSatPerByte: Satoshis
   ) {
     const target: CsTarget = {
       address,
@@ -162,7 +162,7 @@ export class BitcoinWallet {
     const { inputs, outputs, fee } = coinSelect(
       Array.from(this.unspentOutputs.values()),
       [target],
-      feeSatPerByte
+      feeSatPerByte.getSatoshis()
     );
     log("Fee (sats):", fee);
 

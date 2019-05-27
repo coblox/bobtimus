@@ -28,10 +28,18 @@ const config = new Config({
       rpcPassword: "password",
       rpcHost: "127.0.0.1",
       rpcPort: 18443,
-      network: "regtest"
+      network: "regtest",
+      fee: {
+        defaultFee: 10,
+        strategy: "hourFee"
+      }
     },
     ethereum: {
-      web3Endpoint: "http://localhost:8545"
+      web3Endpoint: "http://localhost:8545",
+      fee: {
+        defaultFee: new BN(10),
+        strategy: "average"
+      }
     }
   }
 });

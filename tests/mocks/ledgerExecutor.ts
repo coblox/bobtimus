@@ -1,5 +1,5 @@
 import { TransactionReceipt } from "web3-core/types";
-import { ILedgerExecutor } from "../src/ledgerExecutor";
+import { ILedgerExecutor } from "../../src/ledgerExecutor";
 
 export function getLedgerExecutorThrowsOnAll(): ILedgerExecutor {
   return {

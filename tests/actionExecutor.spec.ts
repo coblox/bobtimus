@@ -1,20 +1,29 @@
 import { Result } from "@badrap/result/dist";
+import { networks } from "bitcoinjs-lib";
 import BN = require("bn.js");
 import nock from "nock";
 import { from } from "rxjs";
 import { Action, Field } from "../gen/siren";
 import { ActionExecutor } from "../src/actionExecutor";
+import { Satoshis } from "../src/bitcoin/blockchain";
 import { Swap } from "../src/comitNode";
 import { Config } from "../src/config";
 import { IDatastore } from "../src/datastore";
+import { getDatastoreThrowsOnAll } from "./mocks/datastore";
 import {
   emptyTransactionReceipt,
   getLedgerExecutorThrowsOnAll
-} from "./ledgerExecutor";
+} from "./mocks/ledgerExecutor";
 import acceptedStub from "./stubs/accepted.json";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
-import swapsFundStub from "./stubs/bitcoinEther/swapsWithFund.siren.json";
+import swapsFundBitcoinEtherStub from "./stubs/bitcoinEther/swapsWithFund.siren.json";
+import swapsRedeemBitcoinEther from "./stubs/bitcoinEther/swapsWithRedeem.siren.json";
+import swapsFundEtherBitcoinStub from "./stubs/etherBitcoin/swapsWithFund.siren.json";
+import swapsRedeemEtherBitcoin from "./stubs/etherBitcoin/swapsWithRedeem.siren.json";
+import fundBitcoin from "./stubs/fundBitcoin.json";
 import fundEther from "./stubs/fundEther.json";
+import redeemBitcoin from "./stubs/redeemBitcoin.json";
+import redeemEther from "./stubs/redeemEther.json";
 
 const config = new Config({
   comitNodeUrl: "http://localhost:8000",
@@ -85,19 +94,13 @@ describe("Action executor tests: ", () => {
 });
 
 describe("Ledger action execution tests:", () => {
-  it("execute the fund action on ethereum using the right parameters", done => {
+  it("execute the fund action on Ethereum using the right parameters", done => {
     nock("http://localhost:8000")
       .get("/swaps/rfc003/")
-      .reply(200, swapsFundStub);
+      .reply(200, swapsFundBitcoinEtherStub);
     nock("http://localhost:8000")
       .get("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/fund")
       .reply(200, fundEther);
-
-    const datastore: IDatastore = {
-      getData: (field: Field) => {
-        throw new Error(`someone asked for ${JSON.stringify(field)}`);
-      }
-    };
 
     const mockEthereumDeployContract = jest.fn(() => {
       return Promise.resolve(emptyTransactionReceipt);
@@ -107,10 +110,10 @@ describe("Ledger action execution tests:", () => {
     ledgerExecutor.ethereumDeployContract = mockEthereumDeployContract;
     const actionExecutor = new ActionExecutor(
       config,
-      datastore,
+      getDatastoreThrowsOnAll(),
       ledgerExecutor
     );
-    const swap = swapsFundStub.entities[0] as Swap;
+    const swap = swapsFundBitcoinEtherStub.entities[0] as Swap;
 
     const fundAction = swap.actions.find(
       action => action.name === "fund"
@@ -140,6 +143,162 @@ describe("Ledger action execution tests:", () => {
           new BN(122000).toString()
         );
         expect(argumentPassed).toHaveProperty("network", "regtest");
+      },
+      error => {
+        fail(error);
+      },
+      () => {
+        done();
+      }
+    );
+  });
+
+  it("execute the fund action on Bitcoin using the right parameters", done => {
+    nock("http://localhost:8000")
+      .get("/swaps/rfc003/")
+      .reply(200, swapsFundEtherBitcoinStub);
+    nock("http://localhost:8000")
+      .get("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/fund")
+      .reply(200, fundBitcoin);
+
+    const txId =
+      "001122334455667788990011223344556677889900112233445566778899aabb";
+
+    const mockBitcoinPayToAddress = jest.fn(() => {
+      return Promise.resolve(txId);
+    });
+
+    const ledgerExecutor = getLedgerExecutorThrowsOnAll();
+    ledgerExecutor.bitcoinPayToAddress = mockBitcoinPayToAddress;
+    const actionExecutor = new ActionExecutor(
+      config,
+      getDatastoreThrowsOnAll(),
+      ledgerExecutor
+    );
+    const swap = swapsFundEtherBitcoinStub.entities[0] as Swap;
+
+    const fundAction = swap.actions.find(
+      action => action.name === "fund"
+    ) as Action;
+    from(actionExecutor.execute(fundAction)).subscribe(
+      actionResponse => {
+        expect(actionResponse).toStrictEqual(Result.ok(txId));
+
+        expect(mockBitcoinPayToAddress.mock.calls.length).toBe(1);
+        expect(mockBitcoinPayToAddress.mock.calls[0].length).toBe(3);
+        // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
+        const addressPassed = mockBitcoinPayToAddress.mock.calls[0][0];
+        // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
+        const satPassed = mockBitcoinPayToAddress.mock.calls[0][1];
+        // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
+        const networkPassed = mockBitcoinPayToAddress.mock.calls[0][2];
+
+        expect(addressPassed).toEqual(
+          "bcrt1q4vmcukhvmd2lajgk9az24s3fndm4swrkl633lq"
+        );
+        expect(satPassed).toEqual(new Satoshis("100000000"));
+        expect(networkPassed).toEqual(networks.regtest);
+      },
+      error => {
+        fail(error);
+      },
+      () => {
+        done();
+      }
+    );
+  });
+
+  it("execute the redeem action on Bitcoin using the right parameters", done => {
+    nock("http://localhost:8000")
+      .get("/swaps/rfc003/")
+      .reply(200, swapsRedeemBitcoinEther);
+    nock("http://localhost:8000")
+      .get(
+        "/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/redeem?alpha_ledger_redeem_identity=bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x&fee_per_byte=180"
+      )
+      .reply(200, redeemBitcoin);
+
+    const mockGetData = jest.fn();
+    mockGetData
+      .mockReturnValueOnce("bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x")
+      .mockReturnValueOnce(180);
+    const datastore = getDatastoreThrowsOnAll();
+    datastore.getData = mockGetData;
+
+    const mockBitcoinBroadcastTransaction = jest.fn();
+    mockBitcoinBroadcastTransaction.mockReturnValueOnce(
+      "aabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeff1122"
+    );
+    const ledgerExecutor = getLedgerExecutorThrowsOnAll();
+    ledgerExecutor.bitcoinBroadcastTransaction = mockBitcoinBroadcastTransaction;
+    const actionExecutor = new ActionExecutor(
+      config,
+      datastore,
+      ledgerExecutor
+    );
+    const swap = swapsRedeemBitcoinEther.entities[0] as Swap;
+
+    const redeemAction = swap.actions.find(
+      action => action.name === "redeem"
+    ) as Action;
+    from(actionExecutor.execute(redeemAction)).subscribe(
+      actionResponse => {
+        expect(actionResponse).toStrictEqual(
+          Result.ok(
+            "aabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeff1122"
+          )
+        );
+      },
+      error => {
+        fail(error);
+      },
+      () => {
+        done();
+      }
+    );
+  });
+
+  it("execute the redeem action on Ethereum using the right parameters", done => {
+    nock("http://localhost:8000")
+      .get("/swaps/rfc003/")
+      .reply(200, swapsRedeemEtherBitcoin);
+    nock("http://localhost:8000")
+      .get("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/redeem")
+      .reply(200, redeemEther);
+
+    const datastore = getDatastoreThrowsOnAll();
+    const ledgerExecutor = getLedgerExecutorThrowsOnAll();
+    const mockEthereumSendTransactionTo = jest.fn();
+    mockEthereumSendTransactionTo.mockReturnValueOnce(
+      Promise.resolve(emptyTransactionReceipt)
+    );
+    ledgerExecutor.ethereumSendTransactionTo = mockEthereumSendTransactionTo;
+    const actionExecutor = new ActionExecutor(
+      config,
+      datastore,
+      ledgerExecutor
+    );
+    const swap = swapsRedeemEtherBitcoin.entities[0] as Swap;
+
+    const redeemAction = swap.actions.find(
+      action => action.name === "redeem"
+    ) as Action;
+    from(actionExecutor.execute(redeemAction)).subscribe(
+      actionResponse => {
+        expect(actionResponse).toStrictEqual(
+          Result.ok(emptyTransactionReceipt)
+        );
+
+        expect(mockEthereumSendTransactionTo.mock.calls[0].length).toBe(1);
+        // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
+        const argPassed = mockEthereumSendTransactionTo.mock.calls[0][0];
+        expect(argPassed.value).toBeUndefined();
+        expect(argPassed.gasLimit.toString("hex")).toEqual("186a0");
+        expect(argPassed.network).toEqual("regtest");
+        expect(argPassed.to).toEqual(
+          "0x1189128ff5573f6282dbbf1557ed839dab277aeb"
+        );
+        expect(argPassed.data).toBeUndefined();
       },
       error => {
         fail(error);

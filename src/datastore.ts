@@ -1,20 +1,31 @@
 import { Field } from "../gen/siren";
-import { BitcoinWallet } from "./wallets/bitcoin";
+import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
+import { IBitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
-import { Wallets } from "./wallets/wallets";
 
 export interface IDatastore {
   getData: (field: Field) => any;
 }
 
-// TODO: test this
+export interface DatastoreParameters {
+  ethereumWallet?: EthereumWallet;
+  bitcoinWallet?: IBitcoinWallet;
+  bitcoinFeeService?: BitcoinFeeService;
+}
+
 export class Datastore implements IDatastore {
   private readonly ethereumWallet?: EthereumWallet;
-  private readonly bitcoinWallet?: BitcoinWallet;
+  private readonly bitcoinWallet?: IBitcoinWallet;
+  private readonly bitcoinFeeService?: BitcoinFeeService;
 
-  constructor({ ethereumWallet, bitcoinWallet }: Wallets) {
+  constructor({
+    ethereumWallet,
+    bitcoinWallet,
+    bitcoinFeeService
+  }: DatastoreParameters) {
     this.ethereumWallet = ethereumWallet;
     this.bitcoinWallet = bitcoinWallet;
+    this.bitcoinFeeService = bitcoinFeeService;
   }
 
   public async getData(field: Field) {
@@ -32,6 +43,14 @@ export class Datastore implements IDatastore {
       field.class.includes("address")
     ) {
       return await this.bitcoinWallet.getNewAddress();
+    }
+
+    if (
+      this.bitcoinFeeService &&
+      field.class.includes("bitcoin") &&
+      field.class.includes("feePerByte")
+    ) {
+      return await this.bitcoinFeeService.retrieveSatsPerByte();
     }
   }
 }

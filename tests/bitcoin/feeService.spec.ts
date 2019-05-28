@@ -1,13 +1,13 @@
 import nock, { Scope } from "nock";
-import { FeeService } from "../../src/bitcoin/bitcoinFeeService";
+import { BitcoinFeeService } from "../../src/bitcoin/bitcoinFeeService";
 import bitcoinFeeService from "../stubs/bitcoinFeeService.json";
 
-describe("FeeService tests", () => {
-  let feeService: FeeService;
+describe("EthereumFeeService tests", () => {
+  let feeService: BitcoinFeeService;
   let scope: Scope;
 
   beforeEach(() => {
-    feeService = new FeeService(42, "hourFee");
+    feeService = new BitcoinFeeService(42, "hourFee");
     scope = nock("https://bitcoinfees.earn.com")
       .get("/api/v1/fees/recommended")
       .reply(200, bitcoinFeeService);

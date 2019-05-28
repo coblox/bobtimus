@@ -39,20 +39,11 @@
       ],
       "actions": [
         {
-          "name": "accept",
-          "title": "Accept",
-          "method": "POST",
-          "href": "/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/accept",
-          "type": "application/json",
-          "fields": []
-        },
-        {
-          "name": "decline",
-          "title": "Decline",
-          "method": "POST",
-          "href": "/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/decline",
-          "type": "application/json",
-          "fields": []
+          "name": "redeem",
+          "title": "Redeem",
+          "method": "GET",
+          "href": "/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/redeem",
+          "type": "application/json"
         }
       ]
     }

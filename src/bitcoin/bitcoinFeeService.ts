@@ -3,9 +3,9 @@ import request from "request-promise-native";
 
 const log = debug("bobtimus:bitcoin:feeservice");
 
-export class FeeService {
+export class BitcoinFeeService {
   public static default() {
-    return new FeeService(10, "hourFee");
+    return new BitcoinFeeService(10, "hourFee");
   }
 
   private defaultFee: number;
@@ -16,7 +16,7 @@ export class FeeService {
     this.defaultStrategy = defaultStrategy;
   }
 
-  public async retrieveSatsPerByte(strategyName?: string) {
+  public async retrieveSatsPerByte(strategyName?: string): Promise<number> {
     const strategy = strategyName ? strategyName : this.defaultStrategy;
 
     const options = {
@@ -28,11 +28,12 @@ export class FeeService {
 
     try {
       const response = await request(options);
-      const fee = response[strategy];
+      const fee: number = response[strategy];
       if (!fee) {
         log(`Strategy not found ${strategy}`);
         return this.defaultFee;
       }
+      log(`Return fee: ${fee}`);
       return fee;
     } catch (err) {
       log(`Could not retrieve fees from feeservice: ${err}`);

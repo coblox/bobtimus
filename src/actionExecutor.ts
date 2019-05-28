@@ -81,7 +81,7 @@ export class ActionExecutor {
   }
 
   private async executeLedgerAction(action: LedgerAction) {
-    console.log(`Execute Ledger Action: ${JSON.stringify(action)}`);
+    log(`Execute Ledger Action: ${JSON.stringify(action)}`);
     // TODO: check return of rpc calls before saying it's "ok"
     try {
       switch (action.type) {
@@ -115,7 +115,7 @@ export class ActionExecutor {
         }
         case "ethereum-call-contract": {
           const params = {
-            gasLimit: new BN(action.payload.gas_limit),
+            gasLimit: hexToBN(action.payload.gas_limit),
             to: action.payload.contract_address,
             network: action.payload.network
           };

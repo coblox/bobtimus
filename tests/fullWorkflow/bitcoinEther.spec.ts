@@ -6,15 +6,16 @@ import { ActionExecutor } from "../../src/actionExecutor";
 import poll from "../../src/actionPoller";
 import { ActionSelector } from "../../src/actionSelector";
 import { BitcoinCoreRpc } from "../../src/bitcoin/bitcoinCoreRpc";
+import { BitcoinFeeService } from "../../src/bitcoin/bitcoinFeeService";
 import { ComitNode } from "../../src/comitNode";
 import { Config } from "../../src/config";
 import { Datastore } from "../../src/datastore";
+import { EthereumFeeService } from "../../src/ethereum/ethereumFeeService";
+import { LedgerExecutor } from "../../src/ledgerExecutor";
 import { BitcoinWallet } from "../../src/wallets/bitcoin";
 import { EthereumWallet } from "../../src/wallets/ethereum";
-import {
-  emptyTransactionReceipt,
-  getLedgerExecutorThrowsOnAll
-} from "../ledgerExecutor";
+import ethereumFeeServiceResponse from "../stubs/ethereumFeeService.json";
+import ethereumTransactionReceipt from "../stubs/ethereumTransactionReceipt.json";
 import acceptedStub from "./../stubs/accepted.json";
 import swapsAcceptDeclineStub from "./../stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
 import swapsWithFundStub from "./../stubs/bitcoinEther/swapsWithFund.siren.json";
@@ -66,6 +67,14 @@ describe("Alpha Bitcoin/Beta Ether Full workflow tests: ", () => {
   const datastore = new Datastore({ bitcoinWallet, ethereumWallet });
   const actionSelector = new ActionSelector(config);
   const comitNode = new ComitNode(config);
+  const ledgerExecutor = new LedgerExecutor({
+    bitcoinWallet,
+    ethereumWallet,
+    bitcoinBlockchain,
+    bitcoinFeeService: BitcoinFeeService.default(),
+    ethereumFeeService: EthereumFeeService.default()
+  });
+  const actionExecutor = new ActionExecutor(config, datastore, ledgerExecutor);
 
   it("should get actions and accept", done => {
     nock("http://localhost:8000")
@@ -75,12 +84,6 @@ describe("Alpha Bitcoin/Beta Ether Full workflow tests: ", () => {
     nock("http://localhost:8000")
       .post("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/accept")
       .reply(200, acceptedStub);
-
-    const actionExecutor = new ActionExecutor(
-      config,
-      datastore,
-      getLedgerExecutorThrowsOnAll()
-    );
 
     let success = false;
 
@@ -110,7 +113,7 @@ describe("Alpha Bitcoin/Beta Ether Full workflow tests: ", () => {
       );
   });
 
-  it("should get actions and fund", done => {
+  it("should get actions and fund Ether", done => {
     nock("http://localhost:8000")
       .get("/swaps/rfc003")
       .reply(200, swapsWithFundStub);
@@ -119,30 +122,40 @@ describe("Alpha Bitcoin/Beta Ether Full workflow tests: ", () => {
       .get("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/fund")
       .reply(200, fundEtherStub);
 
+    let rpcId = 0;
     nock("http://localhost:8545")
-      .post("/", {
-        jsonrpc: "2.0",
-        id: 0,
-        method: "eth_getTransactionCount",
-        params: ["0x1fed25f1780b9e5b8d74279535fdec4f7fb93b13", "latest"]
+      .post("/", body => {
+        rpcId = body.id;
+        return body.method === "eth_getTransactionCount";
       })
-      .reply(200, { jsonrpc: "2.0", result: "0x0", id: 0 });
+      .reply(200, { jsonrpc: "2.0", result: "0", id: rpcId });
+
+    nock("https://ethgasstation.info")
+      .get("/json/ethgasAPI.json")
+      .reply(200, ethereumFeeServiceResponse);
 
     nock("http://localhost:8545")
-      .post("/", body => console.log(body))
-      .reply(200);
+      .post("/", body => {
+        rpcId = body.id;
+        return body.method === "eth_sendRawTransaction";
+      })
+      .reply(200, {
+        jsonrpc: "2.0",
+        result:
+          "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331",
+        id: rpcId
+      });
 
-    const mockEthereumDeployContract = jest.fn(() => {
-      return Promise.resolve(emptyTransactionReceipt);
-    });
-
-    const ledgerExecutor = getLedgerExecutorThrowsOnAll();
-    ledgerExecutor.ethereumDeployContract = mockEthereumDeployContract;
-    const actionExecutor = new ActionExecutor(
-      config,
-      datastore,
-      ledgerExecutor
-    );
+    nock("http://localhost:8545")
+      .post("/", body => {
+        rpcId = body.id;
+        return body.method === "eth_getTransactionReceipt";
+      })
+      .reply(200, {
+        jsonrpc: "2.0",
+        result: ethereumTransactionReceipt,
+        id: rpcId
+      });
 
     let success = false;
 
@@ -158,7 +171,8 @@ describe("Alpha Bitcoin/Beta Ether Full workflow tests: ", () => {
       .pipe(map(action => actionExecutor.execute(action)))
       .pipe(flatMap(actionResponse => from(actionResponse)))
       .subscribe(
-        () => {
+        res => {
+          expect(res.isOk).toBeTruthy();
           success = true;
         },
         error => {

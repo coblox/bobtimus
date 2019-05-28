@@ -1,9 +1,12 @@
 import { bip32 } from "bitcoinjs-lib";
 import BN from "bn.js";
+import debug from "debug";
 import EthereumTx from "ethereumjs-tx";
 import utils from "ethereumjs-util";
 import Web3 from "web3";
 import { EthereumConfig } from "../config";
+
+const log = debug("bobtimus:wallets:ethereum");
 
 interface SharedTransactionParams {
   value?: BN;
@@ -113,6 +116,7 @@ export class EthereumWallet {
     const serializedTx = tx.serialize();
     const hex = "0x" + serializedTx.toString("hex");
 
+    log(`Invoking web3.eth.sendSignedTransaction with ${hex}`);
     return this.web3.eth.sendSignedTransaction(hex);
   }
 }

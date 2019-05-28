@@ -54,7 +54,17 @@ interface UsedAddresses {
   [address: string]: DerivationParameters;
 }
 
-export class BitcoinWallet {
+export interface IBitcoinWallet {
+  getNewAddress(): string;
+  payToAddress(
+    address: string,
+    amount: Satoshis,
+    feeSatPerByte: Satoshis
+  ): Promise<string>;
+  getNetwork(): Network;
+}
+
+export class BitcoinWallet implements IBitcoinWallet {
   /// accountIndex is the account number (hardened) that will be passed to the bitcoin Wallet
   /// ie, m/i'. Best practice to use different accounts for different blockchain in case an extended
   /// private key get leaked.
@@ -113,12 +123,9 @@ export class BitcoinWallet {
     return address;
   }
 
-  // m/0'/0'/* m/0'/1'/*
-
-  // k/0' k/1'
-
-  // k = m/0'
-  // k' = m/1'
+  public getNetwork(): Network {
+    return this.network;
+  }
 
   public async refreshUtxo() {
     // `.neutered()` removes the private key, meaning that we passed the extended

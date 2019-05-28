@@ -5,15 +5,14 @@ import { ActionExecutor } from "./actionExecutor";
 import poll from "./actionPoller";
 import { ActionSelector } from "./actionSelector";
 import { BitcoinCoreRpc } from "./bitcoin/bitcoinCoreRpc";
-import { FeeService as BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
+import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import { ComitNode } from "./comitNode";
 import { Config } from "./config";
 import { Datastore } from "./datastore";
-import { FeeService as EthereumFeeService } from "./ethereum/ethereumFeeService";
-import { LedgerExecutor, Ledgers } from "./ledgerExecutor";
+import { EthereumFeeService } from "./ethereum/ethereumFeeService";
+import { LedgerExecutor } from "./ledgerExecutor";
 import { BitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
-import { Wallets } from "./wallets/wallets";
 
 const log = debug("bobtimus:index");
 
@@ -22,8 +21,8 @@ const comitNode = new ComitNode(config);
 // TODO: switch case to select correct Bitcoin backend
 // Probably to be done by a helper function in bitcoin/blockchain.ts
 
-const wallets: Wallets = {};
-const ledgers: Ledgers = {};
+const wallets = {};
+const ledgerExecutorParams = {};
 
 let bitcoinFeeService = BitcoinFeeService.default();
 let ethereumFeeService = EthereumFeeService.default();
@@ -36,12 +35,15 @@ if (config.bitcoinConfig) {
     config.seed,
     0
   );
-  Object.assign(wallets, { bitcoinWallet });
-  Object.assign(ledgers, { bitcoinBlockchain });
   bitcoinFeeService = new BitcoinFeeService(
     config.bitcoinConfig.fee.defaultFee,
     config.bitcoinConfig.fee.strategy
   );
+  Object.assign(ledgerExecutorParams, {
+    bitcoinFeeService,
+    bitcoinBlockchain,
+    bitcoinWallet
+  });
 }
 
 if (config.ethereumConfig) {
@@ -50,20 +52,15 @@ if (config.ethereumConfig) {
     config.seed,
     1
   );
-  Object.assign(wallets, { ethereumWallet });
   ethereumFeeService = new EthereumFeeService(
     config.ethereumConfig.fee.defaultFee,
     config.ethereumConfig.fee.strategy
   );
+  Object.assign(ledgerExecutorParams, { ethereumWallet, ethereumFeeService });
 }
 
 const datastore = new Datastore(wallets);
-const ledgerExecutor = new LedgerExecutor(
-  wallets,
-  ledgers,
-  bitcoinFeeService,
-  ethereumFeeService
-);
+const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
 const actionSelector = new ActionSelector(config);
 const actionExecutor = new ActionExecutor(config, datastore, ledgerExecutor);
 

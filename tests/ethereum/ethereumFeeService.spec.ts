@@ -1,14 +1,14 @@
 import BN = require("bn.js");
 import nock, { Scope } from "nock";
-import { FeeService } from "../../src/ethereum/ethereumFeeService";
+import { EthereumFeeService } from "../../src/ethereum/ethereumFeeService";
 import ethereumFeeServiceResponse from "../stubs/ethereumFeeService.json";
 
-describe("FeeService tests", () => {
-  let feeService: FeeService;
+describe("EthereumFeeService tests", () => {
+  let feeService: EthereumFeeService;
   let scope: Scope;
 
   beforeEach(() => {
-    feeService = new FeeService(new BN(42), "average");
+    feeService = new EthereumFeeService(new BN(42), "average");
     scope = nock("https://ethgasstation.info")
       .get("/json/ethgasAPI.json")
       .reply(200, ethereumFeeServiceResponse);

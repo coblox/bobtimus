@@ -28,8 +28,11 @@ describe("Bitcoin wallet", () => {
       });
 
       const wallet = new BitcoinWallet(
-        bip32.fromBase58(
-          "tprv8ZgxMBicQKsPdSqbVeq56smMTGXHdLACXLvb5YXyk3zv4TPeTaQ6BZWeFxoVeikyfJD5vuYsKjTKaurDZDDmZGzGDMMxXzAZgAYQSrpmoUH",
+        bip32.fromSeed(
+          Buffer.from(
+            "94cfb81f135f8d85d787a84173cf1e9fc51792f3723e2b93a162fa57a03370fd80971d026eed300544116dfee4d5b375c77ea86b65dfd44e2ecda58044684fe0",
+            "hex"
+          ),
           networks.regtest
         ),
         blockchain,

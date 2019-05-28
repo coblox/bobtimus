@@ -4,9 +4,9 @@ import request from "request-promise-native";
 
 const log = debug("bobtimus:ethereum:feeservice");
 
-export class FeeService {
+export class EthereumFeeService {
   public static default() {
-    return new FeeService(new BN(10), "average");
+    return new EthereumFeeService(new BN(10), "average");
   }
 
   private defaultGasPrice: BN;
@@ -17,7 +17,7 @@ export class FeeService {
     this.defaultStrategy = defaultStrategy;
   }
 
-  public async retrieveGasPrice(strategyName?: string) {
+  public async retrieveGasPrice(strategyName?: string): Promise<BN> {
     const strategy = strategyName ? strategyName : this.defaultStrategy;
 
     const options = {

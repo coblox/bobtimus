@@ -1,13 +1,15 @@
 import { Network, Transaction } from "bitcoinjs-lib";
 import BN = require("bn.js");
+import debug from "debug";
 import { TransactionReceipt } from "web3-core/types";
-import { FeeService as BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
+import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import { BitcoinBlockchain, Satoshis } from "./bitcoin/blockchain";
 import { hexToBuffer } from "./comitNode";
-import { FeeService as EthereumFeeService } from "./ethereum/ethereumFeeService";
-import { BitcoinWallet } from "./wallets/bitcoin";
+import { EthereumFeeService } from "./ethereum/ethereumFeeService";
+import { IBitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
-import { Wallets } from "./wallets/wallets";
+
+const log = debug("bobtimus:ledgerExecutor");
 
 export interface EthereumSharedTransactionParams {
   value?: BN;
@@ -24,8 +26,12 @@ export interface EthereumDeployContractParams {
   data: Buffer;
 }
 
-export interface Ledgers {
+export interface LedgerExecutorParams {
   bitcoinBlockchain?: BitcoinBlockchain;
+  bitcoinWallet?: IBitcoinWallet;
+  ethereumWallet?: EthereumWallet;
+  bitcoinFeeService?: BitcoinFeeService;
+  ethereumFeeService?: EthereumFeeService;
 }
 
 export interface ILedgerExecutor {
@@ -43,19 +49,21 @@ export interface ILedgerExecutor {
   ) => Promise<TransactionReceipt>;
 }
 
+// TODO: consider testing this
 export class LedgerExecutor implements ILedgerExecutor {
   private readonly bitcoinBlockchain?: BitcoinBlockchain;
-  private readonly bitcoinWallet?: BitcoinWallet;
+  private readonly bitcoinWallet?: IBitcoinWallet;
   private readonly ethereumWallet?: EthereumWallet;
-  private readonly bitcoinFeeService: BitcoinFeeService;
-  private readonly ethereumFeeService: EthereumFeeService;
+  private readonly bitcoinFeeService?: BitcoinFeeService;
+  private readonly ethereumFeeService?: EthereumFeeService;
 
-  constructor(
-    { bitcoinWallet, ethereumWallet }: Wallets,
-    { bitcoinBlockchain }: Ledgers,
-    bitcoinFeeService: BitcoinFeeService,
-    ethereumFeeService: EthereumFeeService
-  ) {
+  constructor({
+    bitcoinWallet,
+    ethereumWallet,
+    bitcoinBlockchain,
+    bitcoinFeeService,
+    ethereumFeeService
+  }: LedgerExecutorParams) {
     this.bitcoinBlockchain = bitcoinBlockchain;
     this.bitcoinWallet = bitcoinWallet;
     this.ethereumWallet = ethereumWallet;
@@ -68,11 +76,17 @@ export class LedgerExecutor implements ILedgerExecutor {
     amount: Satoshis,
     network: Network
   ) {
-    const bitcoinWallet = this.validateBitcoinWallet(network);
+    const { bitcoinWallet, bitcoinFeeService } = this.validateBitcoinWallet(
+      network
+    );
 
-    const satsPerByte = await this.bitcoinFeeService.retrieveSatsPerByte();
+    const satsPerByte: number = await bitcoinFeeService.retrieveSatsPerByte();
 
-    return bitcoinWallet.payToAddress(address, amount, satsPerByte);
+    return bitcoinWallet.payToAddress(
+      address,
+      amount,
+      new Satoshis(satsPerByte)
+    );
   }
 
   public bitcoinBroadcastTransaction(transaction: Transaction) {
@@ -84,20 +98,29 @@ export class LedgerExecutor implements ILedgerExecutor {
   public async ethereumDeployContract(
     params: EthereumSharedTransactionParams & EthereumDeployContractParams
   ) {
-    const ethereumWallet = this.validateEthereumWallet(params.network);
+    const { ethereumWallet, ethereumFeeService } = this.validateEthereumWallet(
+      params.network
+    );
 
-    const gasPrice = await this.ethereumFeeService.retrieveGasPrice();
+    const gasPrice = await ethereumFeeService.retrieveGasPrice();
 
     const parameters = Object.assign(params, { gasPrice });
+    log(
+      `Invoking deployContract on Ethereum Wallet with ${JSON.stringify(
+        parameters
+      )}`
+    );
     return ethereumWallet.deployContract(parameters);
   }
 
   public async ethereumSendTransactionTo(
     params: EthereumSharedTransactionParams & EthereumSendTransactionToParams
   ) {
-    const ethereumWallet = this.validateEthereumWallet(params.network);
+    const { ethereumWallet, ethereumFeeService } = this.validateEthereumWallet(
+      params.network
+    );
 
-    const gasPrice = await this.ethereumFeeService.retrieveGasPrice();
+    const gasPrice = await ethereumFeeService.retrieveGasPrice();
 
     const parameters = {
       gasPrice,
@@ -107,6 +130,7 @@ export class LedgerExecutor implements ILedgerExecutor {
     if (params.data) {
       Object.assign(params, { data: hexToBuffer(params.data) });
     }
+    log(`Invoking sendTransaction on Ethereum Wallet with ${parameters}`);
     return ethereumWallet.sendTransactionTo(parameters);
   }
 
@@ -114,14 +138,18 @@ export class LedgerExecutor implements ILedgerExecutor {
     if (!this.bitcoinWallet) {
       throw new Error(`Bitcoin Wallet is not available.`);
     }
-    if (this.bitcoinWallet.network !== network) {
+    if (!this.bitcoinFeeService) {
+      throw new Error(`Bitcoin Fee Service is not available.`);
+    }
+    if (this.bitcoinWallet.getNetwork() !== network) {
       throw new Error(
-        `Incompatible Bitcoin network. Received: ${network}, but wallet is ${
-          this.bitcoinWallet.network
-        }`
+        `Incompatible Bitcoin network. Received: ${network}, but wallet is ${this.bitcoinWallet.getNetwork()}`
       );
     }
-    return this.bitcoinWallet;
+    return {
+      bitcoinWallet: this.bitcoinWallet,
+      bitcoinFeeService: this.bitcoinFeeService
+    };
   }
 
   private validateBitcoinBlockchain() {
@@ -136,6 +164,9 @@ export class LedgerExecutor implements ILedgerExecutor {
     if (!this.ethereumWallet) {
       throw new Error(`Ethereum Wallet is not available.`);
     }
+    if (!this.ethereumFeeService) {
+      throw new Error(`Ethereum Fee Service is not available.`);
+    }
     if (this.ethereumWallet.network !== network) {
       throw new Error(
         `Incompatible Ethereum network. Received: ${network}, but wallet is ${
@@ -143,6 +174,9 @@ export class LedgerExecutor implements ILedgerExecutor {
         }`
       );
     }
-    return this.ethereumWallet;
+    return {
+      ethereumWallet: this.ethereumWallet,
+      ethereumFeeService: this.ethereumFeeService
+    };
   }
 }

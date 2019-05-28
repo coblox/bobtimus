@@ -41,7 +41,7 @@
     "rxjs": "^6.5.1",
     "toml": "^3.0.0",
     "urijs": "^1.19.1",
-    "web3": "=1.0.0-beta.48"
+    "web3": "^1.0.0-beta.55"
   },
   "devDependencies": {
     "@types/big.js": "^4.0.5",

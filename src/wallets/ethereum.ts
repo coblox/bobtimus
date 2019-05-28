@@ -34,6 +34,9 @@ export class EthereumWallet {
     this.web3 = web3;
     this.account = "0x" + utils.privateToAddress(privateKey).toString("hex");
     this.privateKey = privateKey;
+
+    // Why? Because: https://github.com/ethereum/web3.js/issues/2822
+    this.web3.eth.transactionConfirmationBlocks = 1;
   }
 
   public async sendTransactionTo(

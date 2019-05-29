@@ -8,7 +8,7 @@ import { ActionExecutor } from "../src/actionExecutor";
 import { Satoshis } from "../src/bitcoin/blockchain";
 import { ComitNode, Swap } from "../src/comitNode";
 import { Config } from "../src/config";
-import { IDatastore } from "../src/datastore";
+import { Datastore } from "../src/datastore";
 import { getDummDatastore } from "./doubles/datastore";
 import {
   dummyTransactionReceipt,
@@ -64,7 +64,7 @@ describe("Action executor tests: ", () => {
       .post("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/accept")
       .reply(200, acceptedStub);
 
-    const datastore: IDatastore = {
+    const datastore: Datastore = {
       getData: (field: Field) => {
         expect(field).toHaveProperty("name", "beta_ledger_refund_identity");
         expect(field).toHaveProperty("class", ["address", "ethereum"]);

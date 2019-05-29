@@ -8,10 +8,10 @@ import { BitcoinCoreRpc } from "./bitcoin/bitcoinCoreRpc";
 import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import { ComitNode } from "./comitNode";
 import { Config } from "./config";
-import { Datastore } from "./datastore";
+import { InternalDatastore } from "./datastore";
 import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import { LedgerExecutor } from "./ledgerExecutor";
-import { BitcoinWallet } from "./wallets/bitcoin";
+import { InternalBitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
 
 const log = debug("bobtimus:index");
@@ -29,7 +29,7 @@ let ethereumFeeService = EthereumGasPriceService.default();
 
 if (config.bitcoinConfig) {
   const bitcoinBlockchain = BitcoinCoreRpc.fromConfig(config.bitcoinConfig);
-  const bitcoinWallet = BitcoinWallet.fromConfig(
+  const bitcoinWallet = InternalBitcoinWallet.fromConfig(
     config.bitcoinConfig,
     bitcoinBlockchain,
     config.seed,
@@ -59,7 +59,7 @@ if (config.ethereumConfig) {
   Object.assign(ledgerExecutorParams, { ethereumWallet, ethereumFeeService });
 }
 
-const datastore = new Datastore(wallets);
+const datastore = new InternalDatastore(wallets);
 const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
 const actionSelector = new ActionSelector(config);
 const actionExecutor = new ActionExecutor(comitNode, datastore, ledgerExecutor);

@@ -5,19 +5,19 @@ import debug from "debug";
 import { Action } from "../gen/siren";
 import { networkFromString, Satoshis } from "./bitcoin/blockchain";
 import { ComitNode, hexToBN, hexToBuffer, LedgerAction } from "./comitNode";
-import { IDatastore } from "./datastore";
+import { Datastore } from "./datastore";
 import { ILedgerExecutor } from "./ledgerExecutor";
 
 const log = debug("bobtimus:actionExecutor");
 
 export class ActionExecutor {
-  private datastore: IDatastore;
+  private datastore: Datastore;
   private comitClient: ComitNode;
   private ledgerExecutor: ILedgerExecutor;
 
   constructor(
     comitClient: ComitNode,
-    datastore: IDatastore,
+    datastore: Datastore,
     ledgerExecutor: ILedgerExecutor
   ) {
     this.datastore = datastore;
@@ -45,7 +45,7 @@ export class ActionExecutor {
       }
     }
 
-    if (action.type !== "application/json") {
+    if (action.method === "POST" && action.type !== "application/json") {
       throw new Error("Only 'application/json' action type is supported.");
     }
     return this.comitClient.request(action.method, action.href, data);

@@ -1,7 +1,7 @@
 import { Field } from "../../gen/siren";
-import { IDatastore } from "../../src/datastore";
+import { Datastore } from "../../src/datastore";
 
-export function getDummDatastore(): IDatastore {
+export function getDummDatastore(): Datastore {
   return {
     getData: (field: Field) => {
       throw new Error(

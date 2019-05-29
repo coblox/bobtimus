@@ -54,7 +54,7 @@ interface UsedAddresses {
   [address: string]: DerivationParameters;
 }
 
-export interface IBitcoinWallet {
+export interface BitcoinWallet {
   getNewAddress(): string;
   payToAddress(
     address: string,
@@ -64,7 +64,7 @@ export interface IBitcoinWallet {
   getNetwork(): Network;
 }
 
-export class BitcoinWallet implements IBitcoinWallet {
+export class InternalBitcoinWallet implements BitcoinWallet {
   /// accountIndex is the account number (hardened) that will be passed to the bitcoin Wallet
   /// ie, m/i'. Best practice to use different accounts for different blockchain in case an extended
   /// private key get leaked.
@@ -76,7 +76,7 @@ export class BitcoinWallet implements IBitcoinWallet {
   ) {
     const network = networkFromString(bitcoinConfig.network);
     const hdRoot = bip32.fromSeed(seed, network).deriveHardened(accountIndex);
-    return new BitcoinWallet(hdRoot, bitcoinBlockchain, network);
+    return new InternalBitcoinWallet(hdRoot, bitcoinBlockchain, network);
   }
   private readonly network: Network;
   private readonly blockchain: BitcoinBlockchain;

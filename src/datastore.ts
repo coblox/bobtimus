@@ -1,21 +1,21 @@
 import { Field } from "../gen/siren";
 import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
-import { IBitcoinWallet } from "./wallets/bitcoin";
+import { BitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
 
-export interface IDatastore {
+export interface Datastore {
   getData: (field: Field) => any;
 }
 
 export interface DatastoreParameters {
   ethereumWallet?: EthereumWallet;
-  bitcoinWallet?: IBitcoinWallet;
+  bitcoinWallet?: BitcoinWallet;
   bitcoinFeeService?: BitcoinFeeService;
 }
 
-export class Datastore implements IDatastore {
+export class InternalDatastore implements Datastore {
   private readonly ethereumWallet?: EthereumWallet;
-  private readonly bitcoinWallet?: IBitcoinWallet;
+  private readonly bitcoinWallet?: BitcoinWallet;
   private readonly bitcoinFeeService?: BitcoinFeeService;
 
   constructor({

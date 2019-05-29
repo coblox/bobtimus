@@ -9,10 +9,10 @@ import { BitcoinCoreRpc } from "../../src/bitcoin/bitcoinCoreRpc";
 import { BitcoinFeeService } from "../../src/bitcoin/bitcoinFeeService";
 import { ComitNode } from "../../src/comitNode";
 import { Config } from "../../src/config";
-import { Datastore } from "../../src/datastore";
+import { InternalDatastore } from "../../src/datastore";
 import { EthereumGasPriceService } from "../../src/ethereum/ethereumGasPriceService";
 import { LedgerExecutor } from "../../src/ledgerExecutor";
-import { BitcoinWallet } from "../../src/wallets/bitcoin";
+import { InternalBitcoinWallet } from "../../src/wallets/bitcoin";
 import { EthereumWallet } from "../../src/wallets/ethereum";
 import ethereumGasPriceServiceResponse from "../stubs/ethereumGasPriceService.json";
 import ethereumTransactionReceipt from "../stubs/ethereumTransactionReceipt.json";
@@ -51,7 +51,7 @@ describe("Alpha Bitcoin/Beta Ether Full workflow tests: ", () => {
   });
   // @ts-ignore: config.bitcoinConfig is expected to exist
   const bitcoinBlockchain = BitcoinCoreRpc.fromConfig(config.bitcoinConfig);
-  const bitcoinWallet = BitcoinWallet.fromConfig(
+  const bitcoinWallet = InternalBitcoinWallet.fromConfig(
     // @ts-ignore: config.bitcoinConfig is expected to exist
     config.bitcoinConfig,
     bitcoinBlockchain,
@@ -64,7 +64,7 @@ describe("Alpha Bitcoin/Beta Ether Full workflow tests: ", () => {
     config.seed,
     1
   );
-  const datastore = new Datastore({ bitcoinWallet, ethereumWallet });
+  const datastore = new InternalDatastore({ bitcoinWallet, ethereumWallet });
   const actionSelector = new ActionSelector(config);
   const comitNode = new ComitNode(config);
   const ledgerExecutor = new LedgerExecutor({

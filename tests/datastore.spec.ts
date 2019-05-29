@@ -2,12 +2,12 @@ import BN = require("bn.js");
 import { BitcoinCoreRpc } from "../src/bitcoin/bitcoinCoreRpc";
 import { BitcoinFeeService } from "../src/bitcoin/bitcoinFeeService";
 import { Config } from "../src/config";
-import { Datastore } from "../src/datastore";
-import { BitcoinWallet } from "../src/wallets/bitcoin";
+import { InternalDatastore } from "../src/datastore";
+import { InternalBitcoinWallet } from "../src/wallets/bitcoin";
 import { EthereumWallet } from "../src/wallets/ethereum";
 
-describe("Datastore tests", () => {
-  let bitcoinWallet: BitcoinWallet;
+describe("InternalDatastore tests", () => {
+  let bitcoinWallet: InternalBitcoinWallet;
   let ethereumWallet: EthereumWallet;
   let bitcoinFeeService: BitcoinFeeService;
 
@@ -41,7 +41,7 @@ describe("Datastore tests", () => {
     });
     // @ts-ignore: config.bitcoinConfig is expected to exist
     const bitcoinBlockchain = BitcoinCoreRpc.fromConfig(config.bitcoinConfig);
-    bitcoinWallet = BitcoinWallet.fromConfig(
+    bitcoinWallet = InternalBitcoinWallet.fromConfig(
       // @ts-ignore: config.bitcoinConfig is expected to exist
       config.bitcoinConfig,
       bitcoinBlockchain,
@@ -58,7 +58,7 @@ describe("Datastore tests", () => {
   });
 
   it("Returns an Ethereum address when classes are `ethereum` and `address`", async () => {
-    const datastore = new Datastore({ ethereumWallet });
+    const datastore = new InternalDatastore({ ethereumWallet });
     const data = await datastore.getData({
       name: "Some field",
       class: ["ethereum", "address"]
@@ -67,7 +67,7 @@ describe("Datastore tests", () => {
   });
 
   it("Returns a Bitcoin address when classes are `undefined` and `address`", async () => {
-    const datastore = new Datastore({ bitcoinWallet });
+    const datastore = new InternalDatastore({ bitcoinWallet });
     const data = await datastore.getData({
       name: "Some field",
       class: ["bitcoin", "address"]
@@ -76,7 +76,7 @@ describe("Datastore tests", () => {
   });
 
   it("Returns a Fee per byte value when classes are `bitcoin` and `feePerByte`", async () => {
-    const datastore = new Datastore({ bitcoinFeeService });
+    const datastore = new InternalDatastore({ bitcoinFeeService });
     const data = await datastore.getData({
       name: "Some field",
       class: ["bitcoin", "feePerByte"]
@@ -85,7 +85,7 @@ describe("Datastore tests", () => {
   });
 
   it("Returns undefined when the classes are unknown", async () => {
-    const datastore = new Datastore({
+    const datastore = new InternalDatastore({
       bitcoinWallet,
       ethereumWallet,
       bitcoinFeeService

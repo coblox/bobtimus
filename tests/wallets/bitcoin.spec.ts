@@ -3,7 +3,7 @@ import Client from "bitcoin-core";
 import { bip32, networks } from "bitcoinjs-lib";
 import { BitcoinCoreRpc } from "../../src/bitcoin/bitcoinCoreRpc";
 import { Satoshis } from "../../src/bitcoin/blockchain";
-import { BitcoinWallet } from "../../src/wallets/bitcoin";
+import { InternalBitcoinWallet } from "../../src/wallets/bitcoin";
 import bitcoindTestContainer from "../containers/bitcoindTestContainer";
 import containerTest from "../containerTest";
 import sleep from "../sleep";
@@ -27,7 +27,7 @@ describe("Bitcoin wallet", () => {
         port
       });
 
-      const wallet = new BitcoinWallet(
+      const wallet = new InternalBitcoinWallet(
         bip32.fromSeed(
           Buffer.from(
             "94cfb81f135f8d85d787a84173cf1e9fc51792f3723e2b93a162fa57a03370fd80971d026eed300544116dfee4d5b375c77ea86b65dfd44e2ecda58044684fe0",
@@ -71,7 +71,7 @@ describe("Bitcoin wallet", () => {
         port
       });
 
-      const wallet = new BitcoinWallet(
+      const wallet = new InternalBitcoinWallet(
         bip32.fromBase58(
           "tprv8ZgxMBicQKsPdSqbVeq56smMTGXHdLACXLvb5YXyk3zv4TPeTaQ6BZWeFxoVeikyfJD5vuYsKjTKaurDZDDmZGzGDMMxXzAZgAYQSrpmoUH",
           networks.regtest

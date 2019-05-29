@@ -1,7 +1,7 @@
 import { networks } from "bitcoinjs-lib";
-import { IBitcoinWallet } from "../../src/wallets/bitcoin";
+import { BitcoinWallet } from "../../src/wallets/bitcoin";
 
-export function getDummyBitcoinWallet(): IBitcoinWallet {
+export function getDummyBitcoinWallet(): BitcoinWallet {
   return {
     getNetwork() {
       return networks.regtest;

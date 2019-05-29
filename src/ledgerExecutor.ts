@@ -6,7 +6,7 @@ import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import { BitcoinBlockchain, Satoshis } from "./bitcoin/blockchain";
 import { hexToBuffer } from "./comitNode";
 import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
-import { IBitcoinWallet } from "./wallets/bitcoin";
+import { BitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
 
 const log = debug("bobtimus:ledgerExecutor");
@@ -28,7 +28,7 @@ interface EthereumDeployContractParams {
 
 export interface LedgerExecutorParams {
   bitcoinBlockchain?: BitcoinBlockchain;
-  bitcoinWallet?: IBitcoinWallet;
+  bitcoinWallet?: BitcoinWallet;
   ethereumWallet?: EthereumWallet;
   bitcoinFeeService?: BitcoinFeeService;
   ethereumFeeService?: EthereumGasPriceService;
@@ -52,7 +52,7 @@ export interface ILedgerExecutor {
 // TODO: consider testing this
 export class LedgerExecutor implements ILedgerExecutor {
   private readonly bitcoinBlockchain?: BitcoinBlockchain;
-  private readonly bitcoinWallet?: IBitcoinWallet;
+  private readonly bitcoinWallet?: BitcoinWallet;
   private readonly ethereumWallet?: EthereumWallet;
   private readonly bitcoinFeeService?: BitcoinFeeService;
   private readonly ethereumFeeService?: EthereumGasPriceService;

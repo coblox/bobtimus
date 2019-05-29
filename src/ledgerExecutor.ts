@@ -11,18 +11,18 @@ import { EthereumWallet } from "./wallets/ethereum";
 
 const log = debug("bobtimus:ledgerExecutor");
 
-export interface EthereumSharedTransactionParams {
+interface EthereumSharedTransactionParams {
   value?: BN;
   gasLimit: BN;
   network: string;
 }
 
-export interface EthereumSendTransactionToParams {
+interface EthereumSendTransactionToParams {
   to: string;
   data?: string;
 }
 
-export interface EthereumDeployContractParams {
+interface EthereumDeployContractParams {
   data: Buffer;
 }
 

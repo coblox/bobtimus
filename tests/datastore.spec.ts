@@ -1,7 +1,7 @@
 import BN = require("bn.js");
 import { BitcoinCoreRpc } from "../src/bitcoin/bitcoinCoreRpc";
 import { BitcoinFeeService } from "../src/bitcoin/bitcoinFeeService";
-import { Config } from "../src/config";
+import { BitcoinConfig, Config } from "../src/config";
 import { InternalDatastore } from "../src/datastore";
 import { InternalBitcoinWallet } from "../src/wallets/bitcoin";
 import { EthereumWallet } from "../src/wallets/ethereum";
@@ -39,11 +39,10 @@ describe("InternalDatastore tests", () => {
         }
       }
     });
-    // @ts-ignore: config.bitcoinConfig is expected to exist
-    const bitcoinBlockchain = BitcoinCoreRpc.fromConfig(config.bitcoinConfig);
+    const bitcoinConfig = config.bitcoinConfig as BitcoinConfig;
+    const bitcoinBlockchain = BitcoinCoreRpc.fromConfig(bitcoinConfig);
     bitcoinWallet = InternalBitcoinWallet.fromConfig(
-      // @ts-ignore: config.bitcoinConfig is expected to exist
-      config.bitcoinConfig,
+      bitcoinConfig,
       bitcoinBlockchain,
       config.seed,
       0

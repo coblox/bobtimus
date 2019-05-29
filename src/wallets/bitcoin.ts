@@ -78,7 +78,7 @@ export class BitcoinWallet implements IBitcoinWallet {
     const hdRoot = bip32.fromSeed(seed, network).deriveHardened(accountIndex);
     return new BitcoinWallet(hdRoot, bitcoinBlockchain, network);
   }
-  public readonly network: Network;
+  private readonly network: Network;
   private readonly blockchain: BitcoinBlockchain;
   private readonly hdRoot: BIP32Interface;
   private readonly usedAddresses: UsedAddresses;

@@ -4,7 +4,7 @@ import {
   Utxo
 } from "../../src/bitcoin/blockchain";
 
-export class MockBitcoinBlockchain implements BitcoinBlockchain {
+export default class MockBitcoinBlockchain implements BitcoinBlockchain {
   public broadcastTransaction(): Promise<string> {
     return Promise.resolve(
       "1111111111111111111111111111111111111111111111111111111111111111"

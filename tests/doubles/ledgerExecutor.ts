@@ -1,21 +1,19 @@
 import { TransactionReceipt } from "web3-core/types";
 import { ILedgerExecutor } from "../../src/ledgerExecutor";
 
-export function getDummyLedgerExecutor(): ILedgerExecutor {
-  return {
-    bitcoinBroadcastTransaction: () => {
-      throw new Error(`bitcoinBroadcastTransaction should not be called`);
-    },
-    bitcoinPayToAddress: () => {
-      throw new Error(`bitcoinPayToAddress should not be called`);
-    },
-    ethereumDeployContract: () => {
-      throw new Error(`ethereumDeployContract should not be called`);
-    },
-    ethereumSendTransactionTo: () => {
-      throw new Error(`ethereumSendTransactionTo should not be called`);
-    }
-  };
+export default class DummyLedgerExecutor implements ILedgerExecutor {
+  public bitcoinBroadcastTransaction(): Promise<string> {
+    throw new Error(`bitcoinBroadcastTransaction should not be called`);
+  }
+  public bitcoinPayToAddress(): Promise<string> {
+    throw new Error(`bitcoinPayToAddress should not be called`);
+  }
+  public ethereumDeployContract(): Promise<TransactionReceipt> {
+    throw new Error(`ethereumDeployContract should not be called`);
+  }
+  public ethereumSendTransactionTo(): Promise<TransactionReceipt> {
+    throw new Error(`ethereumSendTransactionTo should not be called`);
+  }
 }
 
 export const dummyTransactionReceipt: TransactionReceipt = {

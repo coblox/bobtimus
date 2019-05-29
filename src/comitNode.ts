@@ -137,14 +137,12 @@ export function hexToBuffer(hex: string) {
   if (!hex) {
     return Buffer.alloc(0);
   }
-  let expectedLength = hex.length / 2;
-  let buf;
   if (hex.startsWith("0x")) {
-    buf = Buffer.from(hex.substring(2), "hex");
-    expectedLength = (hex.length - 2) / 2;
-  } else {
-    buf = Buffer.from(hex, "hex");
+    hex = hex.substring(2);
   }
+  const expectedLength = hex.length / 2;
+  const buf = Buffer.from(hex, "hex");
+
   // `Buffer.from` decode the string until it can't so if hex
   // starts with valid hex characters but is actually invalid then
   // Buffer.from will still return a non-empty result

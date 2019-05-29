@@ -6,7 +6,7 @@ import { from } from "rxjs";
 import { Action, Field } from "../gen/siren";
 import { ActionExecutor } from "../src/actionExecutor";
 import { Satoshis } from "../src/bitcoin/blockchain";
-import { Swap } from "../src/comitNode";
+import { ComitNode, Swap } from "../src/comitNode";
 import { Config } from "../src/config";
 import { IDatastore } from "../src/datastore";
 import { getDatastoreThrowsOnAll } from "./mocks/datastore";
@@ -53,6 +53,8 @@ const config = new Config({
   }
 });
 
+const comitNode = new ComitNode(config);
+
 describe("Action executor tests: ", () => {
   it("should post accept action and get stubbed response", done => {
     nock("http://localhost:8000")
@@ -70,7 +72,7 @@ describe("Action executor tests: ", () => {
       }
     };
     const actionTriggerer = new ActionExecutor(
-      config,
+      comitNode,
       datastore,
       getLedgerExecutorThrowsOnAll()
     );
@@ -109,7 +111,7 @@ describe("Ledger action execution tests:", () => {
     const ledgerExecutor = getLedgerExecutorThrowsOnAll();
     ledgerExecutor.ethereumDeployContract = mockEthereumDeployContract;
     const actionExecutor = new ActionExecutor(
-      config,
+      comitNode,
       getDatastoreThrowsOnAll(),
       ledgerExecutor
     );
@@ -171,7 +173,7 @@ describe("Ledger action execution tests:", () => {
     const ledgerExecutor = getLedgerExecutorThrowsOnAll();
     ledgerExecutor.bitcoinPayToAddress = mockBitcoinPayToAddress;
     const actionExecutor = new ActionExecutor(
-      config,
+      comitNode,
       getDatastoreThrowsOnAll(),
       ledgerExecutor
     );
@@ -232,7 +234,7 @@ describe("Ledger action execution tests:", () => {
     const ledgerExecutor = getLedgerExecutorThrowsOnAll();
     ledgerExecutor.bitcoinBroadcastTransaction = mockBitcoinBroadcastTransaction;
     const actionExecutor = new ActionExecutor(
-      config,
+      comitNode,
       datastore,
       ledgerExecutor
     );
@@ -274,7 +276,7 @@ describe("Ledger action execution tests:", () => {
     );
     ledgerExecutor.ethereumSendTransactionTo = mockEthereumSendTransactionTo;
     const actionExecutor = new ActionExecutor(
-      config,
+      comitNode,
       datastore,
       ledgerExecutor
     );

@@ -62,7 +62,7 @@ if (config.ethereumConfig) {
 const datastore = new Datastore(wallets);
 const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
 const actionSelector = new ActionSelector(config);
-const actionExecutor = new ActionExecutor(config, datastore, ledgerExecutor);
+const actionExecutor = new ActionExecutor(comitNode, datastore, ledgerExecutor);
 
 poll(comitNode, timer(0, 500))
   .pipe(map(swap => actionSelector.selectAction(swap)))

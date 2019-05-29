@@ -77,7 +77,7 @@ describe("Alpha Ether/Beta Bitcoin Full workflow tests: ", () => {
     });
     const datastore = new Datastore({ ethereumWallet, bitcoinWallet });
     const actionExecutor = new ActionExecutor(
-      config,
+      comitNode,
       datastore,
       ledgerExecutor
     );
@@ -135,7 +135,7 @@ describe("Alpha Ether/Beta Bitcoin Full workflow tests: ", () => {
     });
     const datastore = new Datastore({ ethereumWallet, bitcoinWallet });
     const actionExecutor = new ActionExecutor(
-      config,
+      comitNode,
       datastore,
       ledgerExecutor
     );

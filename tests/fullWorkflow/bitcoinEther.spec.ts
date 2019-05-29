@@ -74,7 +74,11 @@ describe("Alpha Bitcoin/Beta Ether Full workflow tests: ", () => {
     bitcoinFeeService: BitcoinFeeService.default(),
     ethereumFeeService: EthereumFeeService.default()
   });
-  const actionExecutor = new ActionExecutor(config, datastore, ledgerExecutor);
+  const actionExecutor = new ActionExecutor(
+    comitNode,
+    datastore,
+    ledgerExecutor
+  );
 
   it("should get actions and accept", done => {
     nock("http://localhost:8000")

@@ -1,10 +1,14 @@
 import Big from "big.js";
 import BN = require("bn.js");
+import debug from "debug";
 import request from "request-promise-native";
 import { from, Observable } from "rxjs";
 import { map } from "rxjs/operators";
+import URI from "urijs";
 import { Action, Entity } from "../gen/siren";
 import { Config } from "./config";
+
+const log = debug("bobtimus:comitNode");
 
 interface Ledger {
   name: string;
@@ -65,13 +69,13 @@ export type LedgerAction =
     };
 
 export class ComitNode {
-  public config: Config;
+  private config: Config;
 
   constructor(config: Config) {
     this.config = config;
   }
 
-  public getSwaps = (): Observable<Entity[]> => {
+  public getSwaps(): Observable<Entity[]> {
     const options = {
       method: "GET",
       url: this.config.prependUrlIfNeeded("/swaps/rfc003").toString(),
@@ -79,7 +83,36 @@ export class ComitNode {
     };
 
     return from(request(options)).pipe(map(response => response.entities));
-  };
+  }
+
+  public request(method: any, url: string, data: any) {
+    let options;
+    if (method === "GET") {
+      options = {
+        method,
+        uri: this.config
+          .prependUrlIfNeeded(url)
+          .query(URI.buildQuery(data))
+          .toString(),
+        json: true
+      };
+    } else {
+      options = {
+        method,
+        uri: this.config.prependUrlIfNeeded(url).toString(),
+        body: data,
+        json: true
+      };
+    }
+
+    log(
+      `Doing a ${options.method} request to ${
+        options.uri
+      } with body: ${JSON.stringify(options.body)}`
+    );
+
+    return request(options);
+  }
 }
 
 export function toNominalUnit(asset: Asset) {

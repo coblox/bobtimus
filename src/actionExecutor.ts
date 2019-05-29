@@ -2,12 +2,9 @@ import { Result } from "@badrap/result/dist";
 import { Transaction } from "bitcoinjs-lib";
 import BN from "bn.js";
 import debug from "debug";
-import request from "request-promise-native";
-import URI from "urijs";
 import { Action } from "../gen/siren";
 import { networkFromString, Satoshis } from "./bitcoin/blockchain";
-import { hexToBN, hexToBuffer, LedgerAction } from "./comitNode";
-import { Config } from "./config";
+import { ComitNode, hexToBN, hexToBuffer, LedgerAction } from "./comitNode";
 import { IDatastore } from "./datastore";
 import { ILedgerExecutor } from "./ledgerExecutor";
 
@@ -15,30 +12,22 @@ const log = debug("bobtimus:actionExecutor");
 
 export class ActionExecutor {
   private datastore: IDatastore;
-  private config: Config;
+  private comitClient: ComitNode;
   private ledgerExecutor: ILedgerExecutor;
 
   constructor(
-    config: Config,
+    comitClient: ComitNode,
     datastore: IDatastore,
     ledgerExecutor: ILedgerExecutor
   ) {
     this.datastore = datastore;
-    // TODO: Replace that with a comit Client interface that executes the request for you
-    // Or strip down to the url
-    this.config = config;
+    this.comitClient = comitClient;
     this.ledgerExecutor = ledgerExecutor;
   }
 
   public async execute(action: Action) {
-    const options = await this.buildRequestFromAction(action);
-    log(
-      `Doing a ${options.method} request to ${
-        options.uri
-      } with body: ${JSON.stringify(options.body)}`
-    );
+    const response = await this.triggerRequestFromAction(action);
 
-    const response = await request(options);
     // If the response has a type and payload then a ledger action is needed
     if (response.type && response.payload) {
       return this.executeLedgerAction(response);
@@ -46,7 +35,7 @@ export class ActionExecutor {
     return response;
   }
 
-  public async buildRequestFromAction(action: Action) {
+  public async triggerRequestFromAction(action: Action) {
     const data: any = {};
 
     for (const field of action.fields || []) {
@@ -59,30 +48,11 @@ export class ActionExecutor {
     if (action.type !== "application/json") {
       throw new Error("Only 'application/json' action type is supported.");
     }
-
-    const method = action.method || "GET";
-    if (method === "GET") {
-      return {
-        method,
-        uri: this.config
-          .prependUrlIfNeeded(action.href)
-          .query(URI.buildQuery(data))
-          .toString(),
-        json: true
-      };
-    } else {
-      return {
-        method,
-        uri: this.config.prependUrlIfNeeded(action.href).toString(),
-        body: data,
-        json: true
-      };
-    }
+    return this.comitClient.request(action.method, action.href, data);
   }
 
   private async executeLedgerAction(action: LedgerAction) {
     log(`Execute Ledger Action: ${JSON.stringify(action)}`);
-    // TODO: check return of rpc calls before saying it's "ok"
     try {
       switch (action.type) {
         case "bitcoin-send-amount-to-address": {

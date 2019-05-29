@@ -5,7 +5,7 @@ import { TransactionReceipt } from "web3-core/types";
 import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import { BitcoinBlockchain, Satoshis } from "./bitcoin/blockchain";
 import { hexToBuffer } from "./comitNode";
-import { EthereumFeeService } from "./ethereum/ethereumFeeService";
+import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import { IBitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
 
@@ -31,7 +31,7 @@ export interface LedgerExecutorParams {
   bitcoinWallet?: IBitcoinWallet;
   ethereumWallet?: EthereumWallet;
   bitcoinFeeService?: BitcoinFeeService;
-  ethereumFeeService?: EthereumFeeService;
+  ethereumFeeService?: EthereumGasPriceService;
 }
 
 export interface ILedgerExecutor {
@@ -55,7 +55,7 @@ export class LedgerExecutor implements ILedgerExecutor {
   private readonly bitcoinWallet?: IBitcoinWallet;
   private readonly ethereumWallet?: EthereumWallet;
   private readonly bitcoinFeeService?: BitcoinFeeService;
-  private readonly ethereumFeeService?: EthereumFeeService;
+  private readonly ethereumFeeService?: EthereumGasPriceService;
 
   constructor({
     bitcoinWallet,

@@ -9,7 +9,7 @@ import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import { ComitNode } from "./comitNode";
 import { Config } from "./config";
 import { Datastore } from "./datastore";
-import { EthereumFeeService } from "./ethereum/ethereumFeeService";
+import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import { LedgerExecutor } from "./ledgerExecutor";
 import { BitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
@@ -25,7 +25,7 @@ const wallets = {};
 const ledgerExecutorParams = {};
 
 let bitcoinFeeService = BitcoinFeeService.default();
-let ethereumFeeService = EthereumFeeService.default();
+let ethereumFeeService = EthereumGasPriceService.default();
 
 if (config.bitcoinConfig) {
   const bitcoinBlockchain = BitcoinCoreRpc.fromConfig(config.bitcoinConfig);
@@ -52,7 +52,7 @@ if (config.ethereumConfig) {
     config.seed,
     1
   );
-  ethereumFeeService = new EthereumFeeService(
+  ethereumFeeService = new EthereumGasPriceService(
     config.ethereumConfig.fee.defaultFee,
     config.ethereumConfig.fee.strategy
   );

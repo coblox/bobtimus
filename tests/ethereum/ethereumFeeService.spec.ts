@@ -1,17 +1,17 @@
 import BN = require("bn.js");
 import nock, { Scope } from "nock";
-import { EthereumFeeService } from "../../src/ethereum/ethereumFeeService";
-import ethereumFeeServiceResponse from "../stubs/ethereumFeeService.json";
+import { EthereumGasPriceService } from "../../src/ethereum/ethereumGasPriceService";
+import ethereumGasPriceServiceResponse from "../stubs/ethereumGasPriceService.json";
 
-describe("EthereumFeeService tests", () => {
-  let feeService: EthereumFeeService;
+describe("EthereumGasPriceService tests", () => {
+  let feeService: EthereumGasPriceService;
   let scope: Scope;
 
   beforeEach(() => {
-    feeService = new EthereumFeeService(new BN(42), "average");
+    feeService = new EthereumGasPriceService(new BN(42), "average");
     scope = nock("https://ethgasstation.info")
       .get("/json/ethgasAPI.json")
-      .reply(200, ethereumFeeServiceResponse);
+      .reply(200, ethereumGasPriceServiceResponse);
   });
 
   it("it should get the fastest fee ", async () => {

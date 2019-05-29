@@ -10,11 +10,11 @@ import { BitcoinFeeService } from "../../src/bitcoin/bitcoinFeeService";
 import { ComitNode } from "../../src/comitNode";
 import { Config } from "../../src/config";
 import { Datastore } from "../../src/datastore";
-import { EthereumFeeService } from "../../src/ethereum/ethereumFeeService";
+import { EthereumGasPriceService } from "../../src/ethereum/ethereumGasPriceService";
 import { LedgerExecutor } from "../../src/ledgerExecutor";
 import { BitcoinWallet } from "../../src/wallets/bitcoin";
 import { EthereumWallet } from "../../src/wallets/ethereum";
-import ethereumFeeServiceResponse from "../stubs/ethereumFeeService.json";
+import ethereumGasPriceServiceResponse from "../stubs/ethereumGasPriceService.json";
 import ethereumTransactionReceipt from "../stubs/ethereumTransactionReceipt.json";
 import acceptedStub from "./../stubs/accepted.json";
 import swapsAcceptDeclineStub from "./../stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
@@ -72,7 +72,7 @@ describe("Alpha Bitcoin/Beta Ether Full workflow tests: ", () => {
     ethereumWallet,
     bitcoinBlockchain,
     bitcoinFeeService: BitcoinFeeService.default(),
-    ethereumFeeService: EthereumFeeService.default()
+    ethereumFeeService: EthereumGasPriceService.default()
   });
   const actionExecutor = new ActionExecutor(
     comitNode,
@@ -136,7 +136,7 @@ describe("Alpha Bitcoin/Beta Ether Full workflow tests: ", () => {
 
     nock("https://ethgasstation.info")
       .get("/json/ethgasAPI.json")
-      .reply(200, ethereumFeeServiceResponse);
+      .reply(200, ethereumGasPriceServiceResponse);
 
     nock("http://localhost:8545")
       .post("/", body => {

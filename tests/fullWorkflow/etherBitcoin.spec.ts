@@ -9,7 +9,7 @@ import { BitcoinFeeService } from "../../src/bitcoin/bitcoinFeeService";
 import { ComitNode } from "../../src/comitNode";
 import { Config } from "../../src/config";
 import { Datastore } from "../../src/datastore";
-import { EthereumFeeService } from "../../src/ethereum/ethereumFeeService";
+import { EthereumGasPriceService } from "../../src/ethereum/ethereumGasPriceService";
 import { LedgerExecutor } from "../../src/ledgerExecutor";
 import { EthereumWallet } from "../../src/wallets/ethereum";
 import { MockBitcoinBlockchain } from "../mocks/bitcoinBlockchain";
@@ -73,7 +73,7 @@ describe("Alpha Ether/Beta Bitcoin Full workflow tests: ", () => {
       ethereumWallet,
       bitcoinBlockchain,
       bitcoinFeeService: BitcoinFeeService.default(),
-      ethereumFeeService: EthereumFeeService.default()
+      ethereumFeeService: EthereumGasPriceService.default()
     });
     const datastore = new Datastore({ ethereumWallet, bitcoinWallet });
     const actionExecutor = new ActionExecutor(
@@ -131,7 +131,7 @@ describe("Alpha Ether/Beta Bitcoin Full workflow tests: ", () => {
       ethereumWallet,
       bitcoinBlockchain,
       bitcoinFeeService: BitcoinFeeService.default(),
-      ethereumFeeService: EthereumFeeService.default()
+      ethereumFeeService: EthereumGasPriceService.default()
     });
     const datastore = new Datastore({ ethereumWallet, bitcoinWallet });
     const actionExecutor = new ActionExecutor(

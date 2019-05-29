@@ -2,7 +2,7 @@ import nock, { Scope } from "nock";
 import { BitcoinFeeService } from "../../src/bitcoin/bitcoinFeeService";
 import bitcoinFeeService from "../stubs/bitcoinFeeService.json";
 
-describe("EthereumFeeService tests", () => {
+describe("EthereumGasPriceService tests", () => {
   let feeService: BitcoinFeeService;
   let scope: Scope;
 

@@ -104,7 +104,7 @@ export class LedgerExecutor implements ILedgerExecutor {
 
     const gasPrice = await ethereumFeeService.retrieveGasPrice();
 
-    const parameters = Object.assign(params, { gasPrice });
+    const parameters = { ...params, gasPrice };
     log(
       `Invoking deployContract on Ethereum Wallet with ${JSON.stringify(
         parameters

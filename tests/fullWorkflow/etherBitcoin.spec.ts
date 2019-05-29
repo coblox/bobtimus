@@ -12,8 +12,8 @@ import { Datastore } from "../../src/datastore";
 import { EthereumGasPriceService } from "../../src/ethereum/ethereumGasPriceService";
 import { LedgerExecutor } from "../../src/ledgerExecutor";
 import { EthereumWallet } from "../../src/wallets/ethereum";
-import { MockBitcoinBlockchain } from "../mocks/bitcoinBlockchain";
-import { getBitcoinWalletThrows } from "../mocks/bitcoinWallet";
+import { MockBitcoinBlockchain } from "../doubles/bitcoinBlockchain";
+import { getDummyBitcoinWallet } from "../doubles/bitcoinWallet";
 import swapsWithFundStub from "../stubs/bitcoinEther/swapsWithFund.siren.json";
 import fundBitcoinStub from "../stubs/fundBitcoin.json";
 import acceptedStub from "./../stubs/accepted.json";
@@ -67,7 +67,7 @@ describe("Alpha Ether/Beta Bitcoin Full workflow tests: ", () => {
       .post("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/accept")
       .reply(200, acceptedStub);
 
-    const bitcoinWallet = getBitcoinWalletThrows();
+    const bitcoinWallet = getDummyBitcoinWallet();
     const ledgerExecutor = new LedgerExecutor({
       bitcoinWallet,
       ethereumWallet,
@@ -119,7 +119,7 @@ describe("Alpha Ether/Beta Bitcoin Full workflow tests: ", () => {
       .get("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/fund")
       .reply(200, fundBitcoinStub);
 
-    const bitcoinWallet = getBitcoinWalletThrows();
+    const bitcoinWallet = getDummyBitcoinWallet();
     const mockPayToAddress = jest.fn(() => {
       return Promise.resolve(
         "001122334455667788990011223344556677889900112233445566778899aabb"

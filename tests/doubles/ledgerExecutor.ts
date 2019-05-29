@@ -1,7 +1,7 @@
 import { TransactionReceipt } from "web3-core/types";
 import { ILedgerExecutor } from "../../src/ledgerExecutor";
 
-export function getLedgerExecutorThrowsOnAll(): ILedgerExecutor {
+export function getDummyLedgerExecutor(): ILedgerExecutor {
   return {
     bitcoinBroadcastTransaction: () => {
       throw new Error(`bitcoinBroadcastTransaction should not be called`);
@@ -18,7 +18,7 @@ export function getLedgerExecutorThrowsOnAll(): ILedgerExecutor {
   };
 }
 
-export const emptyTransactionReceipt: TransactionReceipt = {
+export const dummyTransactionReceipt: TransactionReceipt = {
   status: true,
   transactionHash: "",
   transactionIndex: 1,

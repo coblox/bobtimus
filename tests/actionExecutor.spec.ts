@@ -9,11 +9,11 @@ import { Satoshis } from "../src/bitcoin/blockchain";
 import { ComitNode, Swap } from "../src/comitNode";
 import { Config } from "../src/config";
 import { IDatastore } from "../src/datastore";
-import { getDatastoreThrowsOnAll } from "./mocks/datastore";
+import { getDummDatastore } from "./doubles/datastore";
 import {
-  emptyTransactionReceipt,
-  getLedgerExecutorThrowsOnAll
-} from "./mocks/ledgerExecutor";
+  dummyTransactionReceipt,
+  getDummyLedgerExecutor
+} from "./doubles/ledgerExecutor";
 import acceptedStub from "./stubs/accepted.json";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
 import swapsFundBitcoinEtherStub from "./stubs/bitcoinEther/swapsWithFund.siren.json";
@@ -74,7 +74,7 @@ describe("Action executor tests: ", () => {
     const actionTriggerer = new ActionExecutor(
       comitNode,
       datastore,
-      getLedgerExecutorThrowsOnAll()
+      getDummyLedgerExecutor()
     );
     const swap = swapsAcceptDeclineStub.entities[0] as Swap;
     const acceptAction = swap.actions.find(
@@ -105,14 +105,14 @@ describe("Ledger action execution tests:", () => {
       .reply(200, fundEther);
 
     const mockEthereumDeployContract = jest.fn(() => {
-      return Promise.resolve(emptyTransactionReceipt);
+      return Promise.resolve(dummyTransactionReceipt);
     });
 
-    const ledgerExecutor = getLedgerExecutorThrowsOnAll();
+    const ledgerExecutor = getDummyLedgerExecutor();
     ledgerExecutor.ethereumDeployContract = mockEthereumDeployContract;
     const actionExecutor = new ActionExecutor(
       comitNode,
-      getDatastoreThrowsOnAll(),
+      getDummDatastore(),
       ledgerExecutor
     );
     const swap = swapsFundBitcoinEtherStub.entities[0] as Swap;
@@ -123,7 +123,7 @@ describe("Ledger action execution tests:", () => {
     from(actionExecutor.execute(fundAction)).subscribe(
       actionResponse => {
         expect(actionResponse).toStrictEqual(
-          Result.ok(emptyTransactionReceipt)
+          Result.ok(dummyTransactionReceipt)
         );
 
         expect(mockEthereumDeployContract.mock.calls.length).toBe(1); // Expect one call
@@ -170,11 +170,11 @@ describe("Ledger action execution tests:", () => {
       return Promise.resolve(txId);
     });
 
-    const ledgerExecutor = getLedgerExecutorThrowsOnAll();
+    const ledgerExecutor = getDummyLedgerExecutor();
     ledgerExecutor.bitcoinPayToAddress = mockBitcoinPayToAddress;
     const actionExecutor = new ActionExecutor(
       comitNode,
-      getDatastoreThrowsOnAll(),
+      getDummDatastore(),
       ledgerExecutor
     );
     const swap = swapsFundEtherBitcoinStub.entities[0] as Swap;
@@ -224,14 +224,14 @@ describe("Ledger action execution tests:", () => {
     mockGetData
       .mockReturnValueOnce("bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x")
       .mockReturnValueOnce(180);
-    const datastore = getDatastoreThrowsOnAll();
+    const datastore = getDummDatastore();
     datastore.getData = mockGetData;
 
     const mockBitcoinBroadcastTransaction = jest.fn();
     mockBitcoinBroadcastTransaction.mockReturnValueOnce(
       "aabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeff1122"
     );
-    const ledgerExecutor = getLedgerExecutorThrowsOnAll();
+    const ledgerExecutor = getDummyLedgerExecutor();
     ledgerExecutor.bitcoinBroadcastTransaction = mockBitcoinBroadcastTransaction;
     const actionExecutor = new ActionExecutor(
       comitNode,
@@ -268,11 +268,11 @@ describe("Ledger action execution tests:", () => {
       .get("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/redeem")
       .reply(200, redeemEther);
 
-    const datastore = getDatastoreThrowsOnAll();
-    const ledgerExecutor = getLedgerExecutorThrowsOnAll();
+    const datastore = getDummDatastore();
+    const ledgerExecutor = getDummyLedgerExecutor();
     const mockEthereumSendTransactionTo = jest.fn();
     mockEthereumSendTransactionTo.mockReturnValueOnce(
-      Promise.resolve(emptyTransactionReceipt)
+      Promise.resolve(dummyTransactionReceipt)
     );
     ledgerExecutor.ethereumSendTransactionTo = mockEthereumSendTransactionTo;
     const actionExecutor = new ActionExecutor(
@@ -288,7 +288,7 @@ describe("Ledger action execution tests:", () => {
     from(actionExecutor.execute(redeemAction)).subscribe(
       actionResponse => {
         expect(actionResponse).toStrictEqual(
-          Result.ok(emptyTransactionReceipt)
+          Result.ok(dummyTransactionReceipt)
         );
 
         expect(mockEthereumSendTransactionTo.mock.calls[0].length).toBe(1);

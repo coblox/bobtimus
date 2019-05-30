@@ -1,6 +1,6 @@
 import debug from "debug";
 import { from, timer } from "rxjs";
-import { filter, flatMap, map, tap } from "rxjs/operators";
+import { flatMap, map, mergeMap, tap } from "rxjs/operators";
 import { ActionExecutor } from "./actionExecutor";
 import poll from "./actionPoller";
 import { ActionSelector } from "./actionSelector";
@@ -65,10 +65,8 @@ const actionSelector = new ActionSelector(config);
 const actionExecutor = new ActionExecutor(comitNode, datastore, ledgerExecutor);
 
 poll(comitNode, timer(0, 500))
-  .pipe(map(swap => actionSelector.selectAction(swap)))
-  .pipe(tap(result => log("Result:", result)))
-  .pipe(filter(result => result.isOk))
-  .pipe(map(actionResult => actionResult.unwrap()))
+  .pipe(mergeMap(swap => actionSelector.selectActions(swap)))
+  .pipe(tap(action => log("Result:", action)))
   .pipe(map(action => actionExecutor.execute(action)))
   .pipe(flatMap(actionResponse => from(actionResponse)))
   .subscribe(

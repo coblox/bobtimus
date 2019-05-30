@@ -1,6 +1,6 @@
-import { Result } from "@badrap/result/dist";
 import Big from "big.js";
 import debug from "debug";
+import { Observable, Subscriber } from "rxjs";
 import { Action, Entity } from "../gen/siren";
 import { Swap, toNominalUnit } from "./comitNode";
 import { Config } from "./config";
@@ -16,19 +16,22 @@ export class ActionSelector {
     this.config = config;
   }
 
-  public selectAction(entity: Entity): Result<Action, Error> {
-    if (entity.class && entity.class.includes("swap")) {
-      const swap = entity as Swap;
+  public selectActions(entity: Entity): Observable<Action> {
+    return new Observable(observer => {
+      if (entity.class && entity.class.includes("swap")) {
+        const swap = entity as Swap;
 
-      return this.selectSwapAction(swap);
-    }
-    return Result.err(new Error("Given entity is not a swap"));
+        this.selectSwapAction(swap, observer);
+      }
+      observer.error("given entity is not a swap");
+    });
   }
 
-  private selectSwapAction(swap: Swap): Result<Action, Error> {
+  private selectSwapAction(swap: Swap, observer: Subscriber<Action>) {
     const actions = swap.actions;
     if (!actions) {
-      return Result.err(new Error("No action available"));
+      observer.error("No action available");
+      observer.complete();
     }
 
     const acceptAction = actions.find(action => action.name === "accept");
@@ -39,12 +42,16 @@ export class ActionSelector {
     const refundAction = actions.find(action => action.name === "refund");
 
     if (redeemAction) {
-      return Result.ok(redeemAction);
-    } else if (fundAction) {
-      return Result.ok(fundAction);
-    } else if (deployAction) {
-      return Result.ok(deployAction);
-    } else if (acceptAction) {
+      observer.next(redeemAction);
+    }
+    if (fundAction) {
+      observer.next(fundAction);
+    }
+    if (deployAction) {
+      observer.next(deployAction);
+    }
+
+    if (acceptAction) {
       const alphaLedger = swap.properties.parameters.alpha_ledger.name;
       const betaLedger = swap.properties.parameters.beta_ledger.name;
       const alphaAsset = swap.properties.parameters.alpha_asset.name;
@@ -58,58 +65,54 @@ export class ActionSelector {
         !this.config.isSupported(alphaLedger, alphaAsset) ||
         !this.config.isSupported(betaLedger, betaAsset)
       ) {
-        return Result.err(
-          new Error(
-            `Ledger-Asset not supported (${alphaLedger}:${alphaAsset}/${betaLedger}:${betaAsset})`
-          )
+        observer.error(
+          `Ledger-Asset not supported (${alphaLedger}:${alphaAsset}/${betaLedger}:${betaAsset})`
         );
-      }
-
-      const alphaQuantity = toNominalUnit(
-        swap.properties.parameters.alpha_asset
-      );
-      const betaQuantity = toNominalUnit(swap.properties.parameters.beta_asset);
-
-      if (!alphaQuantity || !betaQuantity) {
-        return Result.err(
-          new Error(
-            `Internal Error: Asset not supported (${alphaAsset}: ${alphaQuantity}, ${betaAsset}: ${betaQuantity}).`
-          )
-        );
-      }
-
-      // Bob always buys Alpha
-      // Calculate rate as buy divided by sell
-      const proposedRate = alphaQuantity.div(betaQuantity);
-      const acceptableRate = this.config.getBuyDivBySellRate(
-        alphaAsset,
-        betaAsset
-      );
-
-      if (!acceptableRate) {
-        return Result.err(
-          new Error(
-            `Rate is not configured to buy ${alphaLedger}:${alphaAsset} & sell ${betaLedger}:${betaAsset}`
-          )
-        );
-      }
-
-      log(
-        `Proposed rate: ${proposedRate.toFixed()}, Acceptable rate: ${acceptableRate.toFixed()}`
-      );
-
-      if (proposedRate.gte(acceptableRate)) {
-        return Result.ok(acceptAction);
-      } else if (declineAction) {
-        return Result.ok(declineAction);
       } else {
-        return Result.err(new Error("Decline action is unavailable"));
+        const alphaQuantity = toNominalUnit(
+          swap.properties.parameters.alpha_asset
+        );
+        const betaQuantity = toNominalUnit(
+          swap.properties.parameters.beta_asset
+        );
+
+        if (!alphaQuantity || !betaQuantity) {
+          observer.error(
+            `Internal Error: Asset not supported (${alphaAsset}: ${alphaQuantity}, ${betaAsset}: ${betaQuantity}).`
+          );
+        } else {
+          // Bob always buys Alpha
+          // Calculate rate as buy divided by sell
+          const proposedRate = alphaQuantity.div(betaQuantity);
+          const acceptableRate = this.config.getBuyDivBySellRate(
+            alphaAsset,
+            betaAsset
+          );
+
+          if (!acceptableRate) {
+            observer.error(
+              `Rate is not configured to buy ${alphaLedger}:${alphaAsset} & sell ${betaLedger}:${betaAsset}`
+            );
+          } else {
+            log(
+              `Proposed rate: ${proposedRate.toFixed()}, Acceptable rate: ${acceptableRate.toFixed()}`
+            );
+
+            if (proposedRate.gte(acceptableRate)) {
+              observer.next(acceptAction);
+            } else if (declineAction) {
+              observer.next(declineAction);
+            } else {
+              observer.error("Decline action is unavailable");
+            }
+          }
+        }
       }
     } else if (refundAction) {
       // Only refund action available, doing nothing for now
-      Result.err(new Error("not implemented"));
+      observer.error("not implemented");
     }
 
-    return Result.err(new Error("not implemented"));
+    observer.complete();
   }
 }

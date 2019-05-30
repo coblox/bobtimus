@@ -88,12 +88,12 @@ export class Config {
       : uriPath;
   }
 
-  public async isSupported(ledgerName: string, assetName: string) {
+  public isSupported(ledgerName: string, assetName: string) {
     switch (ledgerName + assetName) {
       case "bitcoinbitcoin":
-        return !!this.bitcoinConfig;
+        return typeof this.bitcoinConfig === "object";
       case "ethereumether":
-        return !!this.ethereumConfig;
+        return typeof this.ethereumConfig === "object";
       default:
         return false;
     }

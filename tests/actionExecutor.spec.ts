@@ -2,7 +2,6 @@ import { Result } from "@badrap/result/dist";
 import { networks } from "bitcoinjs-lib";
 import BN = require("bn.js");
 import nock from "nock";
-import { from } from "rxjs";
 import { Action, Field } from "../gen/siren";
 import { ActionExecutor } from "../src/actionExecutor";
 import { Satoshis } from "../src/bitcoin/blockchain";
@@ -55,7 +54,7 @@ const config = new Config({
 const comitNode = new ComitNode(config);
 
 describe("Action executor tests: ", () => {
-  it("should post accept action and get stubbed response", done => {
+  it("should post accept action and get stubbed response", async done => {
     nock("http://localhost:8000")
       .get("/swaps/rfc003/")
       .reply(200, swapsAcceptDeclineStub);
@@ -80,22 +79,16 @@ describe("Action executor tests: ", () => {
       action => action.name === "accept"
     ) as Action;
 
-    from(actionTriggerer.execute(acceptAction)).subscribe(
-      actionResponse => {
-        expect(actionResponse).toStrictEqual(acceptedStub);
-      },
-      error => {
-        fail(error);
-      },
-      () => {
-        done();
-      }
-    );
+    const actionResponse = await actionTriggerer.execute(acceptAction);
+
+    expect(actionResponse).toStrictEqual(acceptedStub);
+
+    done();
   });
 });
 
 describe("Ledger action execution tests:", () => {
-  it("execute the fund action on Ethereum using the right parameters", done => {
+  it("execute the fund action on Ethereum using the right parameters", async done => {
     nock("http://localhost:8000")
       .get("/swaps/rfc003/")
       .reply(200, swapsFundBitcoinEtherStub);
@@ -119,42 +112,34 @@ describe("Ledger action execution tests:", () => {
     const fundAction = swap.actions.find(
       action => action.name === "fund"
     ) as Action;
-    from(actionExecutor.execute(fundAction)).subscribe(
-      actionResponse => {
-        expect(actionResponse).toStrictEqual(
-          Result.ok(dummyTransactionReceipt)
-        );
+    const actionResponse = await actionExecutor.execute(fundAction);
 
-        expect(mockEthereumDeployContract.mock.calls.length).toBe(1); // Expect one call
-        expect(mockEthereumDeployContract.mock.calls[0].length).toBe(1); // Expect one argument on the first call
-        // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
-        const argumentPassed = mockEthereumDeployContract.mock.calls[0][0];
+    expect(actionResponse).toStrictEqual(Result.ok(dummyTransactionReceipt));
 
-        expect(argumentPassed).toHaveProperty(
-          "value",
-          new BN("111111111111111111111")
-        );
-        expect(argumentPassed).toHaveProperty(
-          "data",
-          Buffer.from("6100dcff", "hex")
-        );
-        expect(argumentPassed).toHaveProperty("gasLimit");
-        // @ts-ignore: gasLimit exists as tested above
-        expect(argumentPassed.gasLimit.toString()).toEqual(
-          new BN(122000).toString()
-        );
-        expect(argumentPassed).toHaveProperty("network", "regtest");
-      },
-      error => {
-        fail(error);
-      },
-      () => {
-        done();
-      }
+    expect(mockEthereumDeployContract.mock.calls.length).toBe(1); // Expect one call
+    expect(mockEthereumDeployContract.mock.calls[0].length).toBe(1); // Expect one argument on the first call
+    // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
+    const argumentPassed = mockEthereumDeployContract.mock.calls[0][0];
+
+    expect(argumentPassed).toHaveProperty(
+      "value",
+      new BN("111111111111111111111")
     );
+    expect(argumentPassed).toHaveProperty(
+      "data",
+      Buffer.from("6100dcff", "hex")
+    );
+    expect(argumentPassed).toHaveProperty("gasLimit");
+    // @ts-ignore: gasLimit exists as tested above
+    expect(argumentPassed.gasLimit.toString()).toEqual(
+      new BN(122000).toString()
+    );
+    expect(argumentPassed).toHaveProperty("network", "regtest");
+
+    done();
   });
 
-  it("execute the fund action on Bitcoin using the right parameters", done => {
+  it("execute the fund action on Bitcoin using the right parameters", async done => {
     nock("http://localhost:8000")
       .get("/swaps/rfc003/")
       .reply(200, swapsFundEtherBitcoinStub);
@@ -181,35 +166,28 @@ describe("Ledger action execution tests:", () => {
     const fundAction = swap.actions.find(
       action => action.name === "fund"
     ) as Action;
-    from(actionExecutor.execute(fundAction)).subscribe(
-      actionResponse => {
-        expect(actionResponse).toStrictEqual(Result.ok(txId));
+    const actionResponse = await actionExecutor.execute(fundAction);
+    expect(actionResponse).toStrictEqual(Result.ok(txId));
 
-        expect(mockBitcoinPayToAddress.mock.calls.length).toBe(1);
-        expect(mockBitcoinPayToAddress.mock.calls[0].length).toBe(3);
-        // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
-        const addressPassed = mockBitcoinPayToAddress.mock.calls[0][0];
-        // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
-        const satPassed = mockBitcoinPayToAddress.mock.calls[0][1];
-        // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
-        const networkPassed = mockBitcoinPayToAddress.mock.calls[0][2];
+    expect(mockBitcoinPayToAddress.mock.calls.length).toBe(1);
+    expect(mockBitcoinPayToAddress.mock.calls[0].length).toBe(3);
+    // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
+    const addressPassed = mockBitcoinPayToAddress.mock.calls[0][0];
+    // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
+    const satPassed = mockBitcoinPayToAddress.mock.calls[0][1];
+    // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
+    const networkPassed = mockBitcoinPayToAddress.mock.calls[0][2];
 
-        expect(addressPassed).toEqual(
-          "bcrt1q4vmcukhvmd2lajgk9az24s3fndm4swrkl633lq"
-        );
-        expect(satPassed).toEqual(new Satoshis("100000000"));
-        expect(networkPassed).toEqual(networks.regtest);
-      },
-      error => {
-        fail(error);
-      },
-      () => {
-        done();
-      }
+    expect(addressPassed).toEqual(
+      "bcrt1q4vmcukhvmd2lajgk9az24s3fndm4swrkl633lq"
     );
+    expect(satPassed).toEqual(new Satoshis("100000000"));
+    expect(networkPassed).toEqual(networks.regtest);
+
+    done();
   });
 
-  it("execute the redeem action on Bitcoin using the right parameters", done => {
+  it("execute the redeem action on Bitcoin using the right parameters", async done => {
     nock("http://localhost:8000")
       .get("/swaps/rfc003/")
       .reply(200, swapsRedeemBitcoinEther);
@@ -242,24 +220,18 @@ describe("Ledger action execution tests:", () => {
     const redeemAction = swap.actions.find(
       action => action.name === "redeem"
     ) as Action;
-    from(actionExecutor.execute(redeemAction)).subscribe(
-      actionResponse => {
-        expect(actionResponse).toStrictEqual(
-          Result.ok(
-            "aabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeff1122"
-          )
-        );
-      },
-      error => {
-        fail(error);
-      },
-      () => {
-        done();
-      }
+    const actionResponse = await actionExecutor.execute(redeemAction);
+
+    expect(actionResponse).toStrictEqual(
+      Result.ok(
+        "aabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeff1122"
+      )
     );
+
+    done();
   });
 
-  it("execute the redeem action on Ethereum using the right parameters", done => {
+  it("execute the redeem action on Ethereum using the right parameters", async done => {
     nock("http://localhost:8000")
       .get("/swaps/rfc003/")
       .reply(200, swapsRedeemEtherBitcoin);
@@ -284,30 +256,20 @@ describe("Ledger action execution tests:", () => {
     const redeemAction = swap.actions.find(
       action => action.name === "redeem"
     ) as Action;
-    from(actionExecutor.execute(redeemAction)).subscribe(
-      actionResponse => {
-        expect(actionResponse).toStrictEqual(
-          Result.ok(dummyTransactionReceipt)
-        );
+    const actionResponse = await actionExecutor.execute(redeemAction);
 
-        expect(mockEthereumSendTransactionTo.mock.calls[0].length).toBe(1);
-        // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
-        const argPassed = mockEthereumSendTransactionTo.mock.calls[0][0];
-        expect(argPassed.value).toBeUndefined();
-        expect(argPassed.gasLimit.toString("hex")).toEqual("186a0");
-        expect(argPassed.network).toEqual("regtest");
-        expect(argPassed.to).toEqual(
-          "0x1189128ff5573f6282dbbf1557ed839dab277aeb"
-        );
-        expect(argPassed.data).toBeUndefined();
-      },
-      error => {
-        fail(error);
-      },
-      () => {
-        done();
-      }
-    );
+    expect(actionResponse).toStrictEqual(Result.ok(dummyTransactionReceipt));
+
+    expect(mockEthereumSendTransactionTo.mock.calls[0].length).toBe(1);
+    // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
+    const argPassed = mockEthereumSendTransactionTo.mock.calls[0][0];
+    expect(argPassed.value).toBeUndefined();
+    expect(argPassed.gasLimit.toString("hex")).toEqual("186a0");
+    expect(argPassed.network).toEqual("regtest");
+    expect(argPassed.to).toEqual("0x1189128ff5573f6282dbbf1557ed839dab277aeb");
+    expect(argPassed.data).toBeUndefined();
+
+    done();
   });
 
   it("executing the fund + redeem action", async done => {

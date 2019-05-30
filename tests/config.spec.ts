@@ -4,7 +4,7 @@ import { mnemonicToSeedSync } from "bip39";
 import * as fs from "fs";
 import tmp from "tmp";
 import URI from "urijs";
-import { Config } from "../src/config";
+import { BitcoinConfig, Config, EthereumConfig } from "../src/config";
 
 /// Copies the file to not modify a file tracked by git when running the test
 /// Uses a dedicated folder to make the cleanup easier
@@ -60,7 +60,6 @@ describe("Config tests", () => {
 
     const configAfter = TOML.parse(fs.readFileSync(filename, "utf8"));
     cleanUpFiles(dir);
-    console.log(configAfter);
     const seedWords = configAfter.seedWords as string;
 
     expect(seedWords).toBeDefined();
@@ -118,5 +117,24 @@ describe("Config tests", () => {
     );
 
     expect(config.getBuyDivBySellRate("dogecoin", "ether")).toBeUndefined();
+  });
+
+  it("should parse the config with correct fee strategy slected", () => {
+    const config = Config.fromFile("./tests/configs/default.toml");
+
+    expect(config.bitcoinConfig).toBeDefined();
+    expect(config.ethereumConfig).toBeDefined();
+
+    const bitcoinConfig = config.bitcoinConfig as BitcoinConfig;
+    const ethereumConfig = config.ethereumConfig as EthereumConfig;
+
+    expect(bitcoinConfig.fee).toEqual({
+      defaultFee: 10,
+      strategy: "hourFee"
+    });
+    expect(ethereumConfig.fee).toEqual({
+      defaultFee: 10,
+      strategy: "average"
+    });
   });
 });

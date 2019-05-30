@@ -3,7 +3,7 @@ import Client from "bitcoin-core";
 import { bip32, networks } from "bitcoinjs-lib";
 import { BitcoinCoreRpc } from "../../src/bitcoin/bitcoinCoreRpc";
 import { Satoshis } from "../../src/bitcoin/blockchain";
-import { BitcoinWallet } from "../../src/wallets/bitcoin";
+import { InternalBitcoinWallet } from "../../src/wallets/bitcoin";
 import bitcoindTestContainer from "../containers/bitcoindTestContainer";
 import containerTest from "../containerTest";
 import sleep from "../sleep";
@@ -27,9 +27,12 @@ describe("Bitcoin wallet", () => {
         port
       });
 
-      const wallet = new BitcoinWallet(
-        bip32.fromBase58(
-          "tprv8ZgxMBicQKsPdSqbVeq56smMTGXHdLACXLvb5YXyk3zv4TPeTaQ6BZWeFxoVeikyfJD5vuYsKjTKaurDZDDmZGzGDMMxXzAZgAYQSrpmoUH",
+      const wallet = new InternalBitcoinWallet(
+        bip32.fromSeed(
+          Buffer.from(
+            "94cfb81f135f8d85d787a84173cf1e9fc51792f3723e2b93a162fa57a03370fd80971d026eed300544116dfee4d5b375c77ea86b65dfd44e2ecda58044684fe0",
+            "hex"
+          ),
           networks.regtest
         ),
         blockchain,
@@ -68,7 +71,7 @@ describe("Bitcoin wallet", () => {
         port
       });
 
-      const wallet = new BitcoinWallet(
+      const wallet = new InternalBitcoinWallet(
         bip32.fromBase58(
           "tprv8ZgxMBicQKsPdSqbVeq56smMTGXHdLACXLvb5YXyk3zv4TPeTaQ6BZWeFxoVeikyfJD5vuYsKjTKaurDZDDmZGzGDMMxXzAZgAYQSrpmoUH",
           networks.regtest
@@ -91,7 +94,7 @@ describe("Bitcoin wallet", () => {
       const tx = await wallet.payToAddress(
         "bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x",
         new Satoshis(250000000), // Forces the use of several inputs
-        55
+        new Satoshis(10)
       );
       expect(typeof tx).toBe("string");
 

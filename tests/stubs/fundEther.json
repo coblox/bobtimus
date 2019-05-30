@@ -1,0 +1,9 @@
+{
+  "type": "ethereum-deploy-contract",
+  "payload": {
+    "amount": "111111111111111111111",
+    "data": "0x6100dcff",
+    "gas_limit": "0x1dc90",
+    "network": "regtest"
+  }
+}

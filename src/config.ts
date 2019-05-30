@@ -1,6 +1,7 @@
 import TOML from "@iarna/toml";
 import Big from "big.js";
 import { generateMnemonic, mnemonicToSeedSync } from "bip39";
+import BN = require("bn.js");
 import debug from "debug";
 import * as fs from "fs";
 import URI from "urijs";
@@ -14,9 +15,17 @@ export interface BitcoinConfig {
   rpcHost?: string;
   rpcPort?: number;
   network: string;
+  fee: {
+    defaultFee: number;
+    strategy: string;
+  };
 }
 
 export interface EthereumConfig {
+  fee: {
+    defaultFee: BN;
+    strategy: string;
+  };
   web3Endpoint: string;
 }
 

@@ -20,5 +20,16 @@ rpcHost = "127.0.0.1"
 rpcPort = 18443
 network = "regtest"
 
+[ledgers.bitcoin.fee]
+defaultFee = 10
+# The strategy is taken from https://bitcoinfees.earn.com/api/v1/fees/recommended, i.e. it can either be `fastestFee`,
+# `halfHourFee` or `hourFee`. If the service is not available, the default value will be taken
+strategy = "hourFee"
+
+[ledgers.ethereum.fee]
+defaultFee = 10
+# The strategy is taken from https://docs.ethgasstation.info/
+strategy = "average"
+
 [ledgers.ethereum]
 web3Endpoint = "http://localhost:8545"

@@ -1,0 +1,13 @@
+{
+  "fast": 50.0,
+  "fastest": 200.0,
+  "safeLow": 10.0,
+  "average": 20.0,
+  "block_time": 13.942307692307692,
+  "blockNum": 7403346,
+  "speed": 0.7090284960673774,
+  "safeLowWait": 13.4,
+  "avgWait": 1.8,
+  "fastWait": 0.5,
+  "fastestWait": 0.5
+}

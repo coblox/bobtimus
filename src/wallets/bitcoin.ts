@@ -1,5 +1,6 @@
 /// <reference path="../bitcoin/coinselect.d.ts" />
 import {
+  bip32,
   BIP32Interface,
   ECPair,
   Network,
@@ -10,7 +11,13 @@ import {
 import { ECPairInterface } from "bitcoinjs-lib/types/ecpair";
 import coinSelect from "coinselect";
 import debug from "debug";
-import { BitcoinBlockchain, Satoshis, Utxo } from "../bitcoin/blockchain";
+import {
+  BitcoinBlockchain,
+  networkFromString,
+  Satoshis,
+  Utxo
+} from "../bitcoin/blockchain";
+import { BitcoinConfig } from "../config";
 
 const log = debug("bobtimus:bitcoin:wallet");
 
@@ -47,10 +54,33 @@ interface UsedAddresses {
   [address: string]: DerivationParameters;
 }
 
-export class BitcoinWallet {
-  private readonly hdRoot: BIP32Interface;
+export interface BitcoinWallet {
+  getNewAddress(): string;
+  payToAddress(
+    address: string,
+    amount: Satoshis,
+    feeSatPerByte: Satoshis
+  ): Promise<string>;
+  getNetwork(): Network;
+}
+
+export class InternalBitcoinWallet implements BitcoinWallet {
+  /// accountIndex is the account number (hardened) that will be passed to the bitcoin Wallet
+  /// ie, m/i'. Best practice to use different accounts for different blockchain in case an extended
+  /// private key get leaked.
+  public static fromConfig(
+    bitcoinConfig: BitcoinConfig,
+    bitcoinBlockchain: BitcoinBlockchain,
+    seed: Buffer,
+    accountIndex: number
+  ) {
+    const network = networkFromString(bitcoinConfig.network);
+    const hdRoot = bip32.fromSeed(seed, network).deriveHardened(accountIndex);
+    return new InternalBitcoinWallet(hdRoot, bitcoinBlockchain, network);
+  }
   private readonly network: Network;
   private readonly blockchain: BitcoinBlockchain;
+  private readonly hdRoot: BIP32Interface;
   private readonly usedAddresses: UsedAddresses;
   private readonly unspentOutputs: Map<string, CsUtxo>;
   private nextDeriveId: number;
@@ -93,12 +123,9 @@ export class BitcoinWallet {
     return address;
   }
 
-  // m/0'/0'/* m/0'/1'/*
-
-  // k/0' k/1'
-
-  // k = m/0'
-  // k' = m/1'
+  public getNetwork(): Network {
+    return this.network;
+  }
 
   public async refreshUtxo() {
     // `.neutered()` removes the private key, meaning that we passed the extended
@@ -132,7 +159,7 @@ export class BitcoinWallet {
   public async payToAddress(
     address: string,
     amount: Satoshis,
-    feeSatPerByte: number
+    feeSatPerByte: Satoshis
   ) {
     const target: CsTarget = {
       address,
@@ -142,7 +169,7 @@ export class BitcoinWallet {
     const { inputs, outputs, fee } = coinSelect(
       Array.from(this.unspentOutputs.values()),
       [target],
-      feeSatPerByte
+      feeSatPerByte.getSatoshis()
     );
     log("Fee (sats):", fee);
 

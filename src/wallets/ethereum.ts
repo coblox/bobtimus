@@ -1,7 +1,12 @@
+import { bip32 } from "bitcoinjs-lib";
 import BN from "bn.js";
+import debug from "debug";
 import EthereumTx from "ethereumjs-tx";
 import utils from "ethereumjs-util";
 import Web3 from "web3";
+import { EthereumConfig } from "../config";
+
+const log = debug("bobtimus:wallets:ethereum");
 
 interface SharedTransactionParams {
   value?: BN;
@@ -24,12 +29,39 @@ type TransactionParams = SharedTransactionParams & {
 };
 
 export class EthereumWallet {
+  /// accountIndex is the account number (hardened) that will be passed to the bitcoin Wallet
+  /// ie, m/i'. Best practice to use different accounts for different blockchain in case an extended
+  /// private key get leaked.
+
+  public static fromConfig(
+    ethereumConfig: EthereumConfig,
+    seed: Buffer,
+    accountIndex: number
+  ) {
+    const web3 = new Web3(
+      new Web3.providers.HttpProvider(ethereumConfig.web3Endpoint)
+    );
+
+    const privateKey = bip32.fromSeed(seed).deriveHardened(accountIndex)
+      .privateKey;
+
+    if (!privateKey) {
+      throw new Error(
+        "Internal Error, freshly derived HD key does not have the private key."
+      );
+    }
+
+    return new EthereumWallet(web3, privateKey, 1);
+  }
+  public network: string;
   private web3: Web3;
-  private chainId: number;
-  private privateKey: Buffer;
-  private account: string;
+  private readonly chainId: number;
+  private readonly privateKey: Buffer;
+  private readonly account: string;
 
   constructor(web3: Web3, privateKey: Buffer, chainId: number) {
+    // TODO: decide on strategy to handle Ethereum networks
+    this.network = "regtest";
     this.chainId = chainId;
     this.web3 = web3;
     this.account = "0x" + utils.privateToAddress(privateKey).toString("hex");
@@ -84,6 +116,7 @@ export class EthereumWallet {
     const serializedTx = tx.serialize();
     const hex = "0x" + serializedTx.toString("hex");
 
+    log(`Invoking web3.eth.sendSignedTransaction with ${hex}`);
     return this.web3.eth.sendSignedTransaction(hex);
   }
 }

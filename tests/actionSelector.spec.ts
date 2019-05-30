@@ -35,131 +35,74 @@ describe("Action selector tests: ", () => {
     }
   });
 
-  it("Should emit accept only", done => {
+  it("Should emit accept only", async done => {
     const actionSelector = new ActionSelector(config);
-
-    let success = false;
 
     const entity = swapsAcceptDeclineStub.entities[0] as Entity;
     expect(entity.actions).not.toBeUndefined();
     // @ts-ignore
     const acceptedStub = entity.actions[0] as Action;
     expect(acceptedStub.name).toBe("accept");
-    actionSelector.selectActions(entity).subscribe(
-      actionResponse => {
-        success = true;
-        expect(actionResponse).toStrictEqual(acceptedStub);
-      },
-      error => {
-        fail(error);
-      },
-      () => {
-        expect(success).toBeTruthy();
-        done();
-      }
-    );
+
+    const actionResponse = await actionSelector.selectActions(entity);
+    expect(actionResponse[0]).toStrictEqual(acceptedStub);
+    done();
   });
 
-  it("Should emit decline because of wrong rate", done => {
+  it("Should emit decline because of wrong rate", async done => {
     config.rates = { ether: { bitcoin: { sell: 1, buy: 1 } } };
     const actionSelector = new ActionSelector(config);
-
-    let success = false;
 
     const entity = swapsAcceptDeclineStub.entities[0] as Entity;
     expect(entity.actions).not.toBeUndefined();
     // @ts-ignore
     const declinedStub = entity.actions[1] as Action;
     expect(declinedStub.name).toBe("decline");
-    actionSelector.selectActions(entity).subscribe(
-      actionResponse => {
-        success = true;
-        expect(actionResponse).toStrictEqual(declinedStub);
-      },
-      error => {
-        fail(error);
-      },
-      () => {
-        expect(success).toBeTruthy();
-        done();
-      }
-    );
+
+    const actionResponse = await actionSelector.selectActions(entity);
+    expect(actionResponse[0]).toStrictEqual(declinedStub);
+    done();
   });
 
-  it("Should emit error because of unexpected pair", done => {
+  it("Should emit error because of unexpected pair", async done => {
     config.bitcoinConfig = undefined;
     const actionSelector = new ActionSelector(config);
 
-    let failed = false;
-
     const entity = swapsAcceptDeclineStub.entities[0] as Entity;
     expect(entity.actions).not.toBeUndefined();
+
     // @ts-ignore
-    actionSelector.selectActions(entity).subscribe(
-      actionResponse => {
-        fail(actionResponse);
-      },
-      error => {
-        failed = true;
-        expect(error).toStrictEqual(
-          "Ledger-Asset not supported (bitcoin:bitcoin/ethereum:ether)"
-        );
-        done();
-      },
-      () => {
-        expect(failed).toBeTruthy();
-        done();
-      }
-    );
+    const actionResponse = await actionSelector.selectActions(entity);
+    expect(actionResponse.length).toBe(0);
+    done();
   });
 
-  it("Should emit redeem action", done => {
+  it("Should emit redeem action", async done => {
     const actionSelector = new ActionSelector(config);
-
-    let success = false;
 
     const entity = swapsRedeemBitcoinEther.entities[0] as Entity;
     expect(entity.actions).not.toBeUndefined();
     // @ts-ignore
     const action = entity.actions[0] as Action;
     expect(action.name).toBe("redeem");
-    actionSelector.selectActions(entity).subscribe(
-      actionResponse => {
-        success = true;
-        expect(actionResponse).toStrictEqual(action);
-      },
-      error => {
-        fail(error);
-      },
-      () => {
-        expect(success).toBeTruthy();
-        done();
-      }
-    );
+
+    const actionResponse = await actionSelector.selectActions(entity);
+    expect(actionResponse[0]).toStrictEqual(action);
+    done();
   });
 
-  it("Should emit fund action", done => {
+  it("Should emit fund action", async done => {
     const actionSelector = new ActionSelector(config);
-
-    let success = false;
 
     const entity = swapsFundEtherBitcoinStub.entities[0] as Entity;
     expect(entity.actions).not.toBeUndefined();
     // @ts-ignore
     const action = entity.actions[0] as Action;
     expect(action.name).toBe("fund");
-    actionSelector.selectActions(entity).subscribe(
-      actionResponse => {
-        success = true;
-        expect(actionResponse).toStrictEqual(action);
-      },
-      error => {
-        fail(error);
-      },
-      () => {
-        expect(success).toBeTruthy();
-        done();
-      }
-    );
+
+    const actionResponse = await actionSelector.selectActions(entity);
+
+    expect(actionResponse[0]).toStrictEqual(action);
+    done();
   });
 });

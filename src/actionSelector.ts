@@ -1,6 +1,5 @@
 import Big from "big.js";
 import debug from "debug";
-import { Observable, Subscriber } from "rxjs";
 import { Action, Entity } from "../gen/siren";
 import { Swap, toNominalUnit } from "./comitNode";
 import { Config } from "./config";
@@ -16,22 +15,22 @@ export class ActionSelector {
     this.config = config;
   }
 
-  public selectActions(entity: Entity): Observable<Action> {
-    return new Observable(observer => {
-      if (entity.class && entity.class.includes("swap")) {
-        const swap = entity as Swap;
+  public async selectActions(entity: Entity) {
+    if (entity.class && entity.class.includes("swap")) {
+      const swap = entity as Swap;
 
-        this.selectSwapAction(swap, observer);
-      }
-      observer.error("given entity is not a swap");
-    });
+      return this.selectSwapAction(swap);
+    }
+    log("given entity is not a swap");
+    return [];
   }
 
-  private selectSwapAction(swap: Swap, observer: Subscriber<Action>) {
+  private async selectSwapAction(swap: Swap) {
+    const result: Action[] = [];
     const actions = swap.actions;
     if (!actions) {
-      observer.error("No action available");
-      observer.complete();
+      log("No action available");
+      return result;
     }
 
     const acceptAction = actions.find(action => action.name === "accept");
@@ -42,13 +41,13 @@ export class ActionSelector {
     const refundAction = actions.find(action => action.name === "refund");
 
     if (redeemAction) {
-      observer.next(redeemAction);
+      result.push(redeemAction);
     }
     if (fundAction) {
-      observer.next(fundAction);
+      result.push(fundAction);
     }
     if (deployAction) {
-      observer.next(deployAction);
+      result.push(deployAction);
     }
 
     if (acceptAction) {
@@ -65,7 +64,7 @@ export class ActionSelector {
         !this.config.isSupported(alphaLedger, alphaAsset) ||
         !this.config.isSupported(betaLedger, betaAsset)
       ) {
-        observer.error(
+        log(
           `Ledger-Asset not supported (${alphaLedger}:${alphaAsset}/${betaLedger}:${betaAsset})`
         );
       } else {
@@ -77,7 +76,7 @@ export class ActionSelector {
         );
 
         if (!alphaQuantity || !betaQuantity) {
-          observer.error(
+          log(
             `Internal Error: Asset not supported (${alphaAsset}: ${alphaQuantity}, ${betaAsset}: ${betaQuantity}).`
           );
         } else {
@@ -90,7 +89,7 @@ export class ActionSelector {
           );
 
           if (!acceptableRate) {
-            observer.error(
+            log(
               `Rate is not configured to buy ${alphaLedger}:${alphaAsset} & sell ${betaLedger}:${betaAsset}`
             );
           } else {
@@ -99,20 +98,20 @@ export class ActionSelector {
             );
 
             if (proposedRate.gte(acceptableRate)) {
-              observer.next(acceptAction);
+              result.push(acceptAction);
             } else if (declineAction) {
-              observer.next(declineAction);
+              result.push(declineAction);
             } else {
-              observer.error("Decline action is unavailable");
+              log("Decline action is unavailable");
             }
           }
         }
       }
     } else if (refundAction) {
       // Only refund action available, doing nothing for now
-      observer.error("not implemented");
+      log("not implemented");
     }
 
-    observer.complete();
+    return result;
   }
 }

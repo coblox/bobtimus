@@ -18,7 +18,20 @@ const comitNode = new ComitNode(config);
 // TODO: switch case to select correct Bitcoin backend
 // Probably to be done by a helper function in bitcoin/blockchain.ts
 
-const wallets = {};
+const bitcoinWallet = InternalBitcoinWallet.fromConfig(
+  // @ts-ignore
+  config.bitcoinConfig,
+  // @ts-ignore
+  config.bitcoinBlockchain,
+  config.seed,
+  0
+);
+const ethereumWallet = EthereumWallet.fromConfig(
+  // @ts-ignore: config.ethereumConfig is expected to exist
+  config.ethereumConfig,
+  config.seed,
+  1
+);
 const ledgerExecutorParams = {};
 
 let bitcoinFeeService = BitcoinFeeService.default();
@@ -56,24 +69,28 @@ if (config.ethereumConfig) {
   Object.assign(ledgerExecutorParams, { ethereumWallet, ethereumFeeService });
 }
 
-const datastore = new InternalDatastore(wallets);
+const datastore = new InternalDatastore({
+  bitcoinWallet,
+  ethereumWallet,
+  bitcoinFeeService
+});
 const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
 const actionSelector = new ActionSelector(config);
 const actionExecutor = new ActionExecutor(comitNode, datastore, ledgerExecutor);
 
 const shoot = () =>
   comitNode.getSwaps().then(swaps => {
-    log(`Found swaps: ${swaps}`);
+    log(`Found swaps: ${JSON.stringify(swaps)}`);
     return swaps
       .map(swap => actionSelector.selectActions(swap))
       .map(actions => {
-        log(`Selected actions: ${actions}`);
-        return actions.then(actions =>
-          actions.map(action => actionExecutor.execute(action))
-        );
+        return actions.then(actions => {
+          log(`Selected actions: ${JSON.stringify(actions)}`);
+          return actions.map(action => actionExecutor.execute(action));
+        });
       })
       .forEach(actionResponse => {
-        log(`Action response: ${actionResponse}`);
+        log(`Action response: ${JSON.stringify(actionResponse)}`);
       });
   });
 

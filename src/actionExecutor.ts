@@ -14,6 +14,7 @@ export class ActionExecutor {
   private datastore: Datastore;
   private comitClient: ComitNode;
   private ledgerExecutor: ILedgerExecutor;
+  private actionLog: Action[];
 
   constructor(
     comitClient: ComitNode,
@@ -23,10 +24,20 @@ export class ActionExecutor {
     this.datastore = datastore;
     this.comitClient = comitClient;
     this.ledgerExecutor = ledgerExecutor;
+    this.actionLog = [];
   }
 
   public async execute(action: Action) {
+    if (
+      this.actionLog.find(loggedAction => loggedAction.href === action.href)
+    ) {
+      log(`Cannot execute action twice: ${action}!`);
+      return;
+    }
     const response = await this.triggerRequestFromAction(action);
+
+    // ignoring errors for now
+    this.actionLog.push(action);
 
     // If the response has a type and payload then a ledger action is needed
     if (response.type && response.payload) {

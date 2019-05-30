@@ -2,8 +2,6 @@ import Big from "big.js";
 import BN = require("bn.js");
 import debug from "debug";
 import request from "request-promise-native";
-import { from, Observable } from "rxjs";
-import { map } from "rxjs/operators";
 import URI from "urijs";
 import { Action, Entity } from "../gen/siren";
 import { Config } from "./config";
@@ -75,14 +73,14 @@ export class ComitNode {
     this.config = config;
   }
 
-  public getSwaps(): Observable<Entity[]> {
+  public getSwaps(): Promise<Entity[]> {
     const options = {
       method: "GET",
       url: this.config.prependUrlIfNeeded("/swaps/rfc003").toString(),
       json: true
     };
 
-    return from(request(options)).pipe(map(response => response.entities));
+    return request(options).then(response => response.entities);
   }
 
   public request(method: any, url: string, data: any) {

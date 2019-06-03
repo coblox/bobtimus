@@ -18,28 +18,17 @@ const comitNode = new ComitNode(config);
 // TODO: switch case to select correct Bitcoin backend
 // Probably to be done by a helper function in bitcoin/blockchain.ts
 
-const bitcoinWallet = InternalBitcoinWallet.fromConfig(
-  // @ts-ignore
-  config.bitcoinConfig,
-  // @ts-ignore
-  config.bitcoinBlockchain,
-  config.seed,
-  0
-);
-const ethereumWallet = EthereumWallet.fromConfig(
-  // @ts-ignore: config.ethereumConfig is expected to exist
-  config.ethereumConfig,
-  config.seed,
-  1
-);
 const ledgerExecutorParams = {};
 
 let bitcoinFeeService = BitcoinFeeService.default();
 let ethereumFeeService = EthereumGasPriceService.default();
 
+let bitcoinWallet;
+let ethereumWallet;
+
 if (config.bitcoinConfig) {
   const bitcoinBlockchain = BitcoinCoreRpc.fromConfig(config.bitcoinConfig);
-  const bitcoinWallet = InternalBitcoinWallet.fromConfig(
+  bitcoinWallet = InternalBitcoinWallet.fromConfig(
     config.bitcoinConfig,
     bitcoinBlockchain,
     config.seed,
@@ -54,10 +43,11 @@ if (config.bitcoinConfig) {
     bitcoinBlockchain,
     bitcoinWallet
   });
+  log(`Please fund bobtimus btc account: ${bitcoinWallet.getNewAddress()}`);
 }
 
 if (config.ethereumConfig) {
-  const ethereumWallet = EthereumWallet.fromConfig(
+  ethereumWallet = EthereumWallet.fromConfig(
     config.ethereumConfig,
     config.seed,
     1
@@ -67,10 +57,13 @@ if (config.ethereumConfig) {
     config.ethereumConfig.fee.strategy
   );
   Object.assign(ledgerExecutorParams, { ethereumWallet, ethereumFeeService });
+  log(`Please fund bobtimus eth account: ${ethereumWallet.getAddress()}`);
 }
 
 const datastore = new InternalDatastore({
+  // @ts-ignore
   bitcoinWallet,
+  // @ts-ignore
   ethereumWallet,
   bitcoinFeeService
 });
@@ -94,6 +87,4 @@ const shoot = () =>
       });
   });
 
-setInterval(() => {
-  shoot().then(() => log("Execution done"));
-}, 10000);
+shoot().then(() => log("Execution done"));

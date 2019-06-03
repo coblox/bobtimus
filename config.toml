@@ -1,5 +1,5 @@
 comitNodeUrl = "http://localhost:8010"
-seedWords = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"
+seedWords = "pencil album scare situate trap wrap coast prefer visa street video mom"
 
 [rates.ether.bitcoin]
 # Aiming for a "centralised exchange" feeling

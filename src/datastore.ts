@@ -32,7 +32,7 @@ export class InternalDatastore implements Datastore {
   }
 
   public async getData(field: Field) {
-    log("Trying to find data for " + field);
+    log(`Trying to find data for ${JSON.stringify(field)}`);
     if (
       this.ethereumWallet &&
       field.class.includes("ethereum") &&

@@ -87,4 +87,6 @@ const shoot = () =>
       });
   });
 
-shoot().then(() => log("Execution done"));
+setInterval(() => {
+  shoot().then(() => log("Execution done"));
+}, 10000);

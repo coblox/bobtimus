@@ -35,17 +35,19 @@ describe("Action selector tests: ", () => {
     }
   });
 
+  function setupAction(stub: any) {
+    const entity = stub.entities[0] as Entity;
+    // @ts-ignore
+    const actionStub = entity.actions[0] as Action;
+    return { entity, actionStub };
+  }
+
   it("Should emit accept only", async done => {
     const actionSelector = new ActionSelector(config);
-
-    const entity = swapsAcceptDeclineStub.entities[0] as Entity;
-    expect(entity.actions).not.toBeUndefined();
-    // @ts-ignore
-    const acceptedStub = entity.actions[0] as Action;
-    expect(acceptedStub.name).toBe("accept");
+    const { entity, actionStub } = setupAction(swapsAcceptDeclineStub);
 
     const actionResponse = await actionSelector.selectActions(entity);
-    expect(actionResponse[0]).toStrictEqual(acceptedStub);
+    expect(actionResponse[0]).toStrictEqual(actionStub);
     done();
   });
 
@@ -65,13 +67,10 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit error because of unexpected pair", async done => {
-    config.bitcoinConfig = undefined;
     const actionSelector = new ActionSelector(config);
+    config.bitcoinConfig = undefined;
+    const { entity } = setupAction(swapsAcceptDeclineStub);
 
-    const entity = swapsAcceptDeclineStub.entities[0] as Entity;
-    expect(entity.actions).not.toBeUndefined();
-
-    // @ts-ignore
     const actionResponse = await actionSelector.selectActions(entity);
     expect(actionResponse.length).toBe(0);
     done();
@@ -79,30 +78,19 @@ describe("Action selector tests: ", () => {
 
   it("Should emit redeem action", async done => {
     const actionSelector = new ActionSelector(config);
-
-    const entity = swapsRedeemBitcoinEther.entities[0] as Entity;
-    expect(entity.actions).not.toBeUndefined();
-    // @ts-ignore
-    const action = entity.actions[0] as Action;
-    expect(action.name).toBe("redeem");
+    const { entity, actionStub } = setupAction(swapsRedeemBitcoinEther);
 
     const actionResponse = await actionSelector.selectActions(entity);
-    expect(actionResponse[0]).toStrictEqual(action);
+    expect(actionResponse[0]).toStrictEqual(actionStub);
     done();
   });
 
   it("Should emit fund action", async done => {
     const actionSelector = new ActionSelector(config);
-
-    const entity = swapsFundEtherBitcoinStub.entities[0] as Entity;
-    expect(entity.actions).not.toBeUndefined();
-    // @ts-ignore
-    const action = entity.actions[0] as Action;
-    expect(action.name).toBe("fund");
+    const { entity, actionStub } = setupAction(swapsFundEtherBitcoinStub);
 
     const actionResponse = await actionSelector.selectActions(entity);
-
-    expect(actionResponse[0]).toStrictEqual(action);
+    expect(actionResponse[0]).toStrictEqual(actionStub);
     done();
   });
 });

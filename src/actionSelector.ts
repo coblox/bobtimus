@@ -10,11 +10,11 @@ Big.DP = 30;
 
 export class ActionSelector {
   private config: Config;
-  private actionLog: Action[];
+  private selectedActions: Action[];
 
   constructor(config: Config) {
     this.config = config;
-    this.actionLog = [];
+    this.selectedActions = [];
   }
 
   public async selectActions(entity: Entity) {
@@ -42,13 +42,13 @@ export class ActionSelector {
     const refundAction = actions.find(action => action.name === "refund");
 
     if (redeemAction && !this.wasReturned(redeemAction)) {
-      this.actionLog.push(redeemAction);
+      this.selectedActions.push(redeemAction);
       return redeemAction;
     } else if (fundAction && !this.wasReturned(fundAction)) {
-      this.actionLog.push(fundAction);
+      this.selectedActions.push(fundAction);
       return fundAction;
     } else if (deployAction && !this.wasReturned(deployAction)) {
-      this.actionLog.push(deployAction);
+      this.selectedActions.push(deployAction);
       return deployAction;
     }
 
@@ -103,10 +103,10 @@ export class ActionSelector {
               proposedRate.gte(acceptableRate) &&
               !this.wasReturned(acceptAction)
             ) {
-              this.actionLog.push(acceptAction);
+              this.selectedActions.push(acceptAction);
               return acceptAction;
             } else if (declineAction && !this.wasReturned(declineAction)) {
-              this.actionLog.push(declineAction);
+              this.selectedActions.push(declineAction);
               return declineAction;
             } else {
               log("Decline action is unavailable");
@@ -124,7 +124,9 @@ export class ActionSelector {
 
   private wasReturned(action: Action) {
     if (
-      this.actionLog.find(loggedAction => loggedAction.href === action.href)
+      this.selectedActions.find(
+        loggedAction => loggedAction.href === action.href
+      )
     ) {
       log(`Cannot return action twice: ${action}!`);
       return true;

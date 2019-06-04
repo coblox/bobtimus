@@ -319,39 +319,4 @@ describe("Ledger action execution tests:", () => {
 
     done();
   });
-
-  it("executing the fund action twice should ignore second action", async done => {
-    nock("http://localhost:8000")
-      .get("/swaps/rfc003/")
-      .twice()
-      .reply(200, swapsFundBitcoinEtherStub)
-      .get("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/fund")
-      .twice()
-      .reply(200, fundEther);
-
-    const mockEthereumDeployContract = jest.fn(() => {
-      return Promise.resolve(dummyTransactionReceipt);
-    });
-
-    const ledgerExecutor = new DummyLedgerExecutor();
-    ledgerExecutor.ethereumDeployContract = mockEthereumDeployContract;
-    const actionExecutor = new ActionExecutor(
-      comitNode,
-      new DummyDatastore(),
-      ledgerExecutor
-    );
-    const swap = swapsFundBitcoinEtherStub.entities[0] as Swap;
-
-    const fundAction = swap.actions.find(
-      action => action.name === "fund"
-    ) as Action;
-
-    const actionResult1 = await actionExecutor.execute(fundAction);
-    const actionResult2 = await actionExecutor.execute(fundAction);
-
-    expect(actionResult1).toBeDefined();
-    expect(actionResult2).toBeUndefined();
-
-    done();
-  });
 });

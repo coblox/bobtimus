@@ -47,7 +47,7 @@ describe("Action selector tests: ", () => {
     const { entity, actionStub } = setupAction(swapsAcceptDeclineStub);
 
     const actionResponse = await actionSelector.selectActions(entity);
-    expect(actionResponse[0]).toStrictEqual(actionStub);
+    expect(actionResponse).toStrictEqual(actionStub);
     done();
   });
 
@@ -62,7 +62,7 @@ describe("Action selector tests: ", () => {
     expect(declinedStub.name).toBe("decline");
 
     const actionResponse = await actionSelector.selectActions(entity);
-    expect(actionResponse[0]).toStrictEqual(declinedStub);
+    expect(actionResponse).toStrictEqual(declinedStub);
     done();
   });
 
@@ -72,7 +72,7 @@ describe("Action selector tests: ", () => {
     const { entity } = setupAction(swapsAcceptDeclineStub);
 
     const actionResponse = await actionSelector.selectActions(entity);
-    expect(actionResponse.length).toBe(0);
+    expect(actionResponse).toBeUndefined();
     done();
   });
 
@@ -81,7 +81,7 @@ describe("Action selector tests: ", () => {
     const { entity, actionStub } = setupAction(swapsRedeemBitcoinEther);
 
     const actionResponse = await actionSelector.selectActions(entity);
-    expect(actionResponse[0]).toStrictEqual(actionStub);
+    expect(actionResponse).toStrictEqual(actionStub);
     done();
   });
 
@@ -90,7 +90,19 @@ describe("Action selector tests: ", () => {
     const { entity, actionStub } = setupAction(swapsFundEtherBitcoinStub);
 
     const actionResponse = await actionSelector.selectActions(entity);
-    expect(actionResponse[0]).toStrictEqual(actionStub);
+    expect(actionResponse).toStrictEqual(actionStub);
+    done();
+  });
+
+  it("Should not emit fund action twice", async done => {
+    const actionSelector = new ActionSelector(config);
+    const { entity, actionStub } = setupAction(swapsFundEtherBitcoinStub);
+
+    const actionResponse = await actionSelector.selectActions(entity);
+    expect(actionResponse).toStrictEqual(actionStub);
+
+    const actionResponse2 = await actionSelector.selectActions(entity);
+    expect(actionResponse2).toBeUndefined();
     done();
   });
 });

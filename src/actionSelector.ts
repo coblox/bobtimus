@@ -10,9 +10,11 @@ Big.DP = 30;
 
 export class ActionSelector {
   private config: Config;
+  private actionLog: Action[];
 
   constructor(config: Config) {
     this.config = config;
+    this.actionLog = [];
   }
 
   public async selectActions(entity: Entity) {
@@ -22,15 +24,14 @@ export class ActionSelector {
       return this.selectSwapAction(swap);
     }
     log("given entity is not a swap");
-    return [];
+    return undefined;
   }
 
   private async selectSwapAction(swap: Swap) {
-    const result: Action[] = [];
     const actions = swap.actions;
     if (!actions) {
       log("No action available");
-      return result;
+      return undefined;
     }
 
     const acceptAction = actions.find(action => action.name === "accept");
@@ -40,14 +41,15 @@ export class ActionSelector {
     const redeemAction = actions.find(action => action.name === "redeem");
     const refundAction = actions.find(action => action.name === "refund");
 
-    if (redeemAction) {
-      result.push(redeemAction);
-    }
-    if (fundAction) {
-      result.push(fundAction);
-    }
-    if (deployAction) {
-      result.push(deployAction);
+    if (redeemAction && !this.wasReturned(redeemAction)) {
+      this.actionLog.push(redeemAction);
+      return redeemAction;
+    } else if (fundAction && !this.wasReturned(fundAction)) {
+      this.actionLog.push(fundAction);
+      return fundAction;
+    } else if (deployAction && !this.wasReturned(deployAction)) {
+      this.actionLog.push(deployAction);
+      return deployAction;
     }
 
     if (acceptAction) {
@@ -97,10 +99,15 @@ export class ActionSelector {
               `Proposed rate: ${proposedRate.toFixed()}, Acceptable rate: ${acceptableRate.toFixed()}`
             );
 
-            if (proposedRate.gte(acceptableRate)) {
-              result.push(acceptAction);
-            } else if (declineAction) {
-              result.push(declineAction);
+            if (
+              proposedRate.gte(acceptableRate) &&
+              !this.wasReturned(acceptAction)
+            ) {
+              this.actionLog.push(acceptAction);
+              return acceptAction;
+            } else if (declineAction && !this.wasReturned(declineAction)) {
+              this.actionLog.push(declineAction);
+              return declineAction;
             } else {
               log("Decline action is unavailable");
             }
@@ -112,6 +119,17 @@ export class ActionSelector {
       log("not implemented");
     }
 
-    return result;
+    return undefined;
+  }
+
+  private wasReturned(action: Action) {
+    if (
+      this.actionLog.find(loggedAction => loggedAction.href === action.href)
+    ) {
+      log(`Cannot return action twice: ${action}!`);
+      return true;
+    } else {
+      return false;
+    }
   }
 }

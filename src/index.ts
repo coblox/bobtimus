@@ -76,10 +76,15 @@ const shoot = () =>
     log(`Found swaps: ${JSON.stringify(swaps)}`);
     return swaps
       .map(swap => actionSelector.selectActions(swap))
-      .map(actions => {
-        return actions.then(actions => {
-          log(`Selected actions: ${JSON.stringify(actions)}`);
-          return actions.map(action => actionExecutor.execute(action));
+      .map(selectedAction => {
+        return selectedAction.then(action => {
+          if (action) {
+            log(`Selected action: ${JSON.stringify(action)}`);
+            return actionExecutor.execute(action);
+          } else {
+            log("No action returned");
+            return undefined;
+          }
         });
       })
       .forEach(actionResponse => {

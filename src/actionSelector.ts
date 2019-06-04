@@ -1,4 +1,3 @@
-import { Result } from "@badrap/result/dist";
 import Big from "big.js";
 import debug from "debug";
 import { Action, Entity } from "../gen/siren";
@@ -11,24 +10,28 @@ Big.DP = 30;
 
 export class ActionSelector {
   private config: Config;
+  private selectedActions: Action[];
 
   constructor(config: Config) {
     this.config = config;
+    this.selectedActions = [];
   }
 
-  public selectAction(entity: Entity): Result<Action, Error> {
+  public async selectActions(entity: Entity) {
     if (entity.class && entity.class.includes("swap")) {
       const swap = entity as Swap;
 
       return this.selectSwapAction(swap);
     }
-    return Result.err(new Error("Given entity is not a swap"));
+    log("given entity is not a swap");
+    return undefined;
   }
 
-  private selectSwapAction(swap: Swap): Result<Action, Error> {
+  private async selectSwapAction(swap: Swap) {
     const actions = swap.actions;
     if (!actions) {
-      return Result.err(new Error("No action available"));
+      log("No action available");
+      return undefined;
     }
 
     const acceptAction = actions.find(action => action.name === "accept");
@@ -38,13 +41,18 @@ export class ActionSelector {
     const redeemAction = actions.find(action => action.name === "redeem");
     const refundAction = actions.find(action => action.name === "refund");
 
-    if (redeemAction) {
-      return Result.ok(redeemAction);
-    } else if (fundAction) {
-      return Result.ok(fundAction);
-    } else if (deployAction) {
-      return Result.ok(deployAction);
-    } else if (acceptAction) {
+    if (redeemAction && !this.wasReturned(redeemAction)) {
+      this.selectedActions.push(redeemAction);
+      return redeemAction;
+    } else if (fundAction && !this.wasReturned(fundAction)) {
+      this.selectedActions.push(fundAction);
+      return fundAction;
+    } else if (deployAction && !this.wasReturned(deployAction)) {
+      this.selectedActions.push(deployAction);
+      return deployAction;
+    }
+
+    if (acceptAction) {
       const alphaLedger = swap.properties.parameters.alpha_ledger.name;
       const betaLedger = swap.properties.parameters.beta_ledger.name;
       const alphaAsset = swap.properties.parameters.alpha_asset.name;
@@ -58,58 +66,72 @@ export class ActionSelector {
         !this.config.isSupported(alphaLedger, alphaAsset) ||
         !this.config.isSupported(betaLedger, betaAsset)
       ) {
-        return Result.err(
-          new Error(
-            `Ledger-Asset not supported (${alphaLedger}:${alphaAsset}/${betaLedger}:${betaAsset})`
-          )
+        log(
+          `Ledger-Asset not supported (${alphaLedger}:${alphaAsset}/${betaLedger}:${betaAsset})`
         );
-      }
-
-      const alphaQuantity = toNominalUnit(
-        swap.properties.parameters.alpha_asset
-      );
-      const betaQuantity = toNominalUnit(swap.properties.parameters.beta_asset);
-
-      if (!alphaQuantity || !betaQuantity) {
-        return Result.err(
-          new Error(
-            `Internal Error: Asset not supported (${alphaAsset}: ${alphaQuantity}, ${betaAsset}: ${betaQuantity}).`
-          )
-        );
-      }
-
-      // Bob always buys Alpha
-      // Calculate rate as buy divided by sell
-      const proposedRate = alphaQuantity.div(betaQuantity);
-      const acceptableRate = this.config.getBuyDivBySellRate(
-        alphaAsset,
-        betaAsset
-      );
-
-      if (!acceptableRate) {
-        return Result.err(
-          new Error(
-            `Rate is not configured to buy ${alphaLedger}:${alphaAsset} & sell ${betaLedger}:${betaAsset}`
-          )
-        );
-      }
-
-      log(
-        `Proposed rate: ${proposedRate.toFixed()}, Acceptable rate: ${acceptableRate.toFixed()}`
-      );
-
-      if (proposedRate.gte(acceptableRate)) {
-        return Result.ok(acceptAction);
-      } else if (declineAction) {
-        return Result.ok(declineAction);
       } else {
-        return Result.err(new Error("Decline action is unavailable"));
+        const alphaQuantity = toNominalUnit(
+          swap.properties.parameters.alpha_asset
+        );
+        const betaQuantity = toNominalUnit(
+          swap.properties.parameters.beta_asset
+        );
+
+        if (!alphaQuantity || !betaQuantity) {
+          log(
+            `Internal Error: Asset not supported (${alphaAsset}: ${alphaQuantity}, ${betaAsset}: ${betaQuantity}).`
+          );
+        } else {
+          // Bob always buys Alpha
+          // Calculate rate as buy divided by sell
+          const proposedRate = alphaQuantity.div(betaQuantity);
+          const acceptableRate = this.config.getBuyDivBySellRate(
+            alphaAsset,
+            betaAsset
+          );
+
+          if (!acceptableRate) {
+            log(
+              `Rate is not configured to buy ${alphaLedger}:${alphaAsset} & sell ${betaLedger}:${betaAsset}`
+            );
+          } else {
+            log(
+              `Proposed rate: ${proposedRate.toFixed()}, Acceptable rate: ${acceptableRate.toFixed()}`
+            );
+
+            if (
+              proposedRate.gte(acceptableRate) &&
+              !this.wasReturned(acceptAction)
+            ) {
+              this.selectedActions.push(acceptAction);
+              return acceptAction;
+            } else if (declineAction && !this.wasReturned(declineAction)) {
+              this.selectedActions.push(declineAction);
+              return declineAction;
+            } else {
+              log("Decline action is unavailable");
+            }
+          }
+        }
       }
     } else if (refundAction) {
       // Only refund action available, doing nothing for now
-      Result.err(new Error("not implemented"));
+      log("not implemented");
     }
 
-    return Result.err(new Error("not implemented"));
+    return undefined;
+  }
+
+  private wasReturned(action: Action) {
+    if (
+      this.selectedActions.find(
+        loggedAction => loggedAction.href === action.href
+      )
+    ) {
+      log(`Cannot return action twice: ${action}!`);
+      return true;
+    } else {
+      return false;
+    }
   }
 }

@@ -1,7 +1,10 @@
+import debug = require("debug");
 import { Field } from "../gen/siren";
 import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import { BitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
+
+const log = debug("bobtimus:datastore");
 
 export interface Datastore {
   getData: (field: Field) => any;
@@ -29,6 +32,7 @@ export class InternalDatastore implements Datastore {
   }
 
   public async getData(field: Field) {
+    log(`Trying to find data for ${JSON.stringify(field)}`);
     if (
       this.ethereumWallet &&
       field.class.includes("ethereum") &&

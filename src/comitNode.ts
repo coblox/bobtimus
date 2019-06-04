@@ -76,7 +76,7 @@ export class ComitNode {
   public getSwaps(): Promise<Entity[]> {
     const options = {
       method: "GET",
-      url: this.config.prependUrlIfNeeded("/swaps/rfc003").toString(),
+      url: this.config.prependUrlIfNeeded("/swaps").toString(),
       json: true
     };
 

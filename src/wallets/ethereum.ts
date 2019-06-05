@@ -38,10 +38,6 @@ export class EthereumWallet {
     seed: Buffer,
     accountIndex: number
   ) {
-    const web3 = new Web3(
-      new Web3.providers.HttpProvider(ethereumConfig.web3Endpoint)
-    );
-
     const privateKey = bip32.fromSeed(seed).deriveHardened(accountIndex)
       .privateKey;
 
@@ -51,19 +47,27 @@ export class EthereumWallet {
       );
     }
 
-    return new EthereumWallet(web3, privateKey, 1);
+    const web3 = new Web3(
+      new Web3.providers.HttpProvider(ethereumConfig.web3Endpoint)
+    );
+
+    return EthereumWallet.newInstance(web3, privateKey);
   }
-  public network: string;
+
+  public static async newInstance(web3: Web3, privateKey: Buffer) {
+    const chainId = await web3.eth.net.getId();
+
+    return new EthereumWallet(web3, privateKey, chainId);
+  }
+
   private web3: Web3;
-  private readonly chainId: number;
   private readonly privateKey: Buffer;
   private readonly account: string;
+  private readonly chainId: number;
 
-  constructor(web3: Web3, privateKey: Buffer, chainId: number) {
-    // TODO: decide on strategy to handle Ethereum networks
-    this.network = "regtest";
-    this.chainId = chainId;
+  private constructor(web3: Web3, privateKey: Buffer, chainId: number) {
     this.web3 = web3;
+    this.chainId = chainId;
     this.account = "0x" + utils.privateToAddress(privateKey).toString("hex");
     this.privateKey = privateKey;
 
@@ -89,6 +93,10 @@ export class EthereumWallet {
 
   public getAddress() {
     return this.account;
+  }
+
+  public getChainId() {
+    return this.chainId;
   }
 
   private async paramsToTransaction({

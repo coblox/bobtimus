@@ -44,7 +44,7 @@ describe("Ethereum Wallet", () => {
           `http://localhost:${container.getMappedPort(8545)}`
         )
       );
-      const wallet = new EthereumWallet(web3, privateKey, 1);
+      const wallet = await EthereumWallet.newInstance(web3, privateKey);
 
       const amountFounded = await fundAddressOfPrivateKey(web3, privateKey);
       const amountToTransfer = amountFounded.divn(2);
@@ -78,7 +78,7 @@ describe("Ethereum Wallet", () => {
           `http://localhost:${container.getMappedPort(8545)}`
         )
       );
-      const wallet = new EthereumWallet(web3, privateKey, 1);
+      const wallet = await EthereumWallet.newInstance(web3, privateKey);
 
       await fundAddressOfPrivateKey(web3, privateKey);
 

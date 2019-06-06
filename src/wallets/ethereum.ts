@@ -4,31 +4,44 @@ import debug from "debug";
 import EthereumTx from "ethereumjs-tx";
 import utils from "ethereumjs-util";
 import Web3 from "web3";
+import { TransactionReceipt } from "web3-core";
 import { EthereumConfig } from "../config";
 
 const log = debug("bobtimus:wallets:ethereum");
 
-interface SharedTransactionParams {
+export interface SharedTransactionParams {
   value?: BN;
   gasPrice: BN;
   gasLimit: BN;
 }
 
-interface SendTransactionToParams {
+export interface SendTransactionToParams {
   to: string;
   data?: Buffer;
 }
 
-interface DeployContractParams {
+export interface DeployContractParams {
   data: Buffer;
 }
 
-type TransactionParams = SharedTransactionParams & {
+export type TransactionParams = SharedTransactionParams & {
   to?: string;
   data?: Buffer;
 };
 
-export class EthereumWallet {
+export interface EthereumWallet {
+  sendTransactionTo(
+    params: SharedTransactionParams & SendTransactionToParams
+  ): Promise<TransactionReceipt>;
+
+  deployContract(
+    params: SharedTransactionParams & DeployContractParams
+  ): Promise<TransactionReceipt>;
+
+  getAddress(): string;
+}
+
+export class Web3EthereumWallet implements EthereumWallet {
   /// accountIndex is the account number (hardened) that will be passed to the bitcoin Wallet
   /// ie, m/i'. Best practice to use different accounts for different blockchain in case an extended
   /// private key get leaked.
@@ -51,13 +64,13 @@ export class EthereumWallet {
       new Web3.providers.HttpProvider(ethereumConfig.web3Endpoint)
     );
 
-    return EthereumWallet.newInstance(web3, privateKey);
+    return Web3EthereumWallet.newInstance(web3, privateKey);
   }
 
   public static async newInstance(web3: Web3, privateKey: Buffer) {
     const chainId = await web3.eth.net.getId();
 
-    return new EthereumWallet(web3, privateKey, chainId);
+    return new Web3EthereumWallet(web3, privateKey, chainId);
   }
 
   private web3: Web3;

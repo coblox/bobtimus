@@ -17,7 +17,7 @@ export class ActionSelector {
     this.selectedActions = [];
   }
 
-  public async selectActions(entity: Entity) {
+  public selectActions(entity: Entity) {
     if (entity.class && entity.class.includes("swap")) {
       const swap = entity as Swap;
 
@@ -27,7 +27,7 @@ export class ActionSelector {
     return undefined;
   }
 
-  private async selectSwapAction(swap: Swap) {
+  private selectSwapAction(swap: Swap) {
     const actions = swap.actions;
     if (!actions) {
       log("No action available");

@@ -6,17 +6,17 @@ import { EthereumWallet } from "./wallets/ethereum";
 
 const log = debug("bobtimus:datastore");
 
-export interface Datastore {
+export interface FieldDataSource {
   getData: (field: Field) => any;
 }
 
-export interface DatastoreParameters {
+export interface DataSourceParameters {
   ethereumWallet?: EthereumWallet;
   bitcoinWallet?: BitcoinWallet;
   bitcoinFeeService?: BitcoinFeeService;
 }
 
-export class InternalDatastore implements Datastore {
+export class DefaultFieldDataSource implements FieldDataSource {
   private readonly ethereumWallet?: EthereumWallet;
   private readonly bitcoinWallet?: BitcoinWallet;
   private readonly bitcoinFeeService?: BitcoinFeeService;
@@ -25,7 +25,7 @@ export class InternalDatastore implements Datastore {
     ethereumWallet,
     bitcoinWallet,
     bitcoinFeeService
-  }: DatastoreParameters) {
+  }: DataSourceParameters) {
     this.ethereumWallet = ethereumWallet;
     this.bitcoinWallet = bitcoinWallet;
     this.bitcoinFeeService = bitcoinFeeService;

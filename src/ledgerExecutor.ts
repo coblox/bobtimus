@@ -7,7 +7,7 @@ import { BitcoinBlockchain, Satoshis } from "./bitcoin/blockchain";
 import { hexToBuffer } from "./comitNode";
 import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import { BitcoinWallet } from "./wallets/bitcoin";
-import { EthereumWallet } from "./wallets/ethereum";
+import { Web3EthereumWallet } from "./wallets/ethereum";
 
 const log = debug("bobtimus:ledgerExecutor");
 
@@ -29,7 +29,7 @@ interface EthereumDeployContractParams {
 export interface LedgerExecutorParams {
   bitcoinBlockchain?: BitcoinBlockchain;
   bitcoinWallet?: BitcoinWallet;
-  ethereumWallet?: EthereumWallet;
+  ethereumWallet?: Web3EthereumWallet;
   bitcoinFeeService?: BitcoinFeeService;
   ethereumFeeService?: EthereumGasPriceService;
 }
@@ -53,7 +53,7 @@ export interface ILedgerExecutor {
 export class LedgerExecutor implements ILedgerExecutor {
   private readonly bitcoinBlockchain?: BitcoinBlockchain;
   private readonly bitcoinWallet?: BitcoinWallet;
-  private readonly ethereumWallet?: EthereumWallet;
+  private readonly ethereumWallet?: Web3EthereumWallet;
   private readonly bitcoinFeeService?: BitcoinFeeService;
   private readonly ethereumFeeService?: EthereumGasPriceService;
 
@@ -98,9 +98,10 @@ export class LedgerExecutor implements ILedgerExecutor {
   public async ethereumDeployContract(
     params: EthereumSharedTransactionParams & EthereumDeployContractParams
   ) {
-    const { ethereumWallet, ethereumFeeService } = this.validateEthereumWallet(
-      params.network
-    );
+    const {
+      ethereumWallet,
+      ethereumFeeService
+    } = await this.validateEthereumWallet(params.network);
 
     const gasPrice = await ethereumFeeService.retrieveGasPrice();
 
@@ -116,9 +117,10 @@ export class LedgerExecutor implements ILedgerExecutor {
   public async ethereumSendTransactionTo(
     params: EthereumSharedTransactionParams & EthereumSendTransactionToParams
   ) {
-    const { ethereumWallet, ethereumFeeService } = this.validateEthereumWallet(
-      params.network
-    );
+    const {
+      ethereumWallet,
+      ethereumFeeService
+    } = await this.validateEthereumWallet(params.network);
 
     const gasPrice = await ethereumFeeService.retrieveGasPrice();
 
@@ -160,23 +162,25 @@ export class LedgerExecutor implements ILedgerExecutor {
     return this.bitcoinBlockchain;
   }
 
-  private validateEthereumWallet(network: string) {
-    if (!this.ethereumWallet) {
+  private async validateEthereumWallet(network: string) {
+    const ethereumWallet = this.ethereumWallet;
+    const ethereumFeeService = this.ethereumFeeService;
+
+    if (!ethereumWallet) {
       throw new Error(`Ethereum Wallet is not available.`);
     }
-    if (!this.ethereumFeeService) {
+    if (!ethereumFeeService) {
       throw new Error(`Ethereum Fee Service is not available.`);
     }
-    if (this.ethereumWallet.network !== network) {
+    // To fix this awkward comparison, make the comit_node use chainId for Ethereum: https://github.com/comit-network/RFCs/issues/73
+    if (network !== "regtest" && (await ethereumWallet.getChainId()) !== 17) {
       throw new Error(
-        `Incompatible Ethereum network. Received: ${network}, but wallet is ${
-          this.ethereumWallet.network
-        }`
+        `Incompatible Ethereum network. Received: ${network}, but wallet is chainID ${ethereumWallet.getChainId()}`
       );
     }
     return {
-      ethereumWallet: this.ethereumWallet,
-      ethereumFeeService: this.ethereumFeeService
+      ethereumWallet,
+      ethereumFeeService
     };
   }
 }

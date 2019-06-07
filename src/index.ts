@@ -82,8 +82,8 @@ const config = Config.fromFile("./config.toml");
     ledgerExecutor
   );
 
-const shoot = () =>
-  comitNode.getSwaps().then(async swaps => {
+  const shoot = async () => {
+    const swaps = await comitNode.getSwaps();
     log(`Found swaps: ${JSON.stringify(swaps)}`);
 
     for (const swap of swaps) {
@@ -109,7 +109,7 @@ const shoot = () =>
         );
       }
     }
-  });
+  };
 
   setInterval(() => {
     shoot().then(() => log("Execution done"));

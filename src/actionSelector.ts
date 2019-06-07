@@ -116,7 +116,7 @@ export class ActionSelector {
       }
     } else if (refundAction) {
       // Only refund action available, doing nothing for now
-      log("not implemented");
+      log("refund is not implemented");
     }
 
     return undefined;

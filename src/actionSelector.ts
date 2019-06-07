@@ -128,7 +128,7 @@ export class ActionSelector {
         loggedAction => loggedAction.href === action.href
       )
     ) {
-      log(`Cannot return action twice: ${action}!`);
+      log(`Cannot return action twice: ${JSON.stringify(action)}!`);
       return true;
     } else {
       return false;

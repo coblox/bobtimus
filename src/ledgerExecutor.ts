@@ -173,7 +173,9 @@ export class LedgerExecutor implements ILedgerExecutor {
       throw new Error(`Ethereum Fee Service is not available.`);
     }
     // To fix this awkward comparison, make the comit_node use chainId for Ethereum: https://github.com/comit-network/RFCs/issues/73
-    if (network !== "regtest" && (await ethereumWallet.getChainId()) !== 17) {
+    if (
+      !(network === "regtest" && (await ethereumWallet.getChainId()) === 17)
+    ) {
       throw new Error(
         `Incompatible Ethereum network. Received: ${network}, but wallet is chainID ${ethereumWallet.getChainId()}`
       );

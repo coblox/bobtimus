@@ -63,11 +63,17 @@ const initEthereum = async (config: Config) => {
 const config = Config.fromFile("./config.toml");
 
 (async () => {
-  const bitcoinParams = await initBitcoin(config);
+  const {
+    bitcoinFeeService,
+    bitcoinBlockchain,
+    bitcoinWallet
+  } = await initBitcoin(config);
   const ethereumParams = await initEthereum(config);
 
   const ledgerExecutorParams = {
-    ...bitcoinParams,
+    bitcoinFeeService,
+    bitcoinBlockchain,
+    bitcoinWallet,
     ...ethereumParams
   };
 
@@ -100,6 +106,10 @@ const config = Config.fromFile("./config.toml");
               executionResult
             )}`
           );
+          if (executionResult.isErr()) {
+            log(`Execution failed, invalidating Action ${selectedAction}`);
+            actionSelector.invalidateAction(selectedAction);
+          }
         } else {
           log(`No action returned for swap ${id}`);
         }
@@ -114,4 +124,11 @@ const config = Config.fromFile("./config.toml");
   setInterval(() => {
     shoot().then(() => log("Execution done"));
   }, 10000);
+
+  if (bitcoinWallet) {
+    await bitcoinWallet.refreshUtxo();
+    setInterval(() => {
+      bitcoinWallet.refreshUtxo();
+    }, 60000);
+  }
 })();

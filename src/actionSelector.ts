@@ -27,6 +27,15 @@ export class ActionSelector {
     return undefined;
   }
 
+  public invalidateAction(action: Action) {
+    const index = this.selectedActions.findIndex(
+      loggedAction => loggedAction.href === action.href
+    );
+    if (index > -1) {
+      this.selectedActions.splice(index, 1);
+    }
+  }
+
   private selectSwapAction(swap: Swap) {
     const actions = swap.actions;
     if (!actions) {

@@ -82,24 +82,34 @@ const config = Config.fromFile("./config.toml");
     ledgerExecutor
   );
 
-  const shoot = () =>
-    comitNode.getSwaps().then(swaps => {
-      log(`Found swaps: ${JSON.stringify(swaps)}`);
-      return swaps
-        .map(swap => actionSelector.selectActions(swap))
-        .map(action => {
-          if (action) {
-            log(`Selected action: ${JSON.stringify(action)}`);
-            return actionExecutor.execute(action);
-          } else {
-            log("No action returned");
-            return undefined;
-          }
-        })
-        .forEach(actionResponse => {
-          log(`Action response: ${JSON.stringify(actionResponse)}`);
-        });
-    });
+  const shoot = async () => {
+    const swaps = await comitNode.getSwaps();
+    log(`Found swaps: ${JSON.stringify(swaps)}`);
+
+    for (const swap of swaps) {
+      const id = swap.id;
+      try {
+        const selectedAction = await actionSelector.selectActions(swap);
+        if (selectedAction) {
+          log(
+            `Selected action for swap ${id}: ${JSON.stringify(selectedAction)}`
+          );
+          const executionResult = await actionExecutor.execute(selectedAction);
+          log(
+            `Action execution response for swap ${id}: ${JSON.stringify(
+              executionResult
+            )}`
+          );
+        } else {
+          log(`No action returned for swap ${id}`);
+        }
+      } catch (err) {
+        log(
+          `Error has occurred for swap ${id}. Error is: ${JSON.stringify(err)}`
+        );
+      }
+    }
+  };
 
   setInterval(() => {
     shoot().then(() => log("Execution done"));

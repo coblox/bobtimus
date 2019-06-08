@@ -127,12 +127,11 @@ export class LedgerExecutor implements ILedgerExecutor {
     const parameters = {
       gasPrice,
       gasLimit: params.gasLimit,
-      to: params.to
+      to: params.to,
+      data: params.data ? hexToBuffer(params.data) : undefined
     };
-    if (params.data) {
-      Object.assign(params, { data: hexToBuffer(params.data) });
-    }
-    log(`Invoking sendTransaction on Ethereum Wallet with ${parameters}`);
+
+    log("Invoking sendTransaction on Ethereum Wallet with ", parameters);
     return ethereumWallet.sendTransactionTo(parameters);
   }
 

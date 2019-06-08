@@ -87,7 +87,8 @@ export class ActionExecutor {
           const params = {
             gasLimit: hexToBN(action.payload.gas_limit),
             to: action.payload.contract_address,
-            network: action.payload.network
+            network: action.payload.network,
+            data: action.payload.data
           };
           const result = await this.ledgerExecutor.ethereumSendTransactionTo(
             params

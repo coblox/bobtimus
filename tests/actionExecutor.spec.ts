@@ -267,7 +267,9 @@ describe("Ledger action execution tests:", () => {
     expect(argPassed.gasLimit.toString("hex")).toEqual("186a0");
     expect(argPassed.network).toEqual("regtest");
     expect(argPassed.to).toEqual("0x1189128ff5573f6282dbbf1557ed839dab277aeb");
-    expect(argPassed.data).toBeUndefined();
+    expect(argPassed.data).toEqual(
+      "0x00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"
+    );
 
     done();
   });

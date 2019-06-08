@@ -90,10 +90,10 @@ const config = Config.fromFile("./config.toml");
 
   const shoot = async () => {
     const swaps = await comitNode.getSwaps();
-    log(`Found swaps: ${JSON.stringify(swaps)}`);
+    log(`Found ${swaps.length} swap(s)`);
 
     for (const swap of swaps) {
-      const id = swap.id;
+      const id = swap.properties ? swap.properties.id : undefined;
       try {
         const selectedAction = await actionSelector.selectActions(swap);
         if (selectedAction) {

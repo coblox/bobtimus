@@ -38,7 +38,7 @@ interface Rates {
   };
 }
 
-interface TomlConfig {
+export interface TomlConfig {
   comitNodeUrl: string;
   seedWords?: string;
   rates: Rates;

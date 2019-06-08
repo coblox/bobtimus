@@ -1,12 +1,12 @@
 import BN = require("bn.js");
 import { Action, Entity } from "../gen/siren";
 import { ActionSelector } from "../src/actionSelector";
-import { Config } from "../src/config";
+import { Config, TomlConfig } from "../src/config";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
 import swapsRedeemBitcoinEther from "./stubs/bitcoinEther/swapsWithRedeem.siren.json";
 import swapsFundEtherBitcoinStub from "./stubs/etherBitcoin/swapsWithFund.siren.json";
 
-const config = new Config({
+const tomlConfig = {
   comitNodeUrl: "http://localhost:8000",
   seedWords:
     "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
@@ -32,9 +32,11 @@ const config = new Config({
       }
     }
   }
-});
+} as TomlConfig;
 
 describe("Action selector tests: ", () => {
+  const config = new Config(tomlConfig);
+
   function setupAction(stub: any) {
     const entity = stub.entities[0] as Entity;
     // @ts-ignore
@@ -107,12 +109,15 @@ describe("Action selector tests: ", () => {
   });
 });
 
-describe("Action selector rate tests", () => {
-  it("Should accept because Bob sells Ether and request is above the sell rate", async done => {
+describe("Action Selector rate tests", () => {
+  it("Should accept because Bob sells Ether and the request is above the sell rate", async done => {
+    const config = new Config(tomlConfig);
     config.rates = { ether: { bitcoin: { sell: 0.001, buy: 0.01 } } };
     const actionSelector = new ActionSelector(config);
 
-    const entity = swapsAcceptDeclineStub.entities[0] as Entity;
+    const entity = JSON.parse(
+      JSON.stringify(swapsAcceptDeclineStub.entities[0])
+    ) as Entity;
     expect(entity.actions).not.toBeUndefined();
 
     entity.properties = {
@@ -145,11 +150,13 @@ describe("Action selector rate tests", () => {
     done();
   });
 
-  it("Should decline because Bob sells Ether and request is below the sell rate", async done => {
+  it("Should decline because Bob sells Ether and the request is below the sell rate", async done => {
+    const config = new Config(tomlConfig);
     config.rates = { ether: { bitcoin: { sell: 0.001, buy: 0.01 } } };
     const actionSelector = new ActionSelector(config);
 
-    const entity = swapsAcceptDeclineStub.entities[0] as Entity;
+    const entityJson = swapsAcceptDeclineStub.entities[0] as Entity;
+    const entity = JSON.parse(JSON.stringify(entityJson));
     expect(entity.actions).not.toBeUndefined();
 
     entity.properties = {
@@ -182,11 +189,13 @@ describe("Action selector rate tests", () => {
     done();
   });
 
-  it("Should accept because Bob buys Ether and request is above the sell rate", async done => {
+  it("Should accept because Bob buys Ether and the request is above the sell rate", async done => {
+    const config = new Config(tomlConfig);
     config.rates = { ether: { bitcoin: { sell: 0.001, buy: 0.01 } } };
     const actionSelector = new ActionSelector(config);
 
-    const entity = swapsAcceptDeclineStub.entities[0] as Entity;
+    const entityJson = swapsAcceptDeclineStub.entities[0] as Entity;
+    const entity = JSON.parse(JSON.stringify(entityJson));
     expect(entity.actions).not.toBeUndefined();
 
     entity.properties = {
@@ -219,11 +228,13 @@ describe("Action selector rate tests", () => {
     done();
   });
 
-  it("Should decline because Bob buys Ether and request is below the sell rate", async done => {
+  it("Should decline because Bob buys Ether and the request is below the sell rate", async done => {
+    const config = new Config(tomlConfig);
     config.rates = { ether: { bitcoin: { sell: 0.001, buy: 0.01 } } };
     const actionSelector = new ActionSelector(config);
 
-    const entity = swapsAcceptDeclineStub.entities[0] as Entity;
+    const entityJson = swapsAcceptDeclineStub.entities[0] as Entity;
+    const entity = JSON.parse(JSON.stringify(entityJson));
     expect(entity.actions).not.toBeUndefined();
 
     entity.properties = {

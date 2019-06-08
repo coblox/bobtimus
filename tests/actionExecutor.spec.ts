@@ -79,9 +79,44 @@ describe("Action executor tests: ", () => {
       action => action.name === "accept"
     ) as Action;
 
-    const actionResponse = await actionTriggerer.execute(acceptAction);
+    const actionResponse = await actionTriggerer.execute(acceptAction, 0);
 
-    expect(actionResponse).toStrictEqual(acceptedStub);
+    expect(actionResponse).toStrictEqual(Result.ok(acceptedStub));
+
+    done();
+  });
+
+  it("should not execute the same action twice", async done => {
+    nock("http://localhost:8000")
+      .get("/swaps/rfc003/")
+      .reply(200, swapsAcceptDeclineStub);
+    nock("http://localhost:8000")
+      .post("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/accept")
+      .reply(200, acceptedStub);
+
+    const getData = jest.fn();
+    getData.mockReturnValueOnce("0xcb777414c38e426c7038a7c4908751f5e864f7ad");
+
+    const datastore: FieldDataSource = {
+      getData
+    };
+    const actionExecutor = new ActionExecutor(
+      comitNode,
+      datastore,
+      new DummyLedgerExecutor()
+    );
+    const swap = swapsAcceptDeclineStub.entities[0] as Swap;
+    const acceptAction = swap.actions.find(
+      action => action.name === "accept"
+    ) as Action;
+
+    const actionResponse = await actionExecutor.execute(acceptAction, 0);
+
+    expect(actionResponse).toStrictEqual(Result.ok(acceptedStub));
+
+    const actionResponse2 = await actionExecutor.execute(acceptAction, 0);
+
+    expect(actionResponse2.isErr).toBeTruthy();
 
     done();
   });
@@ -112,7 +147,7 @@ describe("Ledger action execution tests:", () => {
     const fundAction = swap.actions.find(
       action => action.name === "fund"
     ) as Action;
-    const actionResponse = await actionExecutor.execute(fundAction);
+    const actionResponse = await actionExecutor.execute(fundAction, 0);
 
     expect(actionResponse).toStrictEqual(Result.ok(dummyTransactionReceipt));
 
@@ -166,7 +201,7 @@ describe("Ledger action execution tests:", () => {
     const fundAction = swap.actions.find(
       action => action.name === "fund"
     ) as Action;
-    const actionResponse = await actionExecutor.execute(fundAction);
+    const actionResponse = await actionExecutor.execute(fundAction, 0);
     expect(actionResponse).toStrictEqual(Result.ok(txId));
 
     expect(mockBitcoinPayToAddress.mock.calls.length).toBe(1);
@@ -220,7 +255,7 @@ describe("Ledger action execution tests:", () => {
     const redeemAction = swap.actions.find(
       action => action.name === "redeem"
     ) as Action;
-    const actionResponse = await actionExecutor.execute(redeemAction);
+    const actionResponse = await actionExecutor.execute(redeemAction, 0);
 
     expect(actionResponse).toStrictEqual(
       Result.ok(
@@ -256,7 +291,7 @@ describe("Ledger action execution tests:", () => {
     const redeemAction = swap.actions.find(
       action => action.name === "redeem"
     ) as Action;
-    const actionResponse = await actionExecutor.execute(redeemAction);
+    const actionResponse = await actionExecutor.execute(redeemAction, 0);
 
     expect(actionResponse).toStrictEqual(Result.ok(dummyTransactionReceipt));
 
@@ -267,7 +302,9 @@ describe("Ledger action execution tests:", () => {
     expect(argPassed.gasLimit.toString("hex")).toEqual("186a0");
     expect(argPassed.network).toEqual("regtest");
     expect(argPassed.to).toEqual("0x1189128ff5573f6282dbbf1557ed839dab277aeb");
-    expect(argPassed.data).toBeUndefined();
+    expect(argPassed.data).toEqual(
+      "0x00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"
+    );
 
     done();
   });
@@ -311,8 +348,8 @@ describe("Ledger action execution tests:", () => {
       action => action.name === "redeem"
     ) as Action;
 
-    const actionResult1 = await actionExecutor.execute(fundAction);
-    const actionResult2 = await actionExecutor.execute(redeemAction);
+    const actionResult1 = await actionExecutor.execute(fundAction, 0);
+    const actionResult2 = await actionExecutor.execute(redeemAction, 0);
 
     expect(actionResult1).toBeDefined();
     expect(actionResult2).toBeDefined();

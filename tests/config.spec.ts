@@ -119,7 +119,7 @@ describe("Config tests", () => {
     expect(config.getBuyDivBySellRate("dogecoin", "ether")).toBeUndefined();
   });
 
-  it("should parse the config with correct fee strategy slected", () => {
+  it("should parse the config with correct fee strategy selected", () => {
     const config = Config.fromFile("./tests/configs/default.toml");
 
     expect(config.bitcoinConfig).toBeDefined();
@@ -136,5 +136,10 @@ describe("Config tests", () => {
       defaultFee: 10,
       strategy: "average"
     });
+  });
+
+  it("should parse the config with correct maximum retries", () => {
+    const config = Config.fromFile("./tests/configs/default.toml");
+    expect(config.maxRetries).toEqual(20);
   });
 });

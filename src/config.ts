@@ -46,6 +46,7 @@ interface TomlConfig {
     bitcoin?: BitcoinConfig;
     ethereum?: EthereumConfig;
   };
+  maxRetries?: number;
 }
 
 export class Config {
@@ -68,8 +69,11 @@ export class Config {
   public seed: Buffer;
   public bitcoinConfig?: BitcoinConfig;
   public ethereumConfig?: EthereumConfig;
+  public maxRetries: number;
 
   constructor(tomlConfig: TomlConfig) {
+    this.maxRetries = tomlConfig.maxRetries ? tomlConfig.maxRetries : 10;
+
     const ledgers = throwIfFalse(tomlConfig, "ledgers");
     this.bitcoinConfig = ledgers.bitcoin;
     this.ethereumConfig = ledgers.ethereum;

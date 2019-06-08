@@ -14,6 +14,7 @@ export class ActionExecutor {
   private datastore: FieldDataSource;
   private comitClient: ComitNode;
   private ledgerExecutor: ILedgerExecutor;
+  private executedActions: Action[];
 
   constructor(
     comitClient: ComitNode,
@@ -23,16 +24,41 @@ export class ActionExecutor {
     this.datastore = datastore;
     this.comitClient = comitClient;
     this.ledgerExecutor = ledgerExecutor;
+    this.executedActions = [];
   }
 
-  public async execute(action: Action) {
-    const response = await this.triggerRequestFromAction(action);
-
-    // If the response has a type and payload then a ledger action is needed
-    if (response.type && response.payload) {
-      return this.executeLedgerAction(response);
+  public async execute(action: Action, maxRetries: number) {
+    if (this.wasExecuted(action)) {
+      log("Action already executed");
+      return Result.err(new Error(`Action already executed: ${action}`));
     }
-    return response;
+
+    let result: Result<any, Error>;
+
+    const triggerResult = await this.triggerRequestFromAction(action);
+    log(`Response from action: ${JSON.stringify(triggerResult)}`);
+    result = triggerResult;
+    // If the response has a type and payload then a ledger action is needed
+    if (triggerResult.isOk) {
+      const response = triggerResult.unwrap();
+      if (response.type && response.payload) {
+        result = await this.executeLedgerAction(response);
+        log(`executeLedgerAction response: ${JSON.stringify(result)}`);
+      }
+    }
+
+    if (result.isOk) {
+      this.executedActions.push(action);
+    } else if (maxRetries <= 0) {
+      result = Result.err(new Error("Maximum number of retries reached"));
+    } else {
+      // It failed, try again in 30 s
+      setInterval(() => {
+        this.execute(action, maxRetries - 1);
+      }, 30000);
+    }
+
+    return result;
   }
 
   public async triggerRequestFromAction(action: Action) {
@@ -48,7 +74,30 @@ export class ActionExecutor {
     if (action.method === "POST" && action.type !== "application/json") {
       throw new Error("Only 'application/json' action type is supported.");
     }
-    return this.comitClient.request(action.method, action.href, data);
+    try {
+      // If query fails, Promise fails and it throws
+      const response = await this.comitClient.request(
+        action.method,
+        action.href,
+        data
+      );
+      return Result.ok(response);
+    } catch (err) {
+      return Result.err(err);
+    }
+  }
+
+  private wasExecuted(action: Action) {
+    if (
+      this.executedActions.find(
+        executedAction => executedAction.href === action.href
+      )
+    ) {
+      log(`Cannot execute action twice: ${JSON.stringify(action)}!`);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   private async executeLedgerAction(action: LedgerAction) {
@@ -87,7 +136,8 @@ export class ActionExecutor {
           const params = {
             gasLimit: hexToBN(action.payload.gas_limit),
             to: action.payload.contract_address,
-            network: action.payload.network
+            network: action.payload.network,
+            data: action.payload.data
           };
           const result = await this.ledgerExecutor.ethereumSendTransactionTo(
             params

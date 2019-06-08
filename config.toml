@@ -8,8 +8,8 @@ seedWords = "abandon abandon abandon abandon abandon abandon abandon abandon aba
 # buy = Buy Ether
 # Cannot have [ether.bitcoin] and [bitcoin.ether] in same config file
 # These are all nominal units (Bitcoin, Ether, *not* Satoshi/Wei)
-sell = 0.0095
-buy = 0.0105
+sell = 0.01
+buy = 0.01
 
 [ledgers.bitcoin]
 type = "coreRpc"

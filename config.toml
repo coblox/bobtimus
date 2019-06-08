@@ -1,0 +1,35 @@
+comitNodeUrl = "http://localhost:8000"
+seedWords = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"
+
+[rates.ether.bitcoin]
+# Aiming for a "centralised exchange" feeling
+# ETH-BTC (ether.bitcoin) Rate is the number of Bitcoins for 1 Ether (so maths are BTC divided by ETH)
+# sell = Sell Ether
+# buy = Buy Ether
+# Cannot have [ether.bitcoin] and [bitcoin.ether] in same config file
+# These are all nominal units (Bitcoin, Ether, *not* Satoshi/Wei)
+sell = 0.0095
+buy = 0.0105
+
+[ledgers.bitcoin]
+type = "coreRpc"
+# TODO: handle cookie file
+rpcUsername = "bitcoin"
+rpcPassword = "password"
+rpcHost = "127.0.0.1"
+rpcPort = 18443
+network = "regtest"
+
+[ledgers.bitcoin.fee]
+defaultFee = 10
+# The strategy is taken from https://bitcoinfees.earn.com/api/v1/fees/recommended, i.e. it can either be `fastestFee`,
+# `halfHourFee` or `hourFee`. If the service is not available, the default value will be taken
+strategy = "hourFee"
+
+[ledgers.ethereum.fee]
+defaultFee = 10
+# The strategy is taken from https://docs.ethgasstation.info/
+strategy = "average"
+
+[ledgers.ethereum]
+web3Endpoint = "http://localhost:8545"

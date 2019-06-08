@@ -31,7 +31,9 @@ const initBitcoin = async (config: Config) => {
     config.bitcoinConfig.fee.defaultFee,
     config.bitcoinConfig.fee.strategy
   );
-  log(`Please fund bobtimus btc account: ${bitcoinWallet.getNewAddress()}`);
+  console.log(
+    `Please fund bobtimus btc account: ${bitcoinWallet.getNewAddress()}`
+  );
 
   return {
     bitcoinFeeService,
@@ -56,7 +58,9 @@ const initEthereum = async (config: Config) => {
     config.ethereumConfig.fee.defaultFee,
     config.ethereumConfig.fee.strategy
   );
-  log(`Please fund bobtimus eth account: ${ethereumWallet.getAddress()}`);
+  console.log(
+    `Please fund bobtimus eth account: ${ethereumWallet.getAddress()}`
+  );
   return { ethereumWallet, ethereumFeeService };
 };
 

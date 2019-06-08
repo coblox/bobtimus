@@ -15,7 +15,7 @@ buy = 0.01
 type = "coreRpc"
 # TODO: handle cookie file
 rpcUsername = "bitcoin"
-rpcPassword = "password"
+rpcPassword = "54pLR_f7-G6is32LP-7nbhzZSbJs_2zSATtZV_r05yg="
 rpcHost = "127.0.0.1"
 rpcPort = 18443
 network = "regtest"

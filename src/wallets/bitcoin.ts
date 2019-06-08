@@ -174,6 +174,7 @@ export class InternalBitcoinWallet implements BitcoinWallet {
     log("Fee (sats):", fee);
 
     if (!inputs || !outputs) {
+      log("Was not able to fund the transaction");
       throw new Error("Was not able to fund the transaction");
     }
 
@@ -216,7 +217,9 @@ export class InternalBitcoinWallet implements BitcoinWallet {
 
     const transaction = txb.build();
 
-    return this.blockchain.broadcastTransaction(transaction);
+    const res = await this.blockchain.broadcastTransaction(transaction);
+    log(res);
+    return res;
   }
 
   private deriveForId({ type, id }: DerivationParameters) {

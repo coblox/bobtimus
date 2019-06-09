@@ -14,6 +14,6 @@
 7. Create link to buy Bitcoin with Ether for participants:
    - Beta Bitcoin, Alpha Ether
    - rate is 1 Bitcoin 100 Ether
-   - 0.001 Bitcoin for 1 Ether 
-   - 100000 sats for 1000000000000000000 Wei
+   - 0.01 Bitcoin for 1 Ether 
+   - 1000000 sats for 1000000000000000000 Wei
 8. run bitcoin generate every 10s

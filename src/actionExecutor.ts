@@ -5,19 +5,19 @@ import debug from "debug";
 import { Action } from "../gen/siren";
 import { networkFromString, Satoshis } from "./bitcoin/blockchain";
 import { ComitNode, hexToBN, hexToBuffer, LedgerAction } from "./comitNode";
-import { Datastore } from "./datastore";
+import { FieldDataSource } from "./fieldDataSource";
 import { ILedgerExecutor } from "./ledgerExecutor";
 
 const log = debug("bobtimus:actionExecutor");
 
 export class ActionExecutor {
-  private datastore: Datastore;
+  private datastore: FieldDataSource;
   private comitClient: ComitNode;
   private ledgerExecutor: ILedgerExecutor;
 
   constructor(
     comitClient: ComitNode,
-    datastore: Datastore,
+    datastore: FieldDataSource,
     ledgerExecutor: ILedgerExecutor
   ) {
     this.datastore = datastore;

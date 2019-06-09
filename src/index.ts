@@ -5,93 +5,117 @@ import { BitcoinCoreRpc } from "./bitcoin/bitcoinCoreRpc";
 import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import { ComitNode } from "./comitNode";
 import { Config } from "./config";
-import { InternalDatastore } from "./datastore";
 import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
+import { DefaultFieldDataSource } from "./fieldDataSource";
 import { LedgerExecutor } from "./ledgerExecutor";
 import { InternalBitcoinWallet } from "./wallets/bitcoin";
-import { EthereumWallet } from "./wallets/ethereum";
+import { Web3EthereumWallet } from "./wallets/ethereum";
 
 const log = debug("bobtimus:index");
 
-const config = Config.fromFile("./config.toml");
-const comitNode = new ComitNode(config);
-// TODO: switch case to select correct Bitcoin backend
-// Probably to be done by a helper function in bitcoin/blockchain.ts
+const initBitcoin = async (config: Config) => {
+  if (!config.bitcoinConfig) {
+    return {
+      bitcoinFeeService: BitcoinFeeService.default()
+    };
+  }
 
-const ledgerExecutorParams = {};
-
-let bitcoinFeeService = BitcoinFeeService.default();
-let ethereumFeeService = EthereumGasPriceService.default();
-
-let bitcoinWallet;
-let ethereumWallet;
-
-if (config.bitcoinConfig) {
   const bitcoinBlockchain = BitcoinCoreRpc.fromConfig(config.bitcoinConfig);
-  bitcoinWallet = InternalBitcoinWallet.fromConfig(
+  const bitcoinWallet = InternalBitcoinWallet.fromConfig(
     config.bitcoinConfig,
     bitcoinBlockchain,
     config.seed,
     0
   );
-  bitcoinFeeService = new BitcoinFeeService(
+  const bitcoinFeeService = new BitcoinFeeService(
     config.bitcoinConfig.fee.defaultFee,
     config.bitcoinConfig.fee.strategy
   );
-  Object.assign(ledgerExecutorParams, {
+  console.log(
+    `Please fund bobtimus btc account: ${bitcoinWallet.getNewAddress()}`
+  );
+
+  return {
     bitcoinFeeService,
     bitcoinBlockchain,
     bitcoinWallet
-  });
-  log(`Please fund bobtimus btc account: ${bitcoinWallet.getNewAddress()}`);
-}
+  };
+};
 
-if (config.ethereumConfig) {
-  ethereumWallet = EthereumWallet.fromConfig(
+const initEthereum = async (config: Config) => {
+  if (!config.ethereumConfig) {
+    return {
+      ethereumFeeService: EthereumGasPriceService.default()
+    };
+  }
+
+  const ethereumWallet = await Web3EthereumWallet.fromConfig(
     config.ethereumConfig,
     config.seed,
     1
   );
-  ethereumFeeService = new EthereumGasPriceService(
+  const ethereumFeeService = new EthereumGasPriceService(
     config.ethereumConfig.fee.defaultFee,
     config.ethereumConfig.fee.strategy
   );
-  Object.assign(ledgerExecutorParams, { ethereumWallet, ethereumFeeService });
-  log(`Please fund bobtimus eth account: ${ethereumWallet.getAddress()}`);
-}
+  console.log(
+    `Please fund bobtimus eth account: ${ethereumWallet.getAddress()}`
+  );
+  return { ethereumWallet, ethereumFeeService };
+};
 
-const datastore = new InternalDatastore({
-  // @ts-ignore
-  bitcoinWallet,
-  // @ts-ignore
-  ethereumWallet,
-  bitcoinFeeService
-});
-const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
-const actionSelector = new ActionSelector(config);
-const actionExecutor = new ActionExecutor(comitNode, datastore, ledgerExecutor);
+const config = Config.fromFile("./config.toml");
 
-const shoot = () =>
-  comitNode.getSwaps().then(swaps => {
+(async () => {
+  const bitcoinParams = await initBitcoin(config);
+  const ethereumParams = await initEthereum(config);
+
+  const ledgerExecutorParams = {
+    ...bitcoinParams,
+    ...ethereumParams
+  };
+
+  const comitNode = new ComitNode(config);
+  const datastore = new DefaultFieldDataSource(ledgerExecutorParams);
+  const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
+  const actionSelector = new ActionSelector(config);
+
+  const actionExecutor = new ActionExecutor(
+    comitNode,
+    datastore,
+    ledgerExecutor
+  );
+
+  const shoot = async () => {
+    const swaps = await comitNode.getSwaps();
     log(`Found swaps: ${JSON.stringify(swaps)}`);
-    return swaps
-      .map(swap => actionSelector.selectActions(swap))
-      .map(selectedAction => {
-        return selectedAction.then(action => {
-          if (action) {
-            log(`Selected action: ${JSON.stringify(action)}`);
-            return actionExecutor.execute(action);
-          } else {
-            log("No action returned");
-            return undefined;
-          }
-        });
-      })
-      .forEach(actionResponse => {
-        log(`Action response: ${JSON.stringify(actionResponse)}`);
-      });
-  });
 
-setInterval(() => {
-  shoot().then(() => log("Execution done"));
-}, 10000);
+    for (const swap of swaps) {
+      const id = swap.id;
+      try {
+        const selectedAction = await actionSelector.selectActions(swap);
+        if (selectedAction) {
+          log(
+            `Selected action for swap ${id}: ${JSON.stringify(selectedAction)}`
+          );
+          const executionResult = await actionExecutor.execute(selectedAction);
+          log(
+            `Action execution response for swap ${id}: ${JSON.stringify(
+              executionResult
+            )}`
+          );
+        } else {
+          log(`No action returned for swap ${id}`);
+        }
+      } catch (err) {
+        log(
+          `Error has occurred for swap ${id}. Error is: ${JSON.stringify(err)}`
+        );
+      }
+    }
+  };
+
+  setInterval(() => {
+    shoot().then(() => log("Execution done"));
+  }, 10000);
+})();

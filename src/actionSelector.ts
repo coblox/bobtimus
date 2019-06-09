@@ -17,7 +17,7 @@ export class ActionSelector {
     this.selectedActions = [];
   }
 
-  public async selectActions(entity: Entity) {
+  public selectActions(entity: Entity) {
     if (entity.class && entity.class.includes("swap")) {
       const swap = entity as Swap;
 
@@ -27,7 +27,7 @@ export class ActionSelector {
     return undefined;
   }
 
-  private async selectSwapAction(swap: Swap) {
+  private selectSwapAction(swap: Swap) {
     const actions = swap.actions;
     if (!actions) {
       log("No action available");
@@ -116,7 +116,7 @@ export class ActionSelector {
       }
     } else if (refundAction) {
       // Only refund action available, doing nothing for now
-      log("not implemented");
+      log("refund is not implemented");
     }
 
     return undefined;
@@ -128,7 +128,7 @@ export class ActionSelector {
         loggedAction => loggedAction.href === action.href
       )
     ) {
-      log(`Cannot return action twice: ${action}!`);
+      log(`Cannot return action twice: ${JSON.stringify(action)}!`);
       return true;
     } else {
       return false;

@@ -2,7 +2,7 @@ import BN from "bn.js";
 import utils from "ethereumjs-util";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
-import { EthereumWallet } from "../../src/wallets/ethereum";
+import { Web3EthereumWallet } from "../../src/wallets/ethereum";
 import parityTestContainer from "../containers/parityTestContainer";
 import containerTest from "../containerTest";
 import EthereumHarness from "../ethereumHarness";
@@ -44,7 +44,7 @@ describe("Ethereum Wallet", () => {
           `http://localhost:${container.getMappedPort(8545)}`
         )
       );
-      const wallet = new EthereumWallet(web3, privateKey, 1);
+      const wallet = await Web3EthereumWallet.newInstance(web3, privateKey);
 
       const amountFounded = await fundAddressOfPrivateKey(web3, privateKey);
       const amountToTransfer = amountFounded.divn(2);
@@ -78,7 +78,7 @@ describe("Ethereum Wallet", () => {
           `http://localhost:${container.getMappedPort(8545)}`
         )
       );
-      const wallet = new EthereumWallet(web3, privateKey, 1);
+      const wallet = await Web3EthereumWallet.newInstance(web3, privateKey);
 
       await fundAddressOfPrivateKey(web3, privateKey);
 

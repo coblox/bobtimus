@@ -7,11 +7,11 @@ import { ActionExecutor } from "../src/actionExecutor";
 import { Satoshis } from "../src/bitcoin/blockchain";
 import { ComitNode, Swap } from "../src/comitNode";
 import { Config } from "../src/config";
-import { Datastore } from "../src/datastore";
-import DummyDatastore from "./doubles/datastore";
+import { FieldDataSource } from "../src/fieldDataSource";
+import DummyDatastore from "./doubles/dummyDatastore";
 import DummyLedgerExecutor, {
   dummyTransactionReceipt
-} from "./doubles/ledgerExecutor";
+} from "./doubles/dummyLedgerExecutor";
 import acceptedStub from "./stubs/accepted.json";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
 import swapsFundBitcoinEtherStub from "./stubs/bitcoinEther/swapsWithFund.siren.json";
@@ -62,7 +62,7 @@ describe("Action executor tests: ", () => {
       .post("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/accept")
       .reply(200, acceptedStub);
 
-    const datastore: Datastore = {
+    const datastore: FieldDataSource = {
       getData: (field: Field) => {
         expect(field).toHaveProperty("name", "beta_ledger_refund_identity");
         expect(field).toHaveProperty("class", ["address", "ethereum"]);

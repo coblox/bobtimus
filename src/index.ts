@@ -106,7 +106,7 @@ const config = Config.fromFile("./config.toml");
               executionResult
             )}`
           );
-          if (executionResult.isErr()) {
+          if (executionResult.isErr) {
             log(`Execution failed, invalidating Action ${selectedAction}`);
             actionSelector.invalidateAction(selectedAction);
           }

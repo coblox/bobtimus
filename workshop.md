@@ -12,8 +12,13 @@
    - ethereum: `./fund_ether.sh address`
 7. Run regular generation of blocks for bitcoin: `while true; do btc-cli generate 1; sleep 60; done`
 7. Create link to buy Bitcoin with Ether for participants:
-   - Beta Bitcoin, Alpha Ether
-   - rate is 1 Bitcoin 100 Ether
-   - 0.01 Bitcoin for 1 Ether 
-   - 1000000 sats for 1000000000000000000 Wei
-8. run bitcoin generate every 10s
+   - Alpha Ether, Beta Bitcoin
+   - rate is 1 Bitcoin 10 Ether
+   - 0.1 Bitcoin for 1 Ether 
+   - 10000000 sats for 1000000000000000000 Wei
+8. run bitcoin generate every 60s
+9. Create link to buy Ether with Bitcoin for participants:
+   - Alpha Bitcoin, Bitcoin Ether
+   - rate is 1 Bitcoin 10 Ether
+   - 0.01 Bitcoin for 0.1 Ether 
+   - 1000000 sats for 100000000000000000 Wei

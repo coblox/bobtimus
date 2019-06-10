@@ -10,8 +10,8 @@
      - `alias btc-cli='docker exec -it bobtimus_bitcoind_1 bitcoin-cli -regtest -rpcport=18443 -rpcuser=bitcoin -rpcpassword=54pLR_f7-G6is32LP-7nbhzZSbJs_2zSATtZV_r05yg='`
      - `btc-cli generate 101`
      - `btc-cli getblockcount` check block height
-     - `btc-cli sendtoaddress address amount` (the address is printed when starting bobtimus)
-   - ethereum: `./fund_ether.sh address` (the address is printed when starting bobtimus)
+     - `btc-cli sendtoaddress address 50` (the address is printed when starting bobtimus)
+   - ethereum: `./fund_ether.sh address` * 10 (the address is printed when starting bobtimus)
 7. Run regular generation of blocks for bitcoin: `while true; do btc-cli generate 1; sleep 60; done`
 8. Create link to buy Bitcoin with Ether for participants:
    - Alpha Ether, Beta Bitcoin

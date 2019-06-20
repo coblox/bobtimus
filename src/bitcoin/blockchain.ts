@@ -24,7 +24,11 @@ export class Satoshis {
     }
 
     if (!Number.isInteger(sats)) {
-      throw new Error("Only integer Satoshis are supported");
+      // `scantxoutset` somehow returned a strange value that is not a satoshi integer
+      // Could not reproduce the issue but better put a fail-safe and use a satoshi than
+      // Break
+      log(`non-integer satoshi: ${sats}`);
+      sats = Math.floor(sats);
     }
 
     return new Satoshis(sats);

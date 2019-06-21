@@ -4,12 +4,13 @@ Bobtimus is a _show case_ implementation of how the [comit_node](https://github.
 
 **This implementation will never be ready for mainnet, please do not use for mainnet, you will loose funds!**
 
-Bobtimus features are:
+Bobtimus features:
 - Accept or decline swap requests depending on a configurable rate
 - Action the steps to proceed with a swap: fund & redeem HTLCs 
 - A standalone Bitcoin wallet that uses bitcoind RPC: Do **not** use this as an example on how to write your own Bitcoin Wallet 
 - An Ethereum wallet that uses web3: Do **not** use this as an example on how to write your own Ethereum Wallet
 - Bitcoin<->Ether swaps support
+- Uses fee/gas services to calculate appropriate transaction fees/gas
 
 Planned features:
 - ERC20 support (maybe)

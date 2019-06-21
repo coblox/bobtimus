@@ -3,6 +3,7 @@ import debug from "debug";
 import { Action, Entity } from "../gen/siren";
 import { Swap, toNominalUnit } from "./comitNode";
 import { Config } from "./config";
+import { getBuyDivBySellRate, isProfitable } from "./rates";
 
 const log = debug("bobtimus:actionSelector");
 
@@ -83,9 +84,8 @@ export class ActionSelector {
           );
         } else {
           // Bob always buys Alpha
-          // Calculate rate as buy divided by sell
-          const proposedRate = alphaQuantity.div(betaQuantity);
-          const acceptableRate = this.config.getBuyDivBySellRate(
+          const acceptableRate = getBuyDivBySellRate(
+            this.config.rates,
             alphaAsset,
             betaAsset
           );
@@ -95,12 +95,9 @@ export class ActionSelector {
               `Rate is not configured to buy ${alphaLedger}:${alphaAsset} & sell ${betaLedger}:${betaAsset}`
             );
           } else {
-            log(
-              `Proposed rate: ${proposedRate.toFixed()}, Acceptable rate: ${acceptableRate.toFixed()}`
-            );
-
+            // Bob always buys Alpha
             if (
-              proposedRate.gte(acceptableRate) &&
+              isProfitable(alphaQuantity, betaQuantity, acceptableRate) &&
               !this.wasReturned(acceptAction)
             ) {
               this.selectedActions.push(acceptAction);

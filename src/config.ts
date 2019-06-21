@@ -1,10 +1,10 @@
 import TOML from "@iarna/toml";
-import Big from "big.js";
 import { generateMnemonic, mnemonicToSeedSync } from "bip39";
 import BN = require("bn.js");
 import debug from "debug";
 import * as fs from "fs";
 import URI from "urijs";
+import { Rates } from "./rates";
 
 const log = debug("bobtimus:config");
 
@@ -27,15 +27,6 @@ export interface EthereumConfig {
     strategy: string;
   };
   web3Endpoint: string;
-}
-
-interface Rates {
-  [ticker: string]: {
-    [base: string]: {
-      buy: number;
-      sell: number;
-    };
-  };
 }
 
 export interface TomlConfig {
@@ -100,60 +91,6 @@ export class Config {
         return typeof this.ethereumConfig === "object";
       default:
         return false;
-    }
-  }
-
-  /// Returns Buy divided by Sell (Sell-Beta in exchange terms) rate based on the configuration
-  public getBuyDivBySellRate(buyAsset: string, sellAsset: string) {
-    const one = new Big(1);
-    const rates = this.rates;
-    switch (buyAsset + sellAsset) {
-      case "etherbitcoin": {
-        // buys Ether, sells Bitcoin
-        if (rates.bitcoin && rates.bitcoin.ether) {
-          // bitcoin.ether is configured meaning
-          // that the "sell" rate is when Bob "sells" bitcoin
-          // the stored rate is BTC-ETH or ETH (Buy) divided by BTC (Sell)
-          return rates.bitcoin.ether.sell
-            ? new Big(rates.bitcoin.ether.sell)
-            : undefined;
-        } else if (rates.ether && rates.ether.bitcoin) {
-          // ether.bitcoin is configured meaning
-          // that the "buy" rate is when Bob "buy" ether
-          // the stored rate is ETH-BTC or BTC (Sell) divided by ETH (Buy)
-          // We want to return Buy divided by Sell rate hence need to ⁻¹ it
-          return rates.ether.bitcoin.buy
-            ? one.div(new Big(rates.ether.bitcoin.buy))
-            : undefined;
-        } else {
-          return undefined;
-        }
-      }
-      case "bitcoinether": {
-        // Buys Bitcoin, Sell Ether
-        if (rates.bitcoin && rates.bitcoin.ether) {
-          // bitcoin.ether is configured meaning
-          // that the "buy" rate is when Bob "buys" bitcoin
-          // the stored rate is BTC-ETH or ETH (SEll) divided by BTC (Buy)
-          // We want to return Buy divided by Sell rate hence need to ⁻¹ it
-          return rates.bitcoin.ether.buy
-            ? one.div(new Big(rates.bitcoin.ether.buy))
-            : undefined;
-        } else if (rates.ether && rates.ether.bitcoin) {
-          // ether.bitcoin is configured meaning
-          // that the "sell" rate is when Bob "sell" ether
-          // the stored rate is ETH-BTC or BTC (Sell) divided by ETH (Buy)
-          return rates.ether.bitcoin.sell
-            ? new Big(rates.ether.bitcoin.sell)
-            : undefined;
-        } else {
-          return undefined;
-        }
-      }
-      default: {
-        log(`This combination is not yet supported`);
-        return undefined;
-      }
     }
   }
 }

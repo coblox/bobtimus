@@ -35,7 +35,7 @@ Features we will not do:
 1. Clone this repo: `git clone https://github.com/coblox/bobtimus.git`
 2. Install dependencies: `yarn`
 3. Copy the default config file to root: `cp ./tests/configs/default.toml ./config.toml`
-4. Modify the appropriate parameters to ensure bobtimus can connect to the blockchain nodes
+4. Modify the appropriate config parameters to ensure Bobtimus can connect to the blockchain nodes
 5. [Make up your own seed words](https://duckduckgo.com/?q=generate+BIP39) and update them in the config file
 6. Let's go: `DEBUG=bobtimus:* yarn run start`
 7. Fund Bitcoin and Ethereum wallet, addresses are printed at the start of the logs

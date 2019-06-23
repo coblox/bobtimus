@@ -40,4 +40,4 @@ Features we will not do:
 6. Let's go: `DEBUG=bobtimus:* yarn run start`
 7. Fund Bitcoin and Ethereum wallets (addresses are printed at the start of the logs)
 
-Note: the seed is fixed in the config file so Bobtimus will retain the balance even after a restart. 
+Note: The `seedWords` present in the config file are used to generate both Bitcoin and Ethereum HD wallets. Hence, Bobtimus will retain its balance even after a restart. 

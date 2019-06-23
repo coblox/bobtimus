@@ -2,7 +2,7 @@
 
 Bobtimus is a _showcase_ implementation of how the [comit node](https://github.com/comit-network/comit-rs/)'s self-descriptive HTTP API can be used to easily automate the execution of [Basic HTLC Atomic Swaps](https://github.com/comit-network/RFCs/blob/master/RFC-003-SWAP-Basic.md).
 
-**This implementation will never be ready for mainnet, please do not use for mainnet, you will loose funds!**
+**This implementation will never be ready for mainnet. Please do not use for mainnet, you will lose funds!**
 
 Bobtimus features:
 - Accept or decline swap requests depending on a configurable rate

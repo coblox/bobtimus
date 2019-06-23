@@ -28,7 +28,7 @@ Features we will not do:
 - [yarn](https://yarnpkg.com/)
 - [bitcoind](https://bitcoincore.org/en/download/)
 - Ethereum node of your choice
-- [comit-rs suite](https://github.com/comit-network/comit-rs/): `comit_node` & `btsieve` nodes configured and running
+- [comit-rs suite](https://github.com/comit-network/comit-rs/): `comit_node` & `btsieve` configured and running
 
 ### Install, configure & run
 

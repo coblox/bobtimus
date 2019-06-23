@@ -10,7 +10,7 @@ Bobtimus features:
 - A standalone Bitcoin wallet that uses bitcoind RPC: Do **not** use this as an example on how to write your own Bitcoin Wallet 
 - An Ethereum wallet that uses web3: Do **not** use this as an example on how to write your own Ethereum Wallet
 - Support Bitcoin <-> Ether swaps
-- Uses fee/gas services to calculate appropriate transaction fees/gas
+- Use fee/gas services to calculate appropriate transaction fees/gas
 
 Planned features:
 - ERC20 support (maybe)

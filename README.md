@@ -7,7 +7,7 @@ Bobtimus is a _showcase_ implementation of how the [comit node](https://github.c
 Bobtimus features:
 - Accept or decline swap requests depending on a configurable rate
 - Action the steps to proceed with a swap: fund & redeem HTLCs 
-- A standalone Bitcoin wallet that uses bitcoind RPC: Do **not** use this as an example on how to write your own Bitcoin Wallet 
+- A standalone Bitcoin wallet that uses bitcoind RPC (do **not** use this as an example of how to write your own Bitcoin Wallet)
 - An Ethereum wallet that uses web3: Do **not** use this as an example on how to write your own Ethereum Wallet
 - Support Bitcoin <-> Ether swaps
 - Use fee/gas services to calculate appropriate transaction fees/gas

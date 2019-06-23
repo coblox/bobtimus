@@ -38,6 +38,6 @@ Features we will not do:
 4. Modify the appropriate config parameters to ensure Bobtimus can connect to the blockchain nodes
 5. [Make up your own seed words](https://duckduckgo.com/?q=generate+BIP39) and update them in the config file
 6. Let's go: `DEBUG=bobtimus:* yarn run start`
-7. Fund Bitcoin and Ethereum wallet, addresses are printed at the start of the logs
+7. Fund Bitcoin and Ethereum wallets (addresses are printed at the start of the logs)
 
 Note: the seed is fixed in the config file so Bobtimus will retain the balance even after a restart. 

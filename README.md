@@ -1,6 +1,6 @@
 # bobtimus
 
-Bobtimus is a _show case_ implementation of how the [comit_node](https://github.com/comit-network/comit-rs/) self-descriptive HTTP API can easily be used to automate the execution of atomic swaps. It is a TypeScript (auto)bot that executes [Basic HTLC Atomic Swap](https://github.com/comit-network/RFCs/blob/master/RFC-003-SWAP-Basic.md) requests as _Bob_, as directed by the comit_node..   
+Bobtimus is a _showcase_ implementation of how the [comit node](https://github.com/comit-network/comit-rs/)'s self-descriptive HTTP API can be used to easily automate the execution of [Basic HTLC Atomic Swaps](https://github.com/comit-network/RFCs/blob/master/RFC-003-SWAP-Basic.md).
 
 **This implementation will never be ready for mainnet, please do not use for mainnet, you will loose funds!**
 

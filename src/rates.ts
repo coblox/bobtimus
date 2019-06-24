@@ -31,7 +31,7 @@ export function getBuyDivBySellRate(
           : undefined;
       } else if (ratesConfig.ether && ratesConfig.ether.bitcoin) {
         // ether.bitcoin is configured meaning
-        // that the "buy" rate is when Bob "buy" ether
+        // that the "buy" rate is when Bob buys ether
         // the stored rate is ETH-BTC or BTC (Sell) divided by ETH (Buy)
         // We want to return Buy divided by Sell rate hence need to ⁻¹ it
         return ratesConfig.ether.bitcoin.buy
@@ -53,7 +53,7 @@ export function getBuyDivBySellRate(
           : undefined;
       } else if (ratesConfig.ether && ratesConfig.ether.bitcoin) {
         // ether.bitcoin is configured meaning
-        // that the "sell" rate is when Bob "sell" ether
+        // that the "sell" rate is when Bob sells ether
         // the stored rate is ETH-BTC or BTC (Sell) divided by ETH (Buy)
         return ratesConfig.ether.bitcoin.sell
           ? new Big(ratesConfig.ether.bitcoin.sell)

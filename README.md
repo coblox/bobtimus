@@ -2,13 +2,13 @@
 
 Bobtimus is a _showcase_ implementation of how the [comit node](https://github.com/comit-network/comit-rs/)'s self-descriptive HTTP API can be used to easily automate the execution of [Basic HTLC Atomic Swaps](https://github.com/comit-network/RFCs/blob/master/RFC-003-SWAP-Basic.md).
 
-**This implementation will never be ready for mainnet. Please do not use for mainnet, you will lose funds!**
+**This software is not meant to be used on mainnet. Doing so may lead to fund loss.**
 
 Bobtimus features:
 - Accept or decline swap requests depending on a configurable rate
 - Action the steps to proceed with a swap: fund & redeem HTLCs 
 - A standalone Bitcoin wallet that uses bitcoind RPC (do **not** use this as an example of how to write your own Bitcoin Wallet)
-- An Ethereum wallet that uses web3 (do **not** use this as an example of how to write your own Ethereum Wallet)
+- An Ethereum wallet that uses web3
 - Support Bitcoin <-> Ether swaps
 - Use fee/gas services to calculate appropriate transaction fees/gas
 

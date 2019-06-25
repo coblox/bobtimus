@@ -2,7 +2,7 @@ import Big from "big.js";
 import { getBuyDivBySellRate, isProfitable } from "../src/rates";
 
 describe("Rate tests", () => {
-  it("Should consider rate profitable when the base asset of the configured rate is the buy asset", () => {
+  it("Should consider rate profitable when the base asset of the configured rate is the buy asset and the proposed rate is actually profitable", () => {
     const rates = { ether: { bitcoin: { sell: 0.001, buy: 0.01 } } };
     const buyAsset = { name: "bitcoin", quantity: new Big("0.002") };
     const sellAsset = { name: "ether", quantity: new Big(1) };
@@ -19,7 +19,7 @@ describe("Rate tests", () => {
     ).toBeTruthy();
   });
 
-  it("Should consider rate NOT profitable when the base asset of the configured rate is the buy asset", () => {
+  it("Should consider rate NOT profitable when the base asset of the configured rate is the buy asset and the proposed rate is NOT profitable", () => {
     const rates = { ether: { bitcoin: { sell: 0.001, buy: 0.01 } } };
 
     const buyAsset = { name: "bitcoin", quantity: new Big("0.0008") };
@@ -37,7 +37,7 @@ describe("Rate tests", () => {
     ).toBeFalsy();
   });
 
-  it("Should consider rate profitable when the base asset of the configured rate is the sell asset", () => {
+  it("Should consider rate profitable when the base asset of the configured rate is the sell asset and the proposed rate is actually profitable", () => {
     const rates = { ether: { bitcoin: { sell: 0.001, buy: 0.01 } } };
 
     const buyAsset = { name: "ether", quantity: new Big(1) };
@@ -56,7 +56,7 @@ describe("Rate tests", () => {
     ).toBeTruthy();
   });
 
-  it("Should consider rate NOT profitable when the base asset of the configured rate is the sell asset", () => {
+  it("Should consider rate NOT profitable when the base asset of the configured rate is the sell asset and the proposed rate is NOT profitable", () => {
     const rates = { ether: { bitcoin: { sell: 0.001, buy: 0.01 } } };
 
     const buyAsset = { name: "ether", quantity: new Big(1) };

@@ -53,7 +53,7 @@ export class ActionSelector {
       return deployAction;
     }
 
-    if (acceptAction) {
+    if (acceptAction && !this.wasReturned(acceptAction)) {
       const alphaLedger = swap.properties.parameters.alpha_ledger.name;
       const betaLedger = swap.properties.parameters.beta_ledger.name;
       const alphaAsset = swap.properties.parameters.alpha_asset.name;
@@ -96,10 +96,7 @@ export class ActionSelector {
             );
           } else {
             // Bob always buys Alpha
-            if (
-              isProfitable(alphaQuantity, betaQuantity, acceptableRate) &&
-              !this.wasReturned(acceptAction)
-            ) {
+            if (isProfitable(alphaQuantity, betaQuantity, acceptableRate)) {
               this.selectedActions.push(acceptAction);
               return acceptAction;
             } else if (declineAction && !this.wasReturned(declineAction)) {

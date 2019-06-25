@@ -17,9 +17,8 @@ Planned features:
 - Automatically refund when expiry is reached
 - Testnet support 
 
-Features we will not do:
-- Mainnet support
-- "Production" ready 
+Feature we will not do:
+- Mainnet support 
 
 ## Installation
 

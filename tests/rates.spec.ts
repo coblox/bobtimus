@@ -13,11 +13,10 @@ describe("Rate tests", () => {
       sellAsset.name
     );
     expect(acceptableRate).toBeDefined();
-    if (acceptableRate) {
-      expect(
-        isProfitable(buyAsset.quantity, sellAsset.quantity, acceptableRate)
-      ).toBeTruthy();
-    }
+    expect(
+      // @ts-ignore: we know acceptableRate is defined
+      isProfitable(buyAsset.quantity, sellAsset.quantity, acceptableRate)
+    ).toBeTruthy();
   });
 
   it("Should consider rate NOT profitable when the base asset of the configured rate is the buy asset", () => {
@@ -32,11 +31,10 @@ describe("Rate tests", () => {
       sellAsset.name
     );
     expect(acceptableRate).toBeDefined();
-    if (acceptableRate) {
-      expect(
-        isProfitable(buyAsset.quantity, sellAsset.quantity, acceptableRate)
-      ).toBeFalsy();
-    }
+    expect(
+      // @ts-ignore: we know acceptableRate is defined
+      isProfitable(buyAsset.quantity, sellAsset.quantity, acceptableRate)
+    ).toBeFalsy();
   });
 
   it("Should consider rate profitable when the base asset of the configured rate is the sell asset", () => {
@@ -51,11 +49,11 @@ describe("Rate tests", () => {
       sellAsset.name
     );
     expect(acceptableRate).toBeDefined();
-    if (acceptableRate) {
-      expect(
-        isProfitable(buyAsset.quantity, sellAsset.quantity, acceptableRate)
-      ).toBeTruthy();
-    }
+
+    expect(
+      // @ts-ignore: we know acceptableRate is defined
+      isProfitable(buyAsset.quantity, sellAsset.quantity, acceptableRate)
+    ).toBeTruthy();
   });
 
   it("Should consider rate NOT profitable when the base asset of the configured rate is the sell asset", () => {
@@ -70,10 +68,9 @@ describe("Rate tests", () => {
       sellAsset.name
     );
     expect(acceptableRate).toBeDefined();
-    if (acceptableRate) {
-      expect(
-        isProfitable(buyAsset.quantity, sellAsset.quantity, acceptableRate)
-      ).toBeFalsy();
-    }
+    expect(
+      // @ts-ignore: we know acceptableRate is defined
+      isProfitable(buyAsset.quantity, sellAsset.quantity, acceptableRate)
+    ).toBeFalsy();
   });
 });

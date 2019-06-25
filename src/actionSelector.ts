@@ -3,6 +3,7 @@ import debug from "debug";
 import { Action, Entity } from "../gen/siren";
 import { Swap, toNominalUnit } from "./comitNode";
 import { Config } from "./config";
+import { getBuyDivBySellRate, isProfitable } from "./rates";
 
 const log = debug("bobtimus:actionSelector");
 
@@ -52,7 +53,7 @@ export class ActionSelector {
       return deployAction;
     }
 
-    if (acceptAction) {
+    if (acceptAction && !this.wasReturned(acceptAction)) {
       const alphaLedger = swap.properties.parameters.alpha_ledger.name;
       const betaLedger = swap.properties.parameters.beta_ledger.name;
       const alphaAsset = swap.properties.parameters.alpha_asset.name;
@@ -83,9 +84,8 @@ export class ActionSelector {
           );
         } else {
           // Bob always buys Alpha
-          // Calculate rate as buy divided by sell
-          const proposedRate = alphaQuantity.div(betaQuantity);
-          const acceptableRate = this.config.getBuyDivBySellRate(
+          const acceptableRate = getBuyDivBySellRate(
+            this.config.rates,
             alphaAsset,
             betaAsset
           );
@@ -95,14 +95,8 @@ export class ActionSelector {
               `Rate is not configured to buy ${alphaLedger}:${alphaAsset} & sell ${betaLedger}:${betaAsset}`
             );
           } else {
-            log(
-              `Proposed rate: ${proposedRate.toFixed()}, Acceptable rate: ${acceptableRate.toFixed()}`
-            );
-
-            if (
-              proposedRate.gte(acceptableRate) &&
-              !this.wasReturned(acceptAction)
-            ) {
+            // Bob always buys Alpha
+            if (isProfitable(alphaQuantity, betaQuantity, acceptableRate)) {
               this.selectedActions.push(acceptAction);
               return acceptAction;
             } else if (declineAction && !this.wasReturned(declineAction)) {

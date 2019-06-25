@@ -5,6 +5,7 @@ import * as fs from "fs";
 import tmp from "tmp";
 import URI from "urijs";
 import { BitcoinConfig, Config, EthereumConfig } from "../src/config";
+import { getBuyDivBySellRate } from "../src/rates";
 
 /// Copies the file to not modify a file tracked by git when running the test
 /// Uses a dedicated folder to make the cleanup easier
@@ -106,17 +107,19 @@ describe("Config tests", () => {
     // sell = sell Ether
     // Stored rate is Bitcoin divided by Ether
 
-    const etherBitcoin = config.getBuyDivBySellRate("ether", "bitcoin");
+    const etherBitcoin = getBuyDivBySellRate(config.rates, "ether", "bitcoin");
     expect(etherBitcoin ? etherBitcoin.toFixed(dp) : "").toEqual(
       new Big(1 / 0.0105).toFixed(dp)
     );
 
-    const bitcoinEther = config.getBuyDivBySellRate("bitcoin", "ether");
+    const bitcoinEther = getBuyDivBySellRate(config.rates, "bitcoin", "ether");
     expect(bitcoinEther ? bitcoinEther.toFixed(dp) : "").toEqual(
       new Big(0.0095).toFixed(dp)
     );
 
-    expect(config.getBuyDivBySellRate("dogecoin", "ether")).toBeUndefined();
+    expect(
+      getBuyDivBySellRate(config.rates, "dogecoin", "ether")
+    ).toBeUndefined();
   });
 
   it("should parse the config with correct fee strategy selected", () => {

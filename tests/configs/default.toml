@@ -1,5 +1,6 @@
 comitNodeUrl = "http://localhost:8000"
 seedWords = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"
+maxRetries = 20
 
 [rates.ether.bitcoin]
 # Aiming for a "centralised exchange" feeling

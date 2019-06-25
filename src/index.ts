@@ -67,11 +67,17 @@ const initEthereum = async (config: Config) => {
 const config = Config.fromFile("./config.toml");
 
 (async () => {
-  const bitcoinParams = await initBitcoin(config);
+  const {
+    bitcoinFeeService,
+    bitcoinBlockchain,
+    bitcoinWallet
+  } = await initBitcoin(config);
   const ethereumParams = await initEthereum(config);
 
   const ledgerExecutorParams = {
-    ...bitcoinParams,
+    bitcoinFeeService,
+    bitcoinBlockchain,
+    bitcoinWallet,
     ...ethereumParams
   };
 
@@ -88,17 +94,20 @@ const config = Config.fromFile("./config.toml");
 
   const shoot = async () => {
     const swaps = await comitNode.getSwaps();
-    log(`Found swaps: ${JSON.stringify(swaps)}`);
+    log(`Found ${swaps.length} swap(s)`);
 
     for (const swap of swaps) {
-      const id = swap.id;
+      const id = swap.properties ? swap.properties.id : undefined;
       try {
         const selectedAction = await actionSelector.selectActions(swap);
         if (selectedAction) {
           log(
             `Selected action for swap ${id}: ${JSON.stringify(selectedAction)}`
           );
-          const executionResult = await actionExecutor.execute(selectedAction);
+          const executionResult = await actionExecutor.execute(
+            selectedAction,
+            config.maxRetries
+          );
           log(
             `Action execution response for swap ${id}: ${JSON.stringify(
               executionResult
@@ -118,4 +127,11 @@ const config = Config.fromFile("./config.toml");
   setInterval(() => {
     shoot().then(() => log("Execution done"));
   }, 10000);
+
+  if (bitcoinWallet) {
+    await bitcoinWallet.refreshUtxo();
+    setInterval(() => {
+      bitcoinWallet.refreshUtxo();
+    }, 60000);
+  }
 })();

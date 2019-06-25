@@ -174,6 +174,7 @@ export class InternalBitcoinWallet implements BitcoinWallet {
     log("Fee (sats):", fee);
 
     if (!inputs || !outputs) {
+      log("Was not able to fund the transaction");
       throw new Error("Was not able to fund the transaction");
     }
 

@@ -5,6 +5,8 @@ import { Config } from "../src/config";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
 import swapsRedeemBitcoinEther from "./stubs/bitcoinEther/swapsWithRedeem.siren.json";
 import swapsFundEtherBitcoinStub from "./stubs/etherBitcoin/swapsWithFund.siren.json";
+import swapsRedeemRefundStub from "./stubs/etherBitcoin/swapsWithRedeemRefund.siren.json";
+import swapsRefundStub from "./stubs/etherBitcoin/swapsWithRefund.siren.json";
 
 describe("Action selector tests: ", () => {
   const config = new Config({
@@ -114,6 +116,35 @@ describe("Action selector tests: ", () => {
 
     const actionResponse2 = await actionSelector.selectActions(entity);
     expect(actionResponse2).toBeUndefined();
+    done();
+  });
+
+  it("Should emit refund action", async done => {
+    const actionSelector = new ActionSelector(config);
+    const { entity, actionStub } = setupAction(swapsRefundStub);
+
+    const actionResponse = await actionSelector.selectActions(entity);
+    expect(actionResponse).toStrictEqual(actionStub);
+    done();
+  });
+
+  it("Should emit refund first then redeem action", async done => {
+    const actionSelector = new ActionSelector(config);
+    const { entity } = setupAction(swapsRedeemRefundStub);
+
+    // @ts-ignore
+    const redeemAction = entity.actions.find(
+      action => action.name === "redeem"
+    ) as Action;
+    // @ts-ignore
+    const refundAction = entity.actions.find(
+      action => action.name === "refund"
+    ) as Action;
+
+    const actionResponse1 = await actionSelector.selectActions(entity);
+    expect(actionResponse1).toStrictEqual(refundAction);
+    const actionResponse2 = await actionSelector.selectActions(entity);
+    expect(actionResponse2).toStrictEqual(redeemAction);
     done();
   });
 });

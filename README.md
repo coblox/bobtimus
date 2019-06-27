@@ -61,11 +61,11 @@ This leads to the following limitations:
 - Even if we were to increase the search range, it would only delay the problem and make the `scantxoutset` call longer and longer
 - If the output related to the last address used is already spent, at reboot, Bobtimus cannot guess such that such address were used (**spent** output are not returned by `scantxoutset`) and hence will re-use it
 
-Finally, because `scantxoutset` only returns _unspent_ outputs, it is not straightforward (or possible?) to create an algorithm that would scan 1000 keys at a time.
+Finally, because `scantxoutset` only returns _unspent_ outputs, it is not straightforward (or possible?) to create an algorithm that would progressively scan a limited range of keys at a given time.
 
 If within a given range, let's say scanning key 2000 to 3000, no UTXO is found does it mean that, either:
 
-1. None of the keys from 2000 to 3000 were used and scanning can stop
-2. Keys from 2000 to 3000 were used and scanning should proceed to 3000-4000 range
+1. None of the keys from 2000 to 3000 were used and scanning can stop?
+2. Keys from 2000 to 3000 were used and scanning should proceed to 3000-4000 range?
 
 Because of this uncertainty, it is not possible to create an algorithm only using `bitcoind` that can certify that all Bitcoin funds are use by Bobtimus.

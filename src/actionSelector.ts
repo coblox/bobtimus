@@ -44,7 +44,10 @@ export class ActionSelector {
     const redeemAction = actions.find(action => action.name === "redeem");
     const refundAction = actions.find(action => action.name === "refund");
 
-    if (redeemAction && !this.wasReturned(redeemAction)) {
+    if (refundAction && !this.wasReturned(refundAction)) {
+      this.selectedActions.push(refundAction);
+      return refundAction;
+    } else if (redeemAction && !this.wasReturned(redeemAction)) {
       this.selectedActions.push(redeemAction);
       return redeemAction;
     } else if (fundAction && !this.wasReturned(fundAction)) {

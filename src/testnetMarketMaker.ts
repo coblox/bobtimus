@@ -27,6 +27,11 @@ export interface Balances {
  *
  */
 export class TestnetMarketMaker {
+  private readonly rateSpread: number;
+  private readonly publishFraction: number;
+  // @ts-ignore
+  private readonly maxFraction: number;
+
   /** Initialize the TestnetMarketMaker class.
    *
    * @param {number} rateSpread The percent spread that is used to calculate the published rate from the acceptable rate
@@ -41,7 +46,15 @@ export class TestnetMarketMaker {
     publishFraction: number,
     maxFraction: number
   ) {
-    throw new Error("not implemented (TODO)");
+    if (maxFraction >= publishFraction) {
+      throw new Error(
+        "MarketMaker maxFraction has to be be less than publishFraction."
+      );
+    }
+
+    this.rateSpread = rateSpread;
+    this.publishFraction = publishFraction;
+    this.maxFraction = maxFraction;
   }
 
   /** Provide the amounts to publish
@@ -51,11 +64,16 @@ export class TestnetMarketMaker {
    * @return {buyAmount: number, sellAmount: number} The buy and sell amounts to publish (in nominal)
    */
   public getAmountsToPublish(
-    buyAsset: string,
-    sellAsset: string,
     balances: Balances
   ): { buyAmount: number; sellAmount: number } {
-    throw new Error("not implemented");
+    this.checkSufficientFunds(balances);
+
+    return {
+      buyAmount:
+        (balances.buyBalance / this.publishFraction) *
+        (1 + this.rateSpread / 100),
+      sellAmount: balances.sellBalance / this.publishFraction
+    };
   }
 
   /** Returns whether the proposed rate is above the acceptable rate
@@ -63,38 +81,24 @@ export class TestnetMarketMaker {
    * @param {TradeAmounts} tradeAmounts The proposed quantities for the trade
    * @return {boolean} True if the trade should proceed (rate and amounts are acceptable), False otherwise
    */
-  public isTradeAcceptable(
-    { buyAsset, buyAmount, sellAsset, sellAmount }: TradeAmounts,
-    balances: Balances
-  ) {
-    throw new Error("not implemented");
+  public isTradeAcceptable(tradeAmounts: TradeAmounts, balances: Balances) {
+    this.checkSufficientFunds(balances);
+
+    const maxSellAmount = balances.sellBalance / this.maxFraction;
+
+    if (tradeAmounts.sellAmount > maxSellAmount) {
+      return false;
+    }
+
+    const currentBuyRate = balances.buyBalance / balances.sellBalance;
+    const tradeBuyRate = tradeAmounts.buyAmount / tradeAmounts.sellAmount;
+
+    return tradeBuyRate >= currentBuyRate;
   }
 
-  /** Returns whether the proposed amount is under the max amount.
-   *
-   * @param {string} asset The asset name (always lower case)
-   * @param {number} amount The nominal amount (ie, Bitcoin for Bitcoin, Ether for Ethereum)
-   * @return {boolean} True if the trade should proceed, False if the amount is `> balance/maxNth`
-   */
-  // @ts-ignore: TODO remove
-  private isAmountAcceptable(
-    asset: string,
-    amount: number,
-    balances: Balances
-  ) {
-    throw new Error("not implemented");
-  }
-
-  /** Returns whether the proposed rate is profitable
-   *
-   * @param {TradeAmounts} tradeAmounts The proposed quantities for the trade
-   * @return {boolean} True if the rate is above the acceptable rate, False otherwise
-   */
-  // @ts-ignore: TODO remove
-  private isRateProfitable(
-    { buyAsset, buyAmount, sellAsset, sellAmount }: TradeAmounts,
-    balances: Balances
-  ) {
-    throw new Error("not implemented");
+  private checkSufficientFunds(balances: Balances) {
+    if (balances.sellBalance === 0) {
+      throw new Error("Insufficient funds");
+    }
   }
 }

@@ -10,23 +10,37 @@ describe("Test the TestnetMarketMaker module", () => {
 
   it("Returns the amounts to publish for buy and sell assets based on the balances, the configured published fraction and the rate spread", () => {
     const marketMaker = new TestnetMarketMaker(5, 200, 100);
-    const { buyAmount, sellAmount } = marketMaker.getAmountsToPublish(
-      "bitcoin",
-      "ether",
-      { buyBalance: 100, sellBalance: 1000 }
-    );
+    const { buyAmount, sellAmount } = marketMaker.getAmountsToPublish({
+      buyBalance: 100,
+      sellBalance: 1000
+    });
 
     expect(sellAmount).toEqual(5); // Based on the publish fraction
     expect(buyAmount).toEqual(0.525);
   });
 
-  it("Throws an error if the sell balance is null", () => {
+  it("Throws an error if the sell balance is zero when asking for amounts to publish", () => {
     const marketMaker = new TestnetMarketMaker(5, 200, 100);
     expect(() => {
       // @ts-ignore: the returned object is not used
-      const { buyAmount, sellAmount } = marketMaker.getAmountsToPublish(
-        "bitcoin",
-        "ether",
+      const { buyAmount, sellAmount } = marketMaker.getAmountsToPublish({
+        buyBalance: 100,
+        sellBalance: 0
+      });
+    }).toThrowError("Insufficient funds");
+  });
+
+  it("Throws an error if the sell balance is zero when checking if the trade is acceptable", () => {
+    const marketMaker = new TestnetMarketMaker(5, 200, 100);
+    expect(() => {
+      // @ts-ignore: the returned object is not used
+      const { buyAmount, sellAmount } = marketMaker.isTradeAcceptable(
+        {
+          buyAsset: "bitcoin",
+          buyAmount: 0.1,
+          sellAsset: "ether",
+          sellAmount: 1
+        },
         { buyBalance: 100, sellBalance: 0 }
       );
     }).toThrowError("Insufficient funds");
@@ -37,11 +51,7 @@ describe("Test the TestnetMarketMaker module", () => {
     const buyAsset = "bitcoin";
     const sellAsset = "ether";
     const balances = { buyBalance: 100, sellBalance: 1000 };
-    const { buyAmount, sellAmount } = marketMaker.getAmountsToPublish(
-      buyAsset,
-      sellAsset,
-      balances
-    );
+    const { buyAmount, sellAmount } = marketMaker.getAmountsToPublish(balances);
 
     expect(
       marketMaker.isTradeAcceptable(
@@ -56,11 +66,10 @@ describe("Test the TestnetMarketMaker module", () => {
     const buyAsset = "bitcoin";
     const sellAsset = "ether";
     const balances = { buyBalance: 100, sellBalance: 1000 };
-    const { buyAmount, sellAmount } = marketMaker.getAmountsToPublish(
-      buyAsset,
-      sellAsset,
-      balances
-    );
+
+    const { buyAmount, sellAmount } = marketMaker.getAmountsToPublish(balances);
+
+    console.log(buyAmount, sellAmount);
 
     expect(
       marketMaker.isTradeAcceptable(

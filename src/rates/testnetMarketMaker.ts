@@ -1,14 +1,10 @@
-export interface TradeAmounts {
-  buyAsset: string;
-  sellAsset: string;
-  buyAmount: number; // Always nominal quantity (e.g. Ether for Ethereum)
-  sellAmount: number; // Always nominal quantity (e.g. Ether for Ethereum)
-}
+import Big from "big.js";
+import Asset from "../asset";
+import { Rates, TradeAmounts } from "./rates";
 
-export interface Balances {
-  buyBalance: number;
-  sellBalance: number;
-}
+export type BalanceLookups = {
+  [asset in Asset]: () => Big // Always nominal quantity
+};
 
 /** Provide the following information:
  * - Published Amounts: to put in the link
@@ -26,17 +22,18 @@ export interface Balances {
  * The max amounts are a configurable fraction of the available balance, which is slightly bigger than the published amount
  *
  */
-export class TestnetMarketMaker {
+export default class TestnetMarketMaker implements Rates {
   private readonly rateSpread: number;
   private readonly publishFraction: number;
-  // @ts-ignore
   private readonly maxFraction: number;
+  private readonly balanceLookups: BalanceLookups;
 
   /** Initialize the TestnetMarketMaker class.
    *
    * @param {number} rateSpread The percent spread that is used to calculate the published rate from the acceptable rate
    * @param {number} publishFraction Fraction of the sell asset balance that we publish for trades
    * @param {number} maxFraction Max fraction of the sell asset balance we are happy to trade (ie, trading nth of balance means that you can do n trades at the same time)
+   * @param {BalanceLookups} balanceLookups Callbacks that returns the current balance of a given asset
    * @return {TestnetMarketMaker} The new MarketMaker object
    *
    * Note that {maxFraction} > {publishFraction} must be true or none of the published amounts will be accepted
@@ -44,7 +41,8 @@ export class TestnetMarketMaker {
   constructor(
     rateSpread: number,
     publishFraction: number,
-    maxFraction: number
+    maxFraction: number,
+    balanceLookups: BalanceLookups
   ) {
     if (maxFraction >= publishFraction) {
       throw new Error(
@@ -55,24 +53,31 @@ export class TestnetMarketMaker {
     this.rateSpread = rateSpread;
     this.publishFraction = publishFraction;
     this.maxFraction = maxFraction;
+    this.balanceLookups = balanceLookups;
   }
 
   /** Provide the amounts to publish
    *
    * @param {string} buyAsset The asset to buy
    * @param {string} sellAsset The asset to sell
-   * @return {buyAmount: number, sellAmount: number} The buy and sell amounts to publish (in nominal)
+   * @return {buyNominalAmount: number, sellNominalAmount: number} The buy and sell amounts to publish (in nominal)
    */
   public getAmountsToPublish(
-    balances: Balances
-  ): { buyAmount: number; sellAmount: number } {
-    this.checkSufficientFunds(balances);
+    buyAsset: Asset,
+    sellAsset: Asset
+  ): { buyNominalAmount: Big; sellNominalAmount: Big } {
+    this.checkSufficientFunds(sellAsset);
+
+    const buyBalance = this.balanceLookups[buyAsset]();
+    const sellBalance = this.balanceLookups[sellAsset]();
+
+    const buyAmount = buyBalance
+      .div(this.publishFraction)
+      .mul(1 + this.rateSpread / 100);
 
     return {
-      buyAmount:
-        (balances.buyBalance / this.publishFraction) *
-        (1 + this.rateSpread / 100),
-      sellAmount: balances.sellBalance / this.publishFraction
+      buyNominalAmount: buyAmount,
+      sellNominalAmount: sellBalance.div(this.publishFraction)
     };
   }
 
@@ -81,23 +86,30 @@ export class TestnetMarketMaker {
    * @param {TradeAmounts} tradeAmounts The proposed quantities for the trade
    * @return {boolean} True if the trade should proceed (rate and amounts are acceptable), False otherwise
    */
-  public isTradeAcceptable(tradeAmounts: TradeAmounts, balances: Balances) {
-    this.checkSufficientFunds(balances);
+  public isTradeAcceptable({
+    sellAsset,
+    sellNominalAmount,
+    buyAsset,
+    buyNominalAmount
+  }: TradeAmounts) {
+    this.checkSufficientFunds(sellAsset);
+    const buyBalance = this.balanceLookups[buyAsset]();
+    const sellBalance = this.balanceLookups[sellAsset]();
 
-    const maxSellAmount = balances.sellBalance / this.maxFraction;
+    const maxSellAmount = sellBalance.div(this.maxFraction);
 
-    if (tradeAmounts.sellAmount > maxSellAmount) {
+    if (sellNominalAmount.gt(maxSellAmount)) {
       return false;
     }
 
-    const currentBuyRate = balances.buyBalance / balances.sellBalance;
-    const tradeBuyRate = tradeAmounts.buyAmount / tradeAmounts.sellAmount;
+    const currentBuyRate = buyBalance.div(sellBalance);
+    const tradeBuyRate = buyNominalAmount.div(sellNominalAmount);
 
     return tradeBuyRate >= currentBuyRate;
   }
 
-  private checkSufficientFunds(balances: Balances) {
-    if (balances.sellBalance === 0) {
+  private checkSufficientFunds(sellAsset: Asset) {
+    if (this.balanceLookups[sellAsset]().eq(0)) {
       throw new Error("Insufficient funds");
     }
   }

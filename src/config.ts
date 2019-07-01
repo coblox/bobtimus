@@ -5,7 +5,7 @@ import * as fs from "fs";
 import { getLogger } from "log4js";
 import URI from "urijs";
 import Ledger from "./ledger";
-import { RatesConfig } from "./ratesConfig";
+import { ConfigRates } from "./rates/staticConfigRates";
 
 const logger = getLogger();
 
@@ -33,7 +33,7 @@ export interface EthereumConfig {
 export interface TomlConfig {
   comitNodeUrl: string;
   seedWords?: string;
-  rates: RatesConfig;
+  rates: ConfigRates;
   ledgers: {
     bitcoin?: BitcoinConfig;
     ethereum?: EthereumConfig;
@@ -57,7 +57,7 @@ export class Config {
   }
 
   public comitNodeUrl: string;
-  public rates: RatesConfig;
+  public rates: ConfigRates;
   public seed: Buffer;
   public bitcoinConfig?: BitcoinConfig;
   public ethereumConfig?: EthereumConfig;

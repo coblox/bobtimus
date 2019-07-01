@@ -5,7 +5,8 @@ import { toAsset } from "./asset";
 import { Swap, toNominalUnit } from "./comitNode";
 import { Config } from "./config";
 import { toLedger } from "./ledger";
-import { isTradeAcceptable } from "./ratesConfig";
+import { Rates } from "./rates/rates";
+import StaticConfigRates from "./rates/staticConfigRates";
 
 const logger = getLogger();
 
@@ -14,10 +15,12 @@ Big.DP = 30;
 export class ActionSelector {
   private config: Config;
   private selectedActions: Action[];
+  private rates: Rates;
 
   constructor(config: Config) {
     this.config = config;
     this.selectedActions = [];
+    this.rates = new StaticConfigRates(this.config.rates);
   }
 
   public selectActions(entity: Entity) {
@@ -112,7 +115,7 @@ export class ActionSelector {
       sellNominalAmount: betaNominalAmount
     };
 
-    return isTradeAcceptable(tradeAmounts, this.config.rates);
+    return this.rates.isTradeAcceptable(tradeAmounts);
   }
 
   private wasReturned(action: Action) {

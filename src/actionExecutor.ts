@@ -27,9 +27,12 @@ export class ActionExecutor {
     this.executedActions = [];
   }
 
-  public async execute(action: Action, maxRetries: number) {
+  public async execute(
+    action: Action,
+    maxRetries: number,
+    timeout: number = 30000
+  ): Promise<Result<any, Error>> {
     if (this.wasExecuted(action)) {
-      log("Action already executed");
       return Result.err(new Error(`Action already executed: ${action}`));
     }
 
@@ -52,10 +55,9 @@ export class ActionExecutor {
     } else if (maxRetries <= 0) {
       result = Result.err(new Error("Maximum number of retries reached"));
     } else {
-      // It failed, try again in 30 s
-      setInterval(() => {
-        this.execute(action, maxRetries - 1);
-      }, 30000);
+      // It failed, try again in x milliseconds
+      await this.sleep(timeout);
+      return this.execute(action, maxRetries - 1);
     }
 
     return result;
@@ -153,5 +155,9 @@ export class ActionExecutor {
     } catch (err) {
       return Result.err(err);
     }
+  }
+
+  private async sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }

@@ -42,9 +42,21 @@
       "actions": [
         {
           "name": "refund",
-          "title": "Refund",
+          "class": [],
           "method": "GET",
-          "href": "/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/refund"
+          "href": "/swaps/rfc003/022b4e38-61fd-431a-af44-6240c7ac44d7/refund",
+          "fields": [
+            {
+              "name": "address",
+              "class": ["bitcoin", "address"],
+              "type": "text"
+            },
+            {
+              "name": "fee_per_byte",
+              "class": ["bitcoin", "feePerByte"],
+              "type": "number"
+            }
+          ]
         }
       ]
     }

@@ -57,7 +57,7 @@ export class ActionExecutor {
     } else {
       // It failed, try again in x milliseconds
       await this.sleep(timeout);
-      return this.execute(action, maxRetries - 1);
+      return this.execute(action, maxRetries - 1, timeout);
     }
 
     return result;

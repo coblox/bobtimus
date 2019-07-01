@@ -16,12 +16,16 @@ import acceptedStub from "./stubs/accepted.json";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
 import swapsFundBitcoinEtherStub from "./stubs/bitcoinEther/swapsWithFund.siren.json";
 import swapsRedeemBitcoinEther from "./stubs/bitcoinEther/swapsWithRedeem.siren.json";
+import swapsRefundEther from "./stubs/bitcoinEther/swapsWithRefund.siren.json";
 import swapsFundEtherBitcoinStub from "./stubs/etherBitcoin/swapsWithFund.siren.json";
 import swapsRedeemEtherBitcoin from "./stubs/etherBitcoin/swapsWithRedeem.siren.json";
+import swapsRefundBitcoin from "./stubs/etherBitcoin/swapsWithRefund.siren.json";
 import fundBitcoin from "./stubs/fundBitcoin.json";
 import fundEther from "./stubs/fundEther.json";
 import redeemBitcoin from "./stubs/redeemBitcoin.json";
 import redeemEther from "./stubs/redeemEther.json";
+import refundBitcoin from "./stubs/refundBitcoin.json";
+import refundEther from "./stubs/refundEther.json";
 
 const config = new Config({
   comitNodeUrl: "http://localhost:8000",
@@ -353,6 +357,91 @@ describe("Ledger action execution tests:", () => {
 
     expect(actionResult1).toBeDefined();
     expect(actionResult2).toBeDefined();
+
+    done();
+  });
+
+  it("execute refund action on Bitcoin", async done => {
+    nock("http://localhost:8000")
+      .get("/swaps/rfc003/")
+      .reply(200, swapsRefundBitcoin);
+    nock("http://localhost:8000")
+      .get(
+        "/swaps/rfc003/022b4e38-61fd-431a-af44-6240c7ac44d7/refund?address=bcrt1qs2aderg3whgu0m8uadn6dwxjf7j3wx97kk2qqtrum89pmfcxknhsf89pj0&fee_per_byte=180"
+      )
+      .reply(200, refundBitcoin);
+
+    const mockGetData = jest.fn();
+    mockGetData
+      .mockReturnValueOnce(
+        "bcrt1qs2aderg3whgu0m8uadn6dwxjf7j3wx97kk2qqtrum89pmfcxknhsf89pj0"
+      )
+      .mockReturnValueOnce(180);
+    const datastore = new DummyDatastore();
+    datastore.getData = mockGetData;
+
+    const mockBitcoinBroadcastTransaction = jest.fn();
+    mockBitcoinBroadcastTransaction.mockReturnValueOnce(
+      "bitcoinrefundtransactionresponse"
+    );
+    const ledgerExecutor = new DummyLedgerExecutor();
+    ledgerExecutor.bitcoinBroadcastTransaction = mockBitcoinBroadcastTransaction;
+    const actionExecutor = new ActionExecutor(
+      comitNode,
+      datastore,
+      ledgerExecutor
+    );
+    const swap = swapsRefundBitcoin.entities[0] as Swap;
+
+    const refundAction = swap.actions.find(
+      action => action.name === "refund"
+    ) as Action;
+    const actionResponse = await actionExecutor.execute(refundAction, 0);
+
+    expect(actionResponse).toStrictEqual(
+      Result.ok("bitcoinrefundtransactionresponse")
+    );
+
+    done();
+  });
+
+  it("execute refund action on Ethereum ", async done => {
+    nock("http://localhost:8000")
+      .get("/swaps/rfc003/")
+      .reply(200, swapsRefundEther);
+    nock("http://localhost:8000")
+      .get("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/refund")
+      .reply(200, refundEther);
+
+    const datastore = new DummyDatastore();
+    const ledgerExecutor = new DummyLedgerExecutor();
+    const mockEthereumSendTransactionTo = jest.fn();
+    mockEthereumSendTransactionTo.mockReturnValueOnce(
+      Promise.resolve(dummyTransactionReceipt)
+    );
+    ledgerExecutor.ethereumSendTransactionTo = mockEthereumSendTransactionTo;
+    const actionExecutor = new ActionExecutor(
+      comitNode,
+      datastore,
+      ledgerExecutor
+    );
+    const swap = swapsRefundEther.entities[0] as Swap;
+
+    const refundAction = swap.actions.find(
+      action => action.name === "refund"
+    ) as Action;
+    const actionResponse = await actionExecutor.execute(refundAction, 0);
+
+    expect(actionResponse).toStrictEqual(Result.ok(dummyTransactionReceipt));
+
+    expect(mockEthereumSendTransactionTo.mock.calls[0].length).toBe(1);
+    // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
+    const argPassed = mockEthereumSendTransactionTo.mock.calls[0][0];
+    expect(argPassed.value).toBeUndefined();
+    expect(argPassed.gasLimit.toString("hex")).toEqual("186a0");
+    expect(argPassed.network).toEqual("regtest");
+    expect(argPassed.to).toEqual("0xa2f623a7aec2f71c17687ee234e3fd816b0fb917");
+    expect(argPassed.data).toEqual("0x");
 
     done();
   });

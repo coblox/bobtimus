@@ -120,6 +120,41 @@ describe("Action executor tests: ", () => {
 
     done();
   });
+
+  it("should retry action twice", async done => {
+    nock("http://localhost:8000")
+      .get("/swaps/rfc003/")
+      .reply(200, swapsAcceptDeclineStub);
+    const scope = nock("http://localhost:8000")
+      .post("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/accept")
+      .replyWithError("Oh no, we ran out of bananas.")
+      .post("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/accept")
+      .reply(200, acceptedStub);
+
+    const getData = jest.fn();
+    getData.mockReturnValueOnce("0xcb777414c38e426c7038a7c4908751f5e864f7ad");
+
+    const datastore: FieldDataSource = {
+      getData
+    };
+    const actionExecutor = new ActionExecutor(
+      comitNode,
+      datastore,
+      new DummyLedgerExecutor()
+    );
+    const swap = swapsAcceptDeclineStub.entities[0] as Swap;
+    const acceptAction = swap.actions.find(
+      action => action.name === "accept"
+    ) as Action;
+
+    const actionResponse = await actionExecutor.execute(acceptAction, 1, 2);
+
+    expect(actionResponse).toStrictEqual(Result.ok(acceptedStub));
+
+    expect(scope.isDone()).toBeTruthy();
+
+    done();
+  });
 });
 
 describe("Ledger action execution tests:", () => {

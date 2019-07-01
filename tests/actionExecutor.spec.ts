@@ -121,7 +121,7 @@ describe("Action executor tests: ", () => {
     done();
   });
 
-  it("should retry action twice", async done => {
+  it("should retry action with timeout", async done => {
     nock("http://localhost:8000")
       .get("/swaps/rfc003/")
       .reply(200, swapsAcceptDeclineStub);
@@ -151,6 +151,43 @@ describe("Action executor tests: ", () => {
 
     expect(actionResponse).toStrictEqual(Result.ok(acceptedStub));
 
+    expect(scope.isDone()).toBeTruthy();
+
+    done();
+  });
+
+  it("should retry action and still fail if nothing changed (no endless loop)", async done => {
+    nock("http://localhost:8000")
+      .get("/swaps/rfc003/")
+      .reply(200, swapsAcceptDeclineStub);
+    const scope = nock("http://localhost:8000")
+      .post("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/accept")
+      .replyWithError("Oh no, we ran out of bananas.")
+      .post("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/accept")
+      .replyWithError("You're telling me still no bananas?")
+      .post("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/accept")
+      .replyWithError("🙈🙉🙊");
+
+    const getData = jest.fn();
+    const actionExecutor = new ActionExecutor(
+      comitNode,
+      {
+        getData
+      },
+      new DummyLedgerExecutor()
+    );
+    const swap = swapsAcceptDeclineStub.entities[0] as Swap;
+    const acceptAction = swap.actions.find(
+      action => action.name === "accept"
+    ) as Action;
+
+    const actionResponse = await actionExecutor.execute(acceptAction, 2, 2);
+
+    expect(actionResponse).toStrictEqual(
+      Result.err(new Error("Maximum number of retries reached"))
+    );
+
+    // check the mock was invoked indeed 3 times
     expect(scope.isDone()).toBeTruthy();
 
     done();

@@ -11,7 +11,10 @@ describe("Action selector tests: ", () => {
     comitNodeUrl: "http://localhost:8000",
     seedWords:
       "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
-    rates: { ether: { bitcoin: { sell: 0.0105, buy: 0.0105 } } },
+    rates: {
+      ether: { bitcoin: { maxSell: 0.0105 } },
+      bitcoin: { ether: { maxSell: 105.26 } }
+    },
     ledgers: {
       bitcoin: {
         type: "coreRpc",
@@ -52,7 +55,10 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit decline because of wrong rate", async done => {
-    config.rates = { ether: { bitcoin: { sell: 1, buy: 1 } } };
+    config.rates = {
+      ether: { bitcoin: { maxSell: 1 } },
+      bitcoin: { ether: { maxSell: 1 } }
+    };
     const actionSelector = new ActionSelector(config);
 
     const entity = swapsAcceptDeclineStub.entities[0] as Entity;

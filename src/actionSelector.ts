@@ -1,9 +1,10 @@
 import Big from "big.js";
 import debug from "debug";
 import { Action, Entity } from "../gen/siren";
+import { toAsset } from "./asset";
 import { Swap, toNominalUnit } from "./comitNode";
 import { Config } from "./config";
-import { getBuyDivBySellRate, isProfitable } from "./rates";
+import { isTradeAcceptable } from "./ratesConfig";
 
 const log = debug("bobtimus:actionSelector");
 
@@ -56,8 +57,12 @@ export class ActionSelector {
     if (acceptAction && !this.wasReturned(acceptAction)) {
       const alphaLedger = swap.properties.parameters.alpha_ledger.name;
       const betaLedger = swap.properties.parameters.beta_ledger.name;
-      const alphaAsset = swap.properties.parameters.alpha_asset.name;
-      const betaAsset = swap.properties.parameters.beta_asset.name;
+      const alphaAsset = toAsset(swap.properties.parameters.alpha_asset.name);
+      const betaAsset = toAsset(swap.properties.parameters.beta_asset.name);
+      if (!alphaAsset || !betaAsset) {
+        log(`Unknown asset: ${alphaAsset ? betaAsset : alphaAsset}`);
+        return undefined;
+      }
 
       log(
         `selection Action for ${alphaLedger}-${alphaAsset}/${betaLedger}-${betaAsset}`
@@ -71,40 +76,33 @@ export class ActionSelector {
           `Ledger-Asset not supported (${alphaLedger}:${alphaAsset}/${betaLedger}:${betaAsset})`
         );
       } else {
-        const alphaQuantity = toNominalUnit(
+        const alphaNominalAmount = toNominalUnit(
           swap.properties.parameters.alpha_asset
         );
-        const betaQuantity = toNominalUnit(
+        const betaNominalAmount = toNominalUnit(
           swap.properties.parameters.beta_asset
         );
 
-        if (!alphaQuantity || !betaQuantity) {
+        if (!alphaNominalAmount || !betaNominalAmount) {
           log(
-            `Internal Error: Asset not supported (${alphaAsset}: ${alphaQuantity}, ${betaAsset}: ${betaQuantity}).`
+            `Internal Error: Asset not supported (${alphaAsset}: ${alphaNominalAmount}, ${betaAsset}: ${betaNominalAmount}).`
           );
         } else {
           // Bob always buys Alpha
-          const acceptableRate = getBuyDivBySellRate(
-            this.config.rates,
-            alphaAsset,
-            betaAsset
-          );
-
-          if (!acceptableRate) {
-            log(
-              `Rate is not configured to buy ${alphaLedger}:${alphaAsset} & sell ${betaLedger}:${betaAsset}`
-            );
+          const tradeAmounts = {
+            buyAsset: alphaAsset,
+            sellAsset: betaAsset,
+            buyNominalAmount: alphaNominalAmount,
+            sellNominalAmount: betaNominalAmount
+          };
+          if (isTradeAcceptable(tradeAmounts, this.config.rates)) {
+            this.selectedActions.push(acceptAction);
+            return acceptAction;
+          } else if (declineAction && !this.wasReturned(declineAction)) {
+            this.selectedActions.push(declineAction);
+            return declineAction;
           } else {
-            // Bob always buys Alpha
-            if (isProfitable(alphaQuantity, betaQuantity, acceptableRate)) {
-              this.selectedActions.push(acceptAction);
-              return acceptAction;
-            } else if (declineAction && !this.wasReturned(declineAction)) {
-              this.selectedActions.push(declineAction);
-              return declineAction;
-            } else {
-              log("Decline action is unavailable");
-            }
+            log("Decline action is unavailable");
           }
         }
       }

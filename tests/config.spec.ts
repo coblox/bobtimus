@@ -1,11 +1,9 @@
 import TOML from "@iarna/toml";
-import Big from "big.js";
 import { mnemonicToSeedSync } from "bip39";
 import * as fs from "fs";
 import tmp from "tmp";
 import URI from "urijs";
 import { BitcoinConfig, Config, EthereumConfig } from "../src/config";
-import { getBuyDivBySellRate } from "../src/rates";
 
 /// Copies the file to not modify a file tracked by git when running the test
 /// Uses a dedicated folder to make the cleanup easier
@@ -74,52 +72,6 @@ describe("Config tests", () => {
     expect(configAfter.rates).toEqual(configBefore.rates);
     expect(configAfter.ledgers).toBeDefined();
     expect(configAfter.ledgers).toEqual(configBefore.ledgers);
-  });
-
-  it("should throw an error when parsing a config file with duplicate rates", () => {
-    const tomlConfig = {
-      comitNodeUrl: "http://localhost:8000",
-      seedWords:
-        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
-      rates: {
-        ether: { bitcoin: { sell: 0.0095, buy: 0.0105 } },
-        bitcoin: { ether: { sell: 0.0095, buy: 0.0105 } }
-      },
-      ledgers: {} // Not needed for this test
-    };
-
-    expect(() => new Config(tomlConfig)).toThrowError("XOR");
-  });
-
-  it("should return the correct buy rates", () => {
-    const config = new Config({
-      comitNodeUrl: "http://localhost:8000",
-      seedWords:
-        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
-      rates: { ether: { bitcoin: { sell: 0.0095, buy: 0.0105 } } },
-      ledgers: {} // Not needed for this test
-    });
-    const dp = 6;
-
-    // ether.bitcoin is set
-    // ETH-BTC = number of Bitcoin for 1 Ether
-    // buy = buy Ether
-    // sell = sell Ether
-    // Stored rate is Bitcoin divided by Ether
-
-    const etherBitcoin = getBuyDivBySellRate(config.rates, "ether", "bitcoin");
-    expect(etherBitcoin ? etherBitcoin.toFixed(dp) : "").toEqual(
-      new Big(1 / 0.0105).toFixed(dp)
-    );
-
-    const bitcoinEther = getBuyDivBySellRate(config.rates, "bitcoin", "ether");
-    expect(bitcoinEther ? bitcoinEther.toFixed(dp) : "").toEqual(
-      new Big(0.0095).toFixed(dp)
-    );
-
-    expect(
-      getBuyDivBySellRate(config.rates, "dogecoin", "ether")
-    ).toBeUndefined();
   });
 
   it("should parse the config with correct fee strategy selected", () => {

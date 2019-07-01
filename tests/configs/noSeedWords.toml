@@ -1,8 +1,12 @@
 comitNodeUrl = "http://localhost:8000"
 
+# rates.buyAsset.sellAsset, buy = 1, sell is the configured maxSell
+# If Bob buys Ether for Bitcoin, for 1 Ether, he wants to sell at most 0.0105 Bitcoins
 [rates.ether.bitcoin]
-sell = 0.0095
-buy = 0.0105
+maxSell = 0.0105
+# If Bob buys Bitcoin for Ether, for 1 Bitcoin, he wants to sell at most 105.26 Ether
+[rates.bitcoin.ether]
+maxSell = 105.26
 
 [ledgers.bitcoin]
 type = "coreRpc"

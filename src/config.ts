@@ -4,6 +4,7 @@ import BN = require("bn.js");
 import debug from "debug";
 import * as fs from "fs";
 import URI from "urijs";
+import Ledger from "./ledger";
 import { RatesConfig } from "./ratesConfig";
 
 const log = debug("bobtimus:config");
@@ -82,15 +83,24 @@ export class Config {
       : uriPath;
   }
 
-  public isSupported(ledgerName: string, assetName: string) {
-    switch (ledgerName + assetName) {
-      case "bitcoinbitcoin":
-        return typeof this.bitcoinConfig === "object";
-      case "ethereumether":
-        return typeof this.ethereumConfig === "object";
+  public isValidConfiguration(ledger: Ledger): boolean {
+    let isValid;
+    switch (ledger) {
+      case Ledger.Bitcoin:
+        isValid = typeof this.bitcoinConfig === "object";
+        break;
+      case Ledger.Ethereum:
+        isValid = typeof this.ethereumConfig === "object";
+        break;
       default:
-        return false;
+        isValid = false;
     }
+
+    if (!isValid) {
+      log(`Invalid configuration for ledger ${ledger}`);
+    }
+
+    return isValid;
   }
 }
 

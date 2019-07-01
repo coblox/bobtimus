@@ -4,6 +4,7 @@ import { Action, Entity } from "../gen/siren";
 import { toAsset } from "./asset";
 import { Swap, toNominalUnit } from "./comitNode";
 import { Config } from "./config";
+import { toLedger } from "./ledger";
 import { isTradeAcceptable } from "./ratesConfig";
 
 const log = debug("bobtimus:actionSelector");
@@ -55,12 +56,14 @@ export class ActionSelector {
     }
 
     if (acceptAction && !this.wasReturned(acceptAction)) {
-      const alphaLedger = swap.properties.parameters.alpha_ledger.name;
-      const betaLedger = swap.properties.parameters.beta_ledger.name;
+      const alphaLedger = toLedger(
+        swap.properties.parameters.alpha_ledger.name
+      );
+      const betaLedger = toLedger(swap.properties.parameters.beta_ledger.name);
       const alphaAsset = toAsset(swap.properties.parameters.alpha_asset.name);
       const betaAsset = toAsset(swap.properties.parameters.beta_asset.name);
-      if (!alphaAsset || !betaAsset) {
-        log(`Unknown asset: ${alphaAsset ? betaAsset : alphaAsset}`);
+      if (!alphaAsset || !betaAsset || !alphaLedger || !betaLedger) {
+        log(`Unknown ledger or asset: ${swap.properties.parameters}`);
         return undefined;
       }
 
@@ -69,41 +72,39 @@ export class ActionSelector {
       );
 
       if (
-        !this.config.isSupported(alphaLedger, alphaAsset) ||
-        !this.config.isSupported(betaLedger, betaAsset)
+        !this.config.isValidConfiguration(alphaLedger) ||
+        !this.config.isValidConfiguration(betaLedger)
       ) {
+        return undefined;
+      }
+
+      const alphaNominalAmount = toNominalUnit(
+        swap.properties.parameters.alpha_asset
+      );
+      const betaNominalAmount = toNominalUnit(
+        swap.properties.parameters.beta_asset
+      );
+
+      if (!alphaNominalAmount || !betaNominalAmount) {
         log(
-          `Ledger-Asset not supported (${alphaLedger}:${alphaAsset}/${betaLedger}:${betaAsset})`
+          `Internal Error: Asset not supported (${alphaAsset}: ${alphaNominalAmount}, ${betaAsset}: ${betaNominalAmount}).`
         );
       } else {
-        const alphaNominalAmount = toNominalUnit(
-          swap.properties.parameters.alpha_asset
-        );
-        const betaNominalAmount = toNominalUnit(
-          swap.properties.parameters.beta_asset
-        );
-
-        if (!alphaNominalAmount || !betaNominalAmount) {
-          log(
-            `Internal Error: Asset not supported (${alphaAsset}: ${alphaNominalAmount}, ${betaAsset}: ${betaNominalAmount}).`
-          );
+        // Bob always buys Alpha
+        const tradeAmounts = {
+          buyAsset: alphaAsset,
+          sellAsset: betaAsset,
+          buyNominalAmount: alphaNominalAmount,
+          sellNominalAmount: betaNominalAmount
+        };
+        if (isTradeAcceptable(tradeAmounts, this.config.rates)) {
+          this.selectedActions.push(acceptAction);
+          return acceptAction;
+        } else if (declineAction && !this.wasReturned(declineAction)) {
+          this.selectedActions.push(declineAction);
+          return declineAction;
         } else {
-          // Bob always buys Alpha
-          const tradeAmounts = {
-            buyAsset: alphaAsset,
-            sellAsset: betaAsset,
-            buyNominalAmount: alphaNominalAmount,
-            sellNominalAmount: betaNominalAmount
-          };
-          if (isTradeAcceptable(tradeAmounts, this.config.rates)) {
-            this.selectedActions.push(acceptAction);
-            return acceptAction;
-          } else if (declineAction && !this.wasReturned(declineAction)) {
-            this.selectedActions.push(declineAction);
-            return declineAction;
-          } else {
-            log("Decline action is unavailable");
-          }
+          log("Decline action is unavailable");
         }
       }
     } else if (refundAction) {

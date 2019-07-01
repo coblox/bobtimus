@@ -1,6 +1,6 @@
 import Big from "big.js";
 import debug = require("debug");
-import { Asset } from "./asset";
+import Asset from "./asset";
 const log = debug("bobtimus:rates");
 
 export interface TradeAmounts {

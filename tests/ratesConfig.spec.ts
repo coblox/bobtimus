@@ -1,5 +1,5 @@
 import Big from "big.js";
-import { Asset } from "../src/asset";
+import Asset from "../src/asset";
 import { isTradeAcceptable } from "../src/ratesConfig";
 
 describe("Rate tests", () => {

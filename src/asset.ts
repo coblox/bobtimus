@@ -1,4 +1,4 @@
-export enum Asset {
+enum Asset {
   Bitcoin = "bitcoin",
   Ether = "ether"
 }
@@ -13,3 +13,5 @@ export function toAsset(asset: string) {
       return undefined;
   }
 }
+
+export default Asset;

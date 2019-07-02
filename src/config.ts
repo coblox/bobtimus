@@ -5,6 +5,7 @@ import * as fs from "fs";
 import { getLogger } from "log4js";
 import URI from "urijs";
 import Ledger from "./ledger";
+import { Rates } from "./rates/rates";
 import { ConfigRates } from "./rates/staticConfigRates";
 
 const logger = getLogger();
@@ -33,7 +34,14 @@ export interface EthereumConfig {
 export interface TomlConfig {
   comitNodeUrl: string;
   seedWords?: string;
-  rates: ConfigRates;
+  staticRates?: ConfigRates;
+  marketMaker?: {
+    testnet: {
+      rateSpread: number;
+      maxFraction: number;
+      publishFraction: number;
+    };
+  };
   ledgers: {
     bitcoin?: BitcoinConfig;
     ethereum?: EthereumConfig;
@@ -57,7 +65,7 @@ export class Config {
   }
 
   public comitNodeUrl: string;
-  public rates: ConfigRates;
+  public rates: Rates;
   public seed: Buffer;
   public bitcoinConfig?: BitcoinConfig;
   public ethereumConfig?: EthereumConfig;
@@ -70,7 +78,8 @@ export class Config {
     this.bitcoinConfig = ledgers.bitcoin;
     this.ethereumConfig = ledgers.ethereum;
 
-    this.rates = tomlConfig.rates;
+    // @ts-ignore
+    this.rates = tomlConfig.staticRates;
 
     this.comitNodeUrl = throwIfFalse(tomlConfig, "comitNodeUrl");
     this.seed = mnemonicToSeedSync(throwIfFalse(tomlConfig, "seedWords"));

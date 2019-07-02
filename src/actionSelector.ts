@@ -6,7 +6,6 @@ import { Swap, toNominalUnit } from "./comitNode";
 import { Config } from "./config";
 import { toLedger } from "./ledger";
 import { Rates } from "./rates/rates";
-import StaticConfigRates from "./rates/staticConfigRates";
 
 const logger = getLogger();
 
@@ -20,7 +19,7 @@ export class ActionSelector {
   constructor(config: Config) {
     this.config = config;
     this.selectedActions = [];
-    this.rates = new StaticConfigRates(this.config.rates);
+    this.rates = this.config.rates;
   }
 
   public selectActions(entity: Entity) {

@@ -1,7 +1,7 @@
 import BN = require("bn.js");
 import { Action, Entity } from "../gen/siren";
 import { ActionSelector } from "../src/actionSelector";
-import { Config } from "../src/config";
+import { Config, TomlConfig } from "../src/config";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
 import swapsRedeemBitcoinEther from "./stubs/bitcoinEther/swapsWithRedeem.siren.json";
 import swapsFundEtherBitcoinStub from "./stubs/etherBitcoin/swapsWithFund.siren.json";
@@ -9,11 +9,11 @@ import swapsRedeemRefundStub from "./stubs/etherBitcoin/swapsWithRedeemRefund.si
 import swapsRefundStub from "./stubs/etherBitcoin/swapsWithRefund.siren.json";
 
 describe("Action selector tests: ", () => {
-  const config = new Config({
+  const tomlConfig = {
     comitNodeUrl: "http://localhost:8000",
     seedWords:
       "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
-    rates: {
+    staticRates: {
       ether: { bitcoin: 0.0105 },
       bitcoin: { ether: 105.26 }
     },
@@ -38,7 +38,8 @@ describe("Action selector tests: ", () => {
         }
       }
     }
-  });
+  };
+  const config = new Config(tomlConfig as TomlConfig);
 
   function setupAction(stub: any) {
     const entity = stub.entities[0] as Entity;
@@ -57,10 +58,12 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit decline because of wrong rate", async done => {
-    config.rates = {
+    tomlConfig.staticRates = {
       ether: { bitcoin: 1 },
       bitcoin: { ether: 1 }
     };
+    const config = new Config(tomlConfig as TomlConfig);
+
     const actionSelector = new ActionSelector(config);
 
     const entity = swapsAcceptDeclineStub.entities[0] as Entity;

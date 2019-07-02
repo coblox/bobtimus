@@ -20,7 +20,7 @@ describe("Test the TestnetMarketMaker module", () => {
   const buyAsset = Asset.Bitcoin;
   const sellAsset = Asset.Ether;
 
-  it("Throws when creating the Market Maker if maxNth is greater or equal to the publishedNth", () => {
+  it("Throws when creating the Market Maker if maxFraction is greater than the publishFraction", () => {
     expect(() => {
       // @ts-ignore: the returned object is not to be used
       const marketMaker = new TestnetMarketMaker(

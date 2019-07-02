@@ -1,5 +1,6 @@
 import TOML from "@iarna/toml";
 import { mnemonicToSeedSync } from "bip39";
+import BN = require("bn.js");
 import * as fs from "fs";
 import tmp from "tmp";
 import URI from "urijs";
@@ -30,7 +31,7 @@ function cleanUpFiles(dir: string) {
 
 describe("Config tests", () => {
   it("should parse the config and being able to prepend with configured uri", () => {
-    const config = Config.fromFile("./tests/configs/default.toml");
+    const config = Config.fromFile("./tests/configs/staticRates.toml");
 
     const uriString = "http://localhost:8000/swaps/rfc003";
     const uriWithPath: uri.URI = new URI(uriString);
@@ -75,7 +76,7 @@ describe("Config tests", () => {
   });
 
   it("should parse the config with correct fee strategy selected", () => {
-    const config = Config.fromFile("./tests/configs/default.toml");
+    const config = Config.fromFile("./tests/configs/staticRates.toml");
 
     expect(config.bitcoinConfig).toBeDefined();
     expect(config.ethereumConfig).toBeDefined();
@@ -94,7 +95,92 @@ describe("Config tests", () => {
   });
 
   it("should parse the config with correct maximum retries", () => {
-    const config = Config.fromFile("./tests/configs/default.toml");
+    const config = Config.fromFile("./tests/configs/staticRates.toml");
     expect(config.maxRetries).toEqual(20);
+  });
+
+  it("should load the static rate if present in configuration", () => {
+    const config = Config.fromFile("./tests/configs/staticRates.toml");
+
+    expect(config.rates).toBeDefined();
+  });
+
+  it("should set the marketmaker if no rates defined in the config", () => {
+    const config = Config.fromFile("./tests/configs/testnetMarketMaker.toml");
+
+    expect(config.rates).toBeDefined();
+  });
+
+  it("should throw if both rate strategies are present in the config file", () => {
+    expect(
+      new Config({
+        comitNodeUrl: "http://localhost:8000",
+        seedWords:
+          "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
+        staticRates: {
+          ether: { bitcoin: 0.0105 },
+          bitcoin: { ether: 105.26 }
+        },
+        marketMaker: {
+          testnet: {
+            maxFraction: 1000,
+            publishFraction: 2000,
+            rateSpread: 5
+          }
+        },
+        ledgers: {
+          bitcoin: {
+            type: "coreRpc",
+            rpcUsername: "bitcoin",
+            rpcPassword: "password",
+            rpcHost: "127.0.0.1",
+            rpcPort: 18443,
+            network: "regtest",
+            fee: {
+              defaultFee: 10,
+              strategy: "hourFee"
+            }
+          },
+          ethereum: {
+            web3Endpoint: "http://localhost:8545",
+            fee: {
+              defaultFee: new BN(10),
+              strategy: "average"
+            }
+          }
+        }
+      })
+    ).toThrowError("Multiple rate strategies defined.");
+  });
+
+  it("should throw if no rate strategy is present in the config file", () => {
+    expect(
+      new Config({
+        comitNodeUrl: "http://localhost:8000",
+        seedWords:
+          "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
+        ledgers: {
+          bitcoin: {
+            type: "coreRpc",
+            rpcUsername: "bitcoin",
+            rpcPassword: "password",
+            rpcHost: "127.0.0.1",
+            rpcPort: 18443,
+            network: "regtest",
+            fee: {
+              defaultFee: 10,
+              strategy: "hourFee"
+            }
+          },
+          ethereum: {
+            web3Endpoint: "http://localhost:8545",
+            fee: {
+              defaultFee: new BN(10),
+              strategy: "average"
+            }
+          }
+        }
+      })
+    ).toThrowError("No rate strategy defined.");
   });
 });

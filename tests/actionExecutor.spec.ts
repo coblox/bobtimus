@@ -187,7 +187,7 @@ describe("Action executor tests: ", () => {
       Result.err(new Error("Maximum number of retries reached"))
     );
 
-    // check the mock was invoked indeed 3 times
+    // check the mock finished execution as expected
     expect(scope.isDone()).toBeTruthy();
 
     done();

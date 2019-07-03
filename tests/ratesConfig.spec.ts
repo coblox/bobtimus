@@ -3,10 +3,10 @@ import Asset from "../src/asset";
 import { isTradeAcceptable } from "../src/ratesConfig";
 
 describe("Rate tests", () => {
-  it("Should consider the rate profitable when the adjusted sell amount is less than the configured max sell amount", () => {
+  it("Should consider the rate profitable when the proposed rate is less than the configured rate", () => {
     const rates = {
-      ether: { bitcoin: { maxSell: 0.001 } },
-      bitcoin: { ether: { maxSell: 0.01 } }
+      ether: { bitcoin: 0.001 },
+      bitcoin: { ether: 0.01 }
     };
     const buyAsset = Asset.Bitcoin;
     const buyNominalAmount = new Big(0.1);
@@ -22,10 +22,10 @@ describe("Rate tests", () => {
     expect(isTradeAcceptable(tradeAmounts, rates)).toBeTruthy();
   });
 
-  it("Should consider the rate NOT profitable when the adjusted sell amount is greater than the configured max sell amount", () => {
+  it("Should consider the rate NOT profitable when the proposd rate is greater than the configured rate", () => {
     const rates = {
-      ether: { bitcoin: { maxSell: 0.001 } },
-      bitcoin: { ether: { maxSell: 0.01 } }
+      ether: { bitcoin: 0.001 },
+      bitcoin: { ether: 0.01 }
     };
     const buyAsset = Asset.Bitcoin;
     const buyNominalAmount = new Big(0.1);

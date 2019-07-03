@@ -12,8 +12,8 @@ describe("Action selector tests: ", () => {
     seedWords:
       "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
     rates: {
-      ether: { bitcoin: { maxSell: 0.0105 } },
-      bitcoin: { ether: { maxSell: 105.26 } }
+      ether: { bitcoin: 0.0105 },
+      bitcoin: { ether: 105.26 }
     },
     ledgers: {
       bitcoin: {
@@ -56,8 +56,8 @@ describe("Action selector tests: ", () => {
 
   it("Should emit decline because of wrong rate", async done => {
     config.rates = {
-      ether: { bitcoin: { maxSell: 1 } },
-      bitcoin: { ether: { maxSell: 1 } }
+      ether: { bitcoin: 1 },
+      bitcoin: { ether: 1 }
     };
     const actionSelector = new ActionSelector(config);
 
@@ -72,13 +72,18 @@ describe("Action selector tests: ", () => {
     done();
   });
 
-  it("Should emit error because of unexpected pair", async done => {
+  it("Should emit decline because of unexpected pair", async done => {
     const actionSelector = new ActionSelector(config);
     config.bitcoinConfig = undefined;
-    const { entity } = setupAction(swapsAcceptDeclineStub);
+
+    const entity = swapsAcceptDeclineStub.entities[0] as Entity;
+    expect(entity.actions).not.toBeUndefined();
+    // @ts-ignore
+    const declinedStub = entity.actions[1] as Action;
+    expect(declinedStub.name).toBe("decline");
 
     const actionResponse = await actionSelector.selectActions(entity);
-    expect(actionResponse).toBeUndefined();
+    expect(actionResponse).toStrictEqual(declinedStub);
     done();
   });
 

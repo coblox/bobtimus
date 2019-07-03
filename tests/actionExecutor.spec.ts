@@ -28,8 +28,8 @@ const config = new Config({
   seedWords:
     "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
   rates: {
-    ether: { bitcoin: { maxSell: 0.0105 } },
-    bitcoin: { ether: { maxSell: 105.26 } }
+    ether: { bitcoin: 0.0105 },
+    bitcoin: { ether: 105.26 }
   },
   ledgers: {
     bitcoin: {

@@ -11,31 +11,22 @@ export interface TradeAmounts {
 }
 
 export type RatesConfig = {
-  [buyAsset in Asset]: {
-    [sellAsset in Asset]?: {
-      maxSell: number;
-    }
-  }
+  [buyAsset in Asset]: { [sellAsset in Asset]?: number }
 };
 
 /// Returns Buy divided by Sell (Sell-Beta in exchange terms) rate based on the configuration
 export function isTradeAcceptable(
-  tradeAmounts: TradeAmounts,
+  { buyAsset, sellNominalAmount, buyNominalAmount, sellAsset }: TradeAmounts,
   ratesConfig: RatesConfig
 ) {
-  const buyAsset = tradeAmounts.buyAsset;
-  const buyAmount = tradeAmounts.buyNominalAmount;
-  const sellAsset = tradeAmounts.sellAsset;
-  const sellAmount = tradeAmounts.sellNominalAmount;
-  const acceptableRate = ratesConfig[buyAsset][sellAsset];
+  const rate = ratesConfig[buyAsset][sellAsset];
 
-  if (!acceptableRate || !acceptableRate.maxSell) {
+  if (!rate) {
     log(`Rate not configured for buy: ${buyAsset}, sell: ${sellAsset}`);
     return false;
   }
-  const maxSellRatio = acceptableRate.maxSell;
 
-  const maxSell = buyAmount.mul(maxSellRatio);
+  const maxSell = buyNominalAmount.mul(rate);
 
-  return maxSell.gte(sellAmount);
+  return maxSell.gte(sellNominalAmount);
 }

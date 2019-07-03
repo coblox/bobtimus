@@ -43,7 +43,7 @@ Note: The `seedWords` present in the config file are used to generate both Bitco
 
 ## Known Limitations
 
-### Bitcoin Wallet
+### Bitcoin Wallet (https://github.com/coblox/bobtimus/issues/13)
 
 The Bitcoin Wallet is a Hierarchical Deterministic wallet that uses `bitcoind` RPC command [`scantxoutset`](https://bitcoincore.org/en/doc/0.18.0/rpc/blockchain/scantxoutset/).
 This commands returns unspent outputs found in the blockchain for given `scanobjects`.

@@ -1,3 +1,7 @@
+import debug from "debug";
+
+const log = debug("bobtimus::ledger");
+
 enum Ledger {
   Bitcoin = "bitcoin",
   Ethereum = "ethereum"
@@ -10,6 +14,7 @@ export function toLedger(ledger: string) {
     case Ledger.Ethereum:
       return Ledger.Ethereum;
     default:
+      log(`Ledger not supported: ${ledger}`);
       return undefined;
   }
 }

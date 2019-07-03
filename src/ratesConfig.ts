@@ -27,15 +27,15 @@ export function isTradeAcceptable(
   const buyAmount = tradeAmounts.buyNominalAmount;
   const sellAsset = tradeAmounts.sellAsset;
   const sellAmount = tradeAmounts.sellNominalAmount;
-  const rate = ratesConfig[buyAsset][sellAsset];
+  const acceptableRate = ratesConfig[buyAsset][sellAsset];
 
-  if (!rate || !rate.maxSell) {
+  if (!acceptableRate || !acceptableRate.maxSell) {
     log(`Rate not configured for buy: ${buyAsset}, sell: ${sellAsset}`);
     return false;
   }
-  const maxSellForAmountOne = rate.maxSell;
+  const maxSellRatio = acceptableRate.maxSell;
 
-  const maxSell = buyAmount.mul(maxSellForAmountOne);
+  const maxSell = buyAmount.mul(maxSellRatio);
 
   return maxSell.gte(sellAmount);
 }

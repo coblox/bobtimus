@@ -2,7 +2,6 @@ comitNodeUrl = "http://localhost:8000"
 seedWords = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"
 maxRetries = 20
 
-# rates.buyAsset.sellAsset, buy = 1, sell is the configured maxSell
 # If Bob buys Ether for Bitcoin, for 1 Ether, he wants to sell at most 0.0105 Bitcoins
 [rates.ether.bitcoin]
 maxSell = 0.0105

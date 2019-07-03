@@ -56,56 +56,14 @@ export class ActionSelector {
     }
 
     if (acceptAction && !this.wasReturned(acceptAction)) {
-      const alphaLedger = toLedger(
-        swap.properties.parameters.alpha_ledger.name
-      );
-      const betaLedger = toLedger(swap.properties.parameters.beta_ledger.name);
-      const alphaAsset = toAsset(swap.properties.parameters.alpha_asset.name);
-      const betaAsset = toAsset(swap.properties.parameters.beta_asset.name);
-      if (!alphaAsset || !betaAsset || !alphaLedger || !betaLedger) {
-        log(`Unknown ledger or asset: ${swap.properties.parameters}`);
-        return undefined;
-      }
-
-      log(
-        `selection Action for ${alphaLedger}-${alphaAsset}/${betaLedger}-${betaAsset}`
-      );
-
-      if (
-        !this.config.isValidConfiguration(alphaLedger) ||
-        !this.config.isValidConfiguration(betaLedger)
-      ) {
-        return undefined;
-      }
-
-      const alphaNominalAmount = toNominalUnit(
-        swap.properties.parameters.alpha_asset
-      );
-      const betaNominalAmount = toNominalUnit(
-        swap.properties.parameters.beta_asset
-      );
-
-      if (!alphaNominalAmount || !betaNominalAmount) {
-        log(
-          `Internal Error: Asset not supported (${alphaAsset}: ${alphaNominalAmount}, ${betaAsset}: ${betaNominalAmount}).`
-        );
+      if (this.shouldSelectAccept(swap)) {
+        this.selectedActions.push(acceptAction);
+        return acceptAction;
+      } else if (declineAction && !this.wasReturned(declineAction)) {
+        this.selectedActions.push(declineAction);
+        return declineAction;
       } else {
-        // Bob always buys Alpha
-        const tradeAmounts = {
-          buyAsset: alphaAsset,
-          sellAsset: betaAsset,
-          buyNominalAmount: alphaNominalAmount,
-          sellNominalAmount: betaNominalAmount
-        };
-        if (isTradeAcceptable(tradeAmounts, this.config.rates)) {
-          this.selectedActions.push(acceptAction);
-          return acceptAction;
-        } else if (declineAction && !this.wasReturned(declineAction)) {
-          this.selectedActions.push(declineAction);
-          return declineAction;
-        } else {
-          log("Decline action is unavailable");
-        }
+        log("Decline action is unavailable");
       }
     } else if (refundAction) {
       // Only refund action available, doing nothing for now
@@ -113,6 +71,45 @@ export class ActionSelector {
     }
 
     return undefined;
+  }
+
+  private shouldSelectAccept(swap: Swap): boolean {
+    const alphaLedger = toLedger(swap.properties.parameters.alpha_ledger.name);
+    const betaLedger = toLedger(swap.properties.parameters.beta_ledger.name);
+    const alphaAsset = toAsset(swap.properties.parameters.alpha_asset.name);
+    const betaAsset = toAsset(swap.properties.parameters.beta_asset.name);
+
+    if (!alphaAsset || !betaAsset || !alphaLedger || !betaLedger) {
+      return false;
+    }
+
+    if (
+      !this.config.isSupportedAndConfigured(alphaLedger) ||
+      !this.config.isSupportedAndConfigured(betaLedger)
+    ) {
+      return false;
+    }
+
+    const alphaNominalAmount = toNominalUnit(
+      swap.properties.parameters.alpha_asset
+    );
+    const betaNominalAmount = toNominalUnit(
+      swap.properties.parameters.beta_asset
+    );
+
+    if (!alphaNominalAmount || !betaNominalAmount) {
+      return false;
+    }
+
+    // Bob always buys Alpha
+    const tradeAmounts = {
+      buyAsset: alphaAsset,
+      sellAsset: betaAsset,
+      buyNominalAmount: alphaNominalAmount,
+      sellNominalAmount: betaNominalAmount
+    };
+
+    return isTradeAcceptable(tradeAmounts, this.config.rates);
   }
 
   private wasReturned(action: Action) {

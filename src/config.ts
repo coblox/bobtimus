@@ -83,7 +83,7 @@ export class Config {
       : uriPath;
   }
 
-  public isValidConfiguration(ledger: Ledger): boolean {
+  public isSupportedAndConfigured(ledger: Ledger): boolean {
     let isValid;
     switch (ledger) {
       case Ledger.Bitcoin:

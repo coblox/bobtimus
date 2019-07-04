@@ -1,7 +1,7 @@
-import debug from "debug";
+import { getLogger } from "log4js";
 import request from "request-promise-native";
 
-const log = debug("bobtimus:bitcoin:feeservice");
+const logger = getLogger();
 
 export class BitcoinFeeService {
   public static default() {
@@ -30,13 +30,21 @@ export class BitcoinFeeService {
       const response = await request(options);
       const fee: number = response[strategy];
       if (!fee) {
-        log(`Strategy not found ${strategy}`);
+        logger.info(
+          `Strategy not found ${strategy}, falling back to default fee ${
+            this.defaultFee
+          }`
+        );
         return this.defaultFee;
       }
-      log(`Return fee: ${fee}`);
+      logger.debug(`Return fee: ${fee}`);
       return fee;
     } catch (err) {
-      log(`Could not retrieve fees from feeservice: ${err}`);
+      logger.info(
+        `Could not retrieve fees from Bitcoin feeservice: ${err}, falling back to default fee ${
+          this.defaultFee
+        }`
+      );
       return this.defaultFee;
     }
   }

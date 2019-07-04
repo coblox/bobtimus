@@ -10,7 +10,7 @@ import {
 } from "bitcoinjs-lib";
 import { ECPairInterface } from "bitcoinjs-lib/types/ecpair";
 import coinSelect from "coinselect";
-import debug from "debug";
+import { getLogger } from "log4js";
 import {
   BitcoinBlockchain,
   networkFromString,
@@ -19,7 +19,7 @@ import {
 } from "../bitcoin/blockchain";
 import { BitcoinConfig } from "../config";
 
-const log = debug("bobtimus:bitcoin:wallet");
+const logger = getLogger();
 
 // Interfaces for coinselect
 interface CsUtxo {
@@ -112,6 +112,9 @@ export class InternalBitcoinWallet implements BitcoinWallet {
       network: this.network
     }).address;
     if (!address) {
+      logger.error(
+        `Address could not be derived for derivationType ${derivationType}.`
+      );
       throw new Error("issue deriving address");
     }
     this.usedAddresses[address] = {
@@ -152,7 +155,7 @@ export class InternalBitcoinWallet implements BitcoinWallet {
     });
     await Promise.all(promises);
     const numberOfUtxos = this.unspentOutputs.size;
-    log(`${numberOfUtxos} UTXOs found`);
+    logger.trace(`${numberOfUtxos} UTXOs found`);
     return numberOfUtxos;
   }
 
@@ -171,10 +174,12 @@ export class InternalBitcoinWallet implements BitcoinWallet {
       [target],
       feeSatPerByte.getSatoshis()
     );
-    log("Fee (sats):", fee);
+    logger.debug("Fee (sats):", fee);
 
     if (!inputs || !outputs) {
-      log("Was not able to fund the transaction");
+      logger.error(
+        `Was not able to fund the transaction [address: ${address}, amountSat ${amount}, feeSatPerByte ${feeSatPerByte}]`
+      );
       throw new Error("Was not able to fund the transaction");
     }
 
@@ -238,11 +243,15 @@ export class InternalBitcoinWallet implements BitcoinWallet {
   private getPrivateKey(address: string) {
     const res = this.usedAddresses[address];
     if (!res) {
-      throw new Error("Cannot find id of input's address " + address);
+      logger.error(`Cannot find id of input's address ${address}`);
+      throw new Error(`Cannot find id of input's address ${address}`);
     }
     const hd = this.deriveForId(res);
     const key = hd.privateKey;
     if (!key) {
+      logger.error(
+        `Private key of freshly derived pair for address ${address} is undefined`
+      );
       throw new Error(
         "Internal Error: private key of freshly derived pair is undef"
       );

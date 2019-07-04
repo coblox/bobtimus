@@ -1,13 +1,13 @@
 import TOML from "@iarna/toml";
 import { generateMnemonic, mnemonicToSeedSync } from "bip39";
 import BN = require("bn.js");
-import debug from "debug";
 import * as fs from "fs";
+import { getLogger } from "log4js";
 import URI from "urijs";
 import Ledger from "./ledger";
 import { RatesConfig } from "./ratesConfig";
 
-const log = debug("bobtimus:config");
+const logger = getLogger();
 
 export interface BitcoinConfig {
   type: "coreRpc";
@@ -47,7 +47,7 @@ export class Config {
     const tomlConfig: TomlConfig = parsedConfig;
 
     if (!tomlConfig.seedWords) {
-      log!("Generating seed words");
+      logger.trace("Generating seed words");
       const seedWords = generateMnemonic(256);
       Object.assign(tomlConfig, { seedWords });
       backupAndWriteConfig(filePath, tomlConfig);
@@ -97,7 +97,7 @@ export class Config {
     }
 
     if (!isValid) {
-      log(`Invalid configuration for ledger ${ledger}`);
+      logger.warn(`Invalid configuration for ledger ${ledger}`);
     }
 
     return isValid;
@@ -122,6 +122,7 @@ function backupAndWriteConfig(filePath: string, config: TomlConfig) {
 
 function throwIfFalse(obj: any, prop: string) {
   if (!obj[prop]) {
+    logger.error(`${prop} must be present in the config file`);
     throw new Error(`${prop} must be present in the config file`);
   }
   return obj[prop];

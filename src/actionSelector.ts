@@ -1,5 +1,5 @@
 import Big from "big.js";
-import debug from "debug";
+import { getLogger } from "log4js";
 import { Action, Entity } from "../gen/siren";
 import { toAsset } from "./asset";
 import { Swap, toNominalUnit } from "./comitNode";
@@ -7,7 +7,7 @@ import { Config } from "./config";
 import { toLedger } from "./ledger";
 import { isTradeAcceptable } from "./ratesConfig";
 
-const log = debug("bobtimus:actionSelector");
+const logger = getLogger();
 
 Big.DP = 30;
 
@@ -26,14 +26,14 @@ export class ActionSelector {
 
       return this.selectSwapAction(swap);
     }
-    log("given entity is not a swap");
+    logger.warn(`The given entity is not a swap; entity ${entity}`);
     return undefined;
   }
 
   private selectSwapAction(swap: Swap) {
     const actions = swap.actions;
     if (!actions) {
-      log("No action available");
+      logger.debug("No action available");
       return undefined;
     }
 
@@ -63,11 +63,11 @@ export class ActionSelector {
         this.selectedActions.push(declineAction);
         return declineAction;
       } else {
-        log("Decline action is unavailable");
+        logger.debug("Decline action is unavailable");
       }
     } else if (refundAction) {
       // Only refund action available, doing nothing for now
-      log("refund is not implemented");
+      logger.warn("refund is not implemented");
     }
 
     return undefined;
@@ -118,7 +118,7 @@ export class ActionSelector {
         loggedAction => loggedAction.href === action.href
       )
     ) {
-      log(`Cannot return action twice: ${JSON.stringify(action)}!`);
+      logger.debug(`Cannot return action twice: ${JSON.stringify(action)}!`);
       return true;
     } else {
       return false;

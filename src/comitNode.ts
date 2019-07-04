@@ -1,12 +1,12 @@
 import Big from "big.js";
 import BN = require("bn.js");
-import debug from "debug";
+import { getLogger } from "log4js";
 import request from "request-promise-native";
 import URI from "urijs";
 import { Action, Entity } from "../gen/siren";
 import { Config } from "./config";
 
-const log = debug("bobtimus:comitNode");
+const logger = getLogger();
 
 interface Ledger {
   name: string;
@@ -103,7 +103,7 @@ export class ComitNode {
       };
     }
 
-    log(
+    logger.debug(
       `Doing a ${options.method} request to ${
         options.uri
       } with body: ${JSON.stringify(options.body)}`

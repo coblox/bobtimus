@@ -1,0 +1,14 @@
+{
+  "appenders": {
+    "file": {
+      "type": "file",
+      "filename": "logs/bobtimus.log"
+    }
+  },
+  "categories": {
+    "default": {
+      "appenders": ["file"],
+      "level": "debug"
+    }
+  }
+}

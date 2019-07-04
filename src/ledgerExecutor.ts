@@ -1,6 +1,6 @@
 import { Network, Transaction } from "bitcoinjs-lib";
 import BN = require("bn.js");
-import debug from "debug";
+import { getLogger } from "log4js";
 import { TransactionReceipt } from "web3-core/types";
 import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import { BitcoinBlockchain, Satoshis } from "./bitcoin/blockchain";
@@ -9,7 +9,7 @@ import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import { BitcoinWallet } from "./wallets/bitcoin";
 import { Web3EthereumWallet } from "./wallets/ethereum";
 
-const log = debug("bobtimus:ledgerExecutor");
+const logger = getLogger();
 
 interface EthereumSharedTransactionParams {
   value?: BN;
@@ -106,7 +106,7 @@ export class LedgerExecutor implements ILedgerExecutor {
     const gasPrice = await ethereumFeeService.retrieveGasPrice();
 
     const parameters = { ...params, gasPrice };
-    log(
+    logger.debug(
       `Invoking deployContract on Ethereum Wallet with ${JSON.stringify(
         parameters
       )}`
@@ -131,7 +131,9 @@ export class LedgerExecutor implements ILedgerExecutor {
       data: params.data ? hexToBuffer(params.data) : undefined
     };
 
-    log("Invoking sendTransaction on Ethereum Wallet with ", parameters);
+    logger.debug(
+      `Invoking sendTransaction on Ethereum Wallet with ${parameters}`
+    );
     return ethereumWallet.sendTransactionTo(parameters);
   }
 

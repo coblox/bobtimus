@@ -11,7 +11,10 @@ describe("Action selector tests: ", () => {
     comitNodeUrl: "http://localhost:8000",
     seedWords:
       "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
-    rates: { ether: { bitcoin: { sell: 0.0105, buy: 0.0105 } } },
+    rates: {
+      ether: { bitcoin: 0.0105 },
+      bitcoin: { ether: 105.26 }
+    },
     ledgers: {
       bitcoin: {
         type: "coreRpc",
@@ -52,7 +55,10 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit decline because of wrong rate", async done => {
-    config.rates = { ether: { bitcoin: { sell: 1, buy: 1 } } };
+    config.rates = {
+      ether: { bitcoin: 1 },
+      bitcoin: { ether: 1 }
+    };
     const actionSelector = new ActionSelector(config);
 
     const entity = swapsAcceptDeclineStub.entities[0] as Entity;
@@ -66,13 +72,18 @@ describe("Action selector tests: ", () => {
     done();
   });
 
-  it("Should emit error because of unexpected pair", async done => {
+  it("Should emit decline because of unexpected pair", async done => {
     const actionSelector = new ActionSelector(config);
     config.bitcoinConfig = undefined;
-    const { entity } = setupAction(swapsAcceptDeclineStub);
+
+    const entity = swapsAcceptDeclineStub.entities[0] as Entity;
+    expect(entity.actions).not.toBeUndefined();
+    // @ts-ignore
+    const declinedStub = entity.actions[1] as Action;
+    expect(declinedStub.name).toBe("decline");
 
     const actionResponse = await actionSelector.selectActions(entity);
-    expect(actionResponse).toBeUndefined();
+    expect(actionResponse).toStrictEqual(declinedStub);
     done();
   });
 

@@ -27,7 +27,10 @@ const config = new Config({
   comitNodeUrl: "http://localhost:8000",
   seedWords:
     "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
-  rates: { ether: { bitcoin: { sell: 0.0095, buy: 0.0105 } } },
+  rates: {
+    ether: { bitcoin: 0.0105 },
+    bitcoin: { ether: 105.26 }
+  },
   ledgers: {
     bitcoin: {
       type: "coreRpc",

@@ -126,6 +126,7 @@ export function toNominalUnit(asset: Asset) {
       return wei.div(weiInEther);
     }
     default: {
+      log(`Unit conversion not support for ${asset}`);
       return undefined;
     }
   }

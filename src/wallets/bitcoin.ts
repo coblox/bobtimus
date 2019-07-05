@@ -1,4 +1,5 @@
 /// <reference path="../bitcoin/coinselect.d.ts" />
+import Big from "big.js";
 import {
   bip32,
   BIP32Interface,
@@ -62,6 +63,7 @@ export interface BitcoinWallet {
     feeSatPerByte: Satoshis
   ): Promise<string>;
   getNetwork(): Network;
+  getBalance(): Big;
 }
 
 export class InternalBitcoinWallet implements BitcoinWallet {
@@ -128,6 +130,10 @@ export class InternalBitcoinWallet implements BitcoinWallet {
 
   public getNetwork(): Network {
     return this.network;
+  }
+
+  public getBalance(): Big {
+    throw new Error("Not implemented");
   }
 
   public async refreshUtxo() {

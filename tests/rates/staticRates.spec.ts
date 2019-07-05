@@ -1,15 +1,15 @@
 import Big from "big.js";
 import Asset from "../../src/asset";
-import StaticConfigRates from "../../src/rates/staticConfigRates";
+import StaticRates from "../../src/rates/staticRates";
 
 describe("Rate tests", () => {
-  it("Should consider the rate profitable when the proposed rate is less than the configured rate", () => {
+  it("Should consider the rate profitable when the proposed rate is less than the configured rate", async () => {
     const config = {
       ether: { bitcoin: 0.001 },
       bitcoin: { ether: 0.01 }
     };
 
-    const rates = new StaticConfigRates(config);
+    const rates = new StaticRates(config);
 
     const buyAsset = Asset.Bitcoin;
     const buyNominalAmount = new Big(0.1);
@@ -22,16 +22,16 @@ describe("Rate tests", () => {
       sellAsset,
       sellNominalAmount
     };
-    expect(rates.isTradeAcceptable(tradeAmounts)).toBeTruthy();
+    expect(await rates.isTradeAcceptable(tradeAmounts)).toBeTruthy();
   });
 
-  it("Should consider the rate NOT profitable when the proposed rate is greater than the configured rate", () => {
+  it("Should consider the rate NOT profitable when the proposed rate is greater than the configured rate", async () => {
     const config = {
       ether: { bitcoin: 0.001 },
       bitcoin: { ether: 0.01 }
     };
 
-    const rates = new StaticConfigRates(config);
+    const rates = new StaticRates(config);
 
     const buyAsset = Asset.Bitcoin;
     const buyNominalAmount = new Big(0.1);
@@ -44,6 +44,6 @@ describe("Rate tests", () => {
       sellAsset,
       sellNominalAmount
     };
-    expect(rates.isTradeAcceptable(tradeAmounts)).toBeFalsy();
+    expect(await rates.isTradeAcceptable(tradeAmounts)).toBeFalsy();
   });
 });

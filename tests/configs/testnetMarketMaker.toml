@@ -2,7 +2,7 @@ comitNodeUrl = "http://localhost:8000"
 seedWords = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"
 maxRetries = 20
 
-[marketMaker.testnet]
+[rates.marketMaker.testnet]
 rateSpread = 5
 maxFraction = 1000
 publishFraction = 2000

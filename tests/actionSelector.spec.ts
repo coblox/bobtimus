@@ -2,6 +2,7 @@ import BN = require("bn.js");
 import { Action, Entity } from "../gen/siren";
 import { ActionSelector } from "../src/actionSelector";
 import { Config, TomlConfig } from "../src/config";
+import StaticRates, { ConfigRates } from "../src/rates/staticRates";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
 import swapsRedeemBitcoinEther from "./stubs/bitcoinEther/swapsWithRedeem.siren.json";
 import swapsFundEtherBitcoinStub from "./stubs/etherBitcoin/swapsWithFund.siren.json";
@@ -13,9 +14,11 @@ describe("Action selector tests: ", () => {
     comitNodeUrl: "http://localhost:8000",
     seedWords:
       "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
-    staticRates: {
-      ether: { bitcoin: 0.0105 },
-      bitcoin: { ether: 105.26 }
+    rates: {
+      static: {
+        ether: { bitcoin: 0.0105 },
+        bitcoin: { ether: 105.26 }
+      }
     },
     ledgers: {
       bitcoin: {
@@ -40,6 +43,7 @@ describe("Action selector tests: ", () => {
     }
   };
   const config = new Config(tomlConfig as TomlConfig);
+  const rates = new StaticRates(tomlConfig.rates.static as ConfigRates);
 
   function setupAction(stub: any) {
     const entity = stub.entities[0] as Entity;
@@ -49,7 +53,7 @@ describe("Action selector tests: ", () => {
   }
 
   it("Should emit accept only", async done => {
-    const actionSelector = new ActionSelector(config);
+    const actionSelector = new ActionSelector(config, rates);
     const { entity, actionStub } = setupAction(swapsAcceptDeclineStub);
 
     const actionResponse = await actionSelector.selectActions(entity);
@@ -58,13 +62,12 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit decline because of wrong rate", async done => {
-    tomlConfig.staticRates = {
+    const rates = new StaticRates({
       ether: { bitcoin: 1 },
-      bitcoin: { ether: 1 }
-    };
-    const config = new Config(tomlConfig as TomlConfig);
+      bitcoin: { ether: 1 } // This one is tested
+    });
 
-    const actionSelector = new ActionSelector(config);
+    const actionSelector = new ActionSelector(config, rates);
 
     const entity = swapsAcceptDeclineStub.entities[0] as Entity;
     expect(entity.actions).not.toBeUndefined();
@@ -78,7 +81,7 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit decline because of unexpected pair", async done => {
-    const actionSelector = new ActionSelector(config);
+    const actionSelector = new ActionSelector(config, rates);
     config.bitcoinConfig = undefined;
 
     const entity = swapsAcceptDeclineStub.entities[0] as Entity;
@@ -93,7 +96,7 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit redeem action", async done => {
-    const actionSelector = new ActionSelector(config);
+    const actionSelector = new ActionSelector(config, rates);
     const { entity, actionStub } = setupAction(swapsRedeemBitcoinEther);
 
     const actionResponse = await actionSelector.selectActions(entity);
@@ -102,7 +105,7 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit fund action", async done => {
-    const actionSelector = new ActionSelector(config);
+    const actionSelector = new ActionSelector(config, rates);
     const { entity, actionStub } = setupAction(swapsFundEtherBitcoinStub);
 
     const actionResponse = await actionSelector.selectActions(entity);
@@ -111,7 +114,7 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should not emit fund action twice", async done => {
-    const actionSelector = new ActionSelector(config);
+    const actionSelector = new ActionSelector(config, rates);
     const { entity, actionStub } = setupAction(swapsFundEtherBitcoinStub);
 
     const actionResponse = await actionSelector.selectActions(entity);

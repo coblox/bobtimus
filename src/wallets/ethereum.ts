@@ -1,3 +1,4 @@
+import Big from "big.js";
 import { bip32 } from "bitcoinjs-lib";
 import BN from "bn.js";
 import EthereumTx from "ethereumjs-tx";
@@ -5,6 +6,7 @@ import utils from "ethereumjs-util";
 import { getLogger } from "log4js";
 import Web3 from "web3";
 import { TransactionReceipt } from "web3-core";
+import Asset, { toNominalUnit } from "../asset";
 import { EthereumConfig } from "../config";
 
 const logger = getLogger();
@@ -39,6 +41,8 @@ export interface EthereumWallet {
   ): Promise<TransactionReceipt>;
 
   getAddress(): string;
+
+  getBalance(): Promise<Big>;
 }
 
 export class Web3EthereumWallet implements EthereumWallet {
@@ -122,6 +126,15 @@ export class Web3EthereumWallet implements EthereumWallet {
 
   public getChainId() {
     return this.chainId;
+  }
+
+  public async getBalance() {
+    const wei = await this.web3.eth.getBalance(this.account);
+    const ether = toNominalUnit(Asset.Ether, new Big(wei));
+    if (!ether) {
+      throw new Error("Balance not found");
+    }
+    return ether;
   }
 
   private async paramsToTransaction({

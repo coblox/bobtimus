@@ -16,7 +16,7 @@ export type ConfigRates = {
   [buyAsset in Asset]: { [sellAsset in Asset]?: number }
 };
 
-export default class StaticConfigRates implements Rates {
+export default class StaticRates implements Rates {
   private readonly configRates: ConfigRates;
   constructor(configRates: ConfigRates) {
     this.configRates = configRates;
@@ -34,11 +34,11 @@ export default class StaticConfigRates implements Rates {
       logger.warn(
         `Rate not configured for buy: ${buyAsset}, sell: ${sellAsset}`
       );
-      return false;
+      return Promise.resolve(false);
     }
 
     const maxSell = buyNominalAmount.mul(rate);
 
-    return maxSell.gte(sellNominalAmount);
+    return Promise.resolve(maxSell.gte(sellNominalAmount));
   }
 }

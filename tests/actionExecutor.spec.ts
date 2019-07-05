@@ -31,9 +31,11 @@ const config = new Config({
   comitNodeUrl: "http://localhost:8000",
   seedWords:
     "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
-  staticRates: {
-    ether: { bitcoin: 0.0105 },
-    bitcoin: { ether: 105.26 }
+  rates: {
+    static: {
+      ether: { bitcoin: 0.0105 },
+      bitcoin: { ether: 105.26 }
+    }
   },
   ledgers: {
     bitcoin: {

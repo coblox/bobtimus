@@ -1,3 +1,4 @@
+import Big from "big.js";
 import { configure, getLogger } from "log4js";
 import { ActionExecutor } from "./actionExecutor";
 import { ActionSelector } from "./actionSelector";
@@ -8,6 +9,7 @@ import { Config } from "./config";
 import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import { DefaultFieldDataSource } from "./fieldDataSource";
 import { LedgerExecutor } from "./ledgerExecutor";
+import { initialiseRate } from "./rates/rates";
 import { InternalBitcoinWallet } from "./wallets/bitcoin";
 import { Web3EthereumWallet } from "./wallets/ethereum";
 
@@ -76,6 +78,35 @@ const config = Config.fromFile("./config.toml");
   } = await initBitcoin(config);
   const ethereumParams = await initEthereum(config);
 
+  const bitcoinBalanceLookup = async () => {
+    if (bitcoinWallet) {
+      return bitcoinWallet.getBalance();
+    }
+    return new Big(0);
+  };
+
+  const ethereumBalanceLookup = async (): Promise<Big> => {
+    if (ethereumParams.ethereumWallet) {
+      try {
+        return ethereumParams.ethereumWallet.getBalance();
+      } catch (e) {
+        log("Ethereum balance not found");
+      }
+    }
+    return new Big(0);
+  };
+
+  const balanceLookups = {
+    bitcoin: bitcoinBalanceLookup,
+    ether: ethereumBalanceLookup
+  };
+
+  const rates = initialiseRate({
+    testnetMarketMakerConfig: config.testnetMarketMaker,
+    configRates: config.staticRates,
+    balanceLookups
+  });
+
   const ledgerExecutorParams = {
     bitcoinFeeService,
     bitcoinBlockchain,
@@ -86,7 +117,7 @@ const config = Config.fromFile("./config.toml");
   const comitNode = new ComitNode(config);
   const datastore = new DefaultFieldDataSource(ledgerExecutorParams);
   const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
-  const actionSelector = new ActionSelector(config);
+  const actionSelector = new ActionSelector(config, rates);
 
   const actionExecutor = new ActionExecutor(
     comitNode,

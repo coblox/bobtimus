@@ -1,3 +1,4 @@
+import Big from "big.js";
 import { TransactionReceipt } from "web3-core";
 import {
   DeployContractParams,
@@ -37,6 +38,10 @@ export default class EthereumWalletStub implements EthereumWallet {
 
   public getAddress(): string {
     return returnOrThrow(this, "address");
+  }
+
+  public getBalance(): Promise<Big> {
+    throw new Error("Unexpected Call of EthereumWalletStub.getBalance()");
   }
 
   public sendTransactionTo(

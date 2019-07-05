@@ -1,3 +1,4 @@
+import Big from "big.js";
 import { Network } from "bitcoinjs-lib";
 import { Satoshis } from "../../src/bitcoin/blockchain";
 import { BitcoinWallet } from "../../src/wallets/bitcoin";
@@ -41,5 +42,9 @@ export default class BitcoinWalletStub implements BitcoinWallet {
     feeSatPerByte: Satoshis
   ): Promise<string> {
     return returnOrThrow(this, "payToAdressTransactionId");
+  }
+
+  public getBalance(): Big {
+    throw new Error("Unexpected call of BitcoinWalletStub.getBalance()");
   }
 }

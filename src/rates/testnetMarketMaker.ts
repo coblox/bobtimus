@@ -3,8 +3,14 @@ import Asset from "../asset";
 import { Rates, TradeAmounts } from "./rates";
 
 export type BalanceLookups = {
-  [asset in Asset]: () => Big // Always nominal quantity
+  [asset in Asset]: () => Promise<Big> // Always nominal quantity
 };
+
+export interface TestnetMarketMakerConfig {
+  rateSpread: number;
+  publishFraction: number;
+  maxFraction: number;
+}
 
 /** Provide the following information:
  * - Published Amounts: to put in the link
@@ -39,9 +45,7 @@ export default class TestnetMarketMaker implements Rates {
    * Note that {maxFraction} > {publishFraction} must be true or none of the published amounts will be accepted
    */
   constructor(
-    rateSpread: number,
-    publishFraction: number,
-    maxFraction: number,
+    { rateSpread, publishFraction, maxFraction }: TestnetMarketMakerConfig,
     balanceLookups: BalanceLookups
   ) {
     if (maxFraction >= publishFraction) {
@@ -62,14 +66,13 @@ export default class TestnetMarketMaker implements Rates {
    * @param {string} sellAsset The asset to sell
    * @return {buyNominalAmount: number, sellNominalAmount: number} The buy and sell amounts to publish (in nominal)
    */
-  public getAmountsToPublish(
+  public async getAmountsToPublish(
     buyAsset: Asset,
     sellAsset: Asset
-  ): { buyNominalAmount: Big; sellNominalAmount: Big } {
-    this.checkSufficientFunds(sellAsset);
-
-    const buyBalance = this.balanceLookups[buyAsset]();
-    const sellBalance = this.balanceLookups[sellAsset]();
+  ): Promise<{ buyNominalAmount: Big; sellNominalAmount: Big }> {
+    await this.checkSufficientFunds(sellAsset);
+    const buyBalance = await this.balanceLookups[buyAsset]();
+    const sellBalance = await this.balanceLookups[sellAsset]();
 
     const buyAmount = buyBalance
       .div(this.publishFraction)
@@ -86,15 +89,15 @@ export default class TestnetMarketMaker implements Rates {
    * @param {TradeAmounts} tradeAmounts The proposed quantities for the trade
    * @return {boolean} True if the trade should proceed (rate and amounts are acceptable), False otherwise
    */
-  public isTradeAcceptable({
+  public async isTradeAcceptable({
     sellAsset,
     sellNominalAmount,
     buyAsset,
     buyNominalAmount
   }: TradeAmounts) {
-    this.checkSufficientFunds(sellAsset);
-    const buyBalance = this.balanceLookups[buyAsset]();
-    const sellBalance = this.balanceLookups[sellAsset]();
+    await this.checkSufficientFunds(sellAsset);
+    const buyBalance = await this.balanceLookups[buyAsset]();
+    const sellBalance = await this.balanceLookups[sellAsset]();
 
     const maxSellAmount = sellBalance.div(this.maxFraction);
 
@@ -108,8 +111,9 @@ export default class TestnetMarketMaker implements Rates {
     return tradeBuyRate >= currentBuyRate;
   }
 
-  private checkSufficientFunds(sellAsset: Asset) {
-    if (this.balanceLookups[sellAsset]().eq(0)) {
+  private async checkSufficientFunds(sellAsset: Asset) {
+    const balance = await this.balanceLookups[sellAsset]();
+    if (balance.eq(0)) {
       throw new Error("Insufficient funds");
     }
   }

@@ -1,3 +1,4 @@
+import Big from "big.js";
 import { getLogger } from "log4js";
 
 const logger = getLogger();
@@ -20,3 +21,22 @@ export function toAsset(asset: string) {
 }
 
 export default Asset;
+
+export function toNominalUnit(asset: Asset, quantity: Big) {
+  switch (asset) {
+    case Asset.Bitcoin: {
+      const sats = new Big(quantity);
+      const satsInBitcoin = new Big("100000000");
+      return sats.div(satsInBitcoin);
+    }
+    case Asset.Ether: {
+      const wei = new Big(quantity);
+      const weiInEther = new Big("1000000000000000000");
+      return wei.div(weiInEther);
+    }
+    default: {
+      logger.error(`Unit conversion not supported for ${asset}`);
+      return undefined;
+    }
+  }
+}

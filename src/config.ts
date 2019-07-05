@@ -5,8 +5,8 @@ import * as fs from "fs";
 import { getLogger } from "log4js";
 import URI from "urijs";
 import Ledger from "./ledger";
-import { Rates } from "./rates/rates";
-import { ConfigRates } from "./rates/staticConfigRates";
+import { ConfigRates } from "./rates/staticRates";
+import { TestnetMarketMakerConfig } from "./rates/testnetMarketMaker";
 
 const logger = getLogger();
 
@@ -34,12 +34,10 @@ export interface EthereumConfig {
 export interface TomlConfig {
   comitNodeUrl: string;
   seedWords?: string;
-  staticRates?: ConfigRates;
-  marketMaker?: {
-    testnet: {
-      rateSpread: number;
-      maxFraction: number;
-      publishFraction: number;
+  rates: {
+    static?: ConfigRates;
+    marketMaker?: {
+      testnet: TestnetMarketMakerConfig;
     };
   };
   ledgers: {
@@ -65,7 +63,8 @@ export class Config {
   }
 
   public comitNodeUrl: string;
-  public rates: Rates;
+  public staticRates?: ConfigRates;
+  public testnetMarketMaker?: TestnetMarketMakerConfig;
   public seed: Buffer;
   public bitcoinConfig?: BitcoinConfig;
   public ethereumConfig?: EthereumConfig;
@@ -78,8 +77,11 @@ export class Config {
     this.bitcoinConfig = ledgers.bitcoin;
     this.ethereumConfig = ledgers.ethereum;
 
-    // @ts-ignore
-    this.rates = tomlConfig.staticRates;
+    const rates = tomlConfig.rates;
+    this.staticRates = rates.static;
+    this.testnetMarketMaker = rates.marketMaker
+      ? rates.marketMaker.testnet
+      : undefined;
 
     this.comitNodeUrl = throwIfFalse(tomlConfig, "comitNodeUrl");
     this.seed = mnemonicToSeedSync(throwIfFalse(tomlConfig, "seedWords"));

@@ -1,8 +1,8 @@
 import Big from "big.js";
 import { getLogger } from "log4js";
 import { Action, Entity } from "../gen/siren";
-import { toAsset } from "./asset";
-import { Swap, toNominalUnit } from "./comitNode";
+import { toAsset, toNominalUnit } from "./asset";
+import { Swap } from "./comitNode";
 import { Config } from "./config";
 import { toLedger } from "./ledger";
 import { Rates } from "./rates/rates";
@@ -16,10 +16,10 @@ export class ActionSelector {
   private selectedActions: Action[];
   private rates: Rates;
 
-  constructor(config: Config) {
+  constructor(config: Config, rates: Rates) {
     this.config = config;
     this.selectedActions = [];
-    this.rates = this.config.rates;
+    this.rates = rates;
   }
 
   public selectActions(entity: Entity) {
@@ -32,7 +32,7 @@ export class ActionSelector {
     return undefined;
   }
 
-  private selectSwapAction(swap: Swap) {
+  private async selectSwapAction(swap: Swap) {
     const actions = swap.actions;
     if (!actions) {
       logger.debug("No action available");
@@ -61,7 +61,7 @@ export class ActionSelector {
     }
 
     if (acceptAction && !this.wasReturned(acceptAction)) {
-      if (this.shouldSelectAccept(swap)) {
+      if (await this.shouldSelectAccept(swap)) {
         this.selectedActions.push(acceptAction);
         return acceptAction;
       } else if (declineAction && !this.wasReturned(declineAction)) {
@@ -78,7 +78,7 @@ export class ActionSelector {
     return undefined;
   }
 
-  private shouldSelectAccept(swap: Swap): boolean {
+  private shouldSelectAccept(swap: Swap) {
     const alphaLedger = toLedger(swap.properties.parameters.alpha_ledger.name);
     const betaLedger = toLedger(swap.properties.parameters.beta_ledger.name);
     const alphaAsset = toAsset(swap.properties.parameters.alpha_asset.name);
@@ -96,10 +96,12 @@ export class ActionSelector {
     }
 
     const alphaNominalAmount = toNominalUnit(
-      swap.properties.parameters.alpha_asset
+      alphaAsset,
+      new Big(swap.properties.parameters.alpha_asset.quantity)
     );
     const betaNominalAmount = toNominalUnit(
-      swap.properties.parameters.beta_asset
+      betaAsset,
+      new Big(swap.properties.parameters.beta_asset.quantity)
     );
 
     if (!alphaNominalAmount || !betaNominalAmount) {

@@ -9,8 +9,8 @@ function createMockBalanceLookups(
   etherBalance: number
 ) {
   const mockBalanceLookups: BalanceLookups = {
-    bitcoin: () => new Big(bitcoinBalance),
-    ether: () => new Big(etherBalance)
+    bitcoin: () => Promise.resolve(new Big(bitcoinBalance)),
+    ether: () => Promise.resolve(new Big(etherBalance))
   };
 
   return mockBalanceLookups;
@@ -20,121 +20,115 @@ describe("Test the TestnetMarketMaker module", () => {
   const buyAsset = Asset.Bitcoin;
   const sellAsset = Asset.Ether;
 
-  it("Throws when creating the Market Maker if maxFraction is greater than the publishFraction", () => {
+  it("Throws when creating the Market Maker if maxFraction is greater than the publishFraction", done => {
     expect(() => {
       // @ts-ignore: the returned object is not to be used
-      const marketMaker = new TestnetMarketMaker(
-        5,
-        100,
-        120,
+      const _ = new TestnetMarketMaker(
+        { rateSpread: 5, publishFraction: 100, maxFraction: 120 },
         createMockBalanceLookups(1, 1)
       );
     }).toThrow();
+    done();
   });
 
-  it("Returns the amounts to publish for buy and sell assets based on the balances, the configured published fraction and the rate spread", () => {
+  it("Returns the amounts to publish for buy and sell assets based on the balances, the configured published fraction and the rate spread", async () => {
     const marketMaker = new TestnetMarketMaker(
-      5,
-      200,
-      100,
+      { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       createMockBalanceLookups(100, 1000)
     );
+    const amounts = await marketMaker.getAmountsToPublish(buyAsset, sellAsset);
+    expect(amounts).toBeDefined();
     const {
+      // @ts-ignore: amounts are defined
       buyNominalAmount,
+      // @ts-ignore: amounts are defined
       sellNominalAmount
-    } = marketMaker.getAmountsToPublish(Asset.Bitcoin, Asset.Ether);
-
+    } = amounts;
     expect(sellNominalAmount.toFixed()).toEqual("5"); // Based on the publish fraction
     expect(buyNominalAmount.toFixed()).toEqual("0.525");
   });
 
-  it("Throws an error if the sell balance is zero when asking for amounts to publish", () => {
+  it("Throws an error if the sell balance is zero when asking for amounts to publish", async () => {
     const marketMaker = new TestnetMarketMaker(
-      5,
-      200,
-      100,
+      { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       createMockBalanceLookups(100, 0)
     );
-    expect(() => {
-      // @ts-ignore: the returned object is not used
-      const {
-        buyNominalAmount,
-        sellNominalAmount
-      } = marketMaker.getAmountsToPublish(Asset.Bitcoin, Asset.Ether);
-    }).toThrowError("Insufficient funds");
+    await expect(
+      marketMaker.getAmountsToPublish(Asset.Bitcoin, Asset.Ether)
+    ).rejects.toThrowError("Insufficient funds");
   });
 
-  it("Throws an error if the sell balance is zero when checking if the trade is acceptable", () => {
+  it("Throws an error if the sell balance is zero when checking if the trade is acceptable", async () => {
     const marketMaker = new TestnetMarketMaker(
-      5,
-      200,
-      100,
+      { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       createMockBalanceLookups(100, 0)
     );
-    expect(() => {
-      // @ts-ignore: the returned object is not used
-      const { buyAmount, sellAmount } = marketMaker.isTradeAcceptable({
+
+    await expect(
+      marketMaker.isTradeAcceptable({
         buyAsset: Asset.Bitcoin,
         buyNominalAmount: new Big(0.1),
         sellAsset: Asset.Ether,
         sellNominalAmount: new Big(1)
-      });
-    }).toThrowError("Insufficient funds");
+      })
+    ).rejects.toThrowError("Insufficient funds");
   });
 
-  it("accepts a trade that uses the publish amounts", () => {
+  it("accepts a trade that uses the publish amounts", async () => {
     const marketMaker = new TestnetMarketMaker(
-      5,
-      200,
-      100,
+      { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       createMockBalanceLookups(100, 1000)
     );
+    const amounts = await marketMaker.getAmountsToPublish(buyAsset, sellAsset);
+    expect(amounts).toBeDefined();
     const {
+      // @ts-ignore: amounts are defined
       buyNominalAmount,
+      // @ts-ignore: amounts are defined
       sellNominalAmount
-    } = marketMaker.getAmountsToPublish(buyAsset, sellAsset);
-    expect(
+    } = amounts;
+    await expect(
       marketMaker.isTradeAcceptable({
         buyAsset,
         buyNominalAmount,
         sellAsset,
         sellNominalAmount
       })
-    ).toBeTruthy();
+    ).resolves.toBeTruthy();
   });
 
-  it("accepts a trade that is more profitable than the acceptable rate", () => {
+  it("accepts a trade that is more profitable than the acceptable rate", async () => {
     const marketMaker = new TestnetMarketMaker(
-      5,
-      200,
-      100,
+      { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       createMockBalanceLookups(100, 1000)
     );
 
+    const amounts = await marketMaker.getAmountsToPublish(buyAsset, sellAsset);
+    expect(amounts).toBeDefined();
     const {
+      // @ts-ignore: amounts are defined
       buyNominalAmount,
+      // @ts-ignore: amounts are defined
       sellNominalAmount
-    } = marketMaker.getAmountsToPublish(buyAsset, sellAsset);
+    } = amounts;
 
-    expect(
+    await expect(
       marketMaker.isTradeAcceptable({
         buyAsset,
         buyNominalAmount: buyNominalAmount.add(1),
         sellAsset,
         sellNominalAmount
       })
-    ).toBeTruthy();
+    ).resolves.toBeTruthy();
   });
 
-  it("accepts a trade that uses max fraction", () => {
+  it("accepts a trade that uses max fraction", async () => {
     const marketMaker = new TestnetMarketMaker(
-      50,
-      200,
-      100,
+      { rateSpread: 50, publishFraction: 200, maxFraction: 100 },
       createMockBalanceLookups(100, 1000)
     );
 
-    expect(
+    await expect(
       marketMaker.isTradeAcceptable(
         {
           buyAsset,
@@ -143,36 +137,32 @@ describe("Test the TestnetMarketMaker module", () => {
           sellNominalAmount: new Big(10)
         } // 10 is the max fraction: 1000/100
       )
-    ).toBeTruthy();
+    ).resolves.toBeTruthy();
   });
 
-  it("declines a trade whose rate is below the acceptable rate", () => {
+  it("declines a trade whose rate is below the acceptable rate", async () => {
     const marketMaker = new TestnetMarketMaker(
-      5,
-      200,
-      100,
+      { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       createMockBalanceLookups(100, 1000)
     );
 
-    expect(
+    await expect(
       marketMaker.isTradeAcceptable({
         buyAsset,
         buyNominalAmount: new Big(0.1),
         sellAsset,
         sellNominalAmount: new Big(1.1)
       })
-    ).toBeFalsy();
+    ).resolves.toBeFalsy();
   });
 
-  it("declines a trade that sells above the max fraction", () => {
+  it("declines a trade that sells above the max fraction", async () => {
     const marketMaker = new TestnetMarketMaker(
-      5,
-      200,
-      100,
+      { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       createMockBalanceLookups(100, 1000)
     );
 
-    expect(
+    await expect(
       marketMaker.isTradeAcceptable(
         {
           buyAsset,
@@ -181,6 +171,6 @@ describe("Test the TestnetMarketMaker module", () => {
           sellNominalAmount: new Big(11)
         } // 10 is the max fraction: 1000/100
       )
-    ).toBeFalsy();
+    ).resolves.toBeFalsy();
   });
 });

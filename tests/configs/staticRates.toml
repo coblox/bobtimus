@@ -2,11 +2,12 @@ comitNodeUrl = "http://localhost:8000"
 seedWords = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"
 maxRetries = 20
 
+[rates.static]
 # If Bob buys Ether for Bitcoin, for 1 Ether, he wants to sell at most 0.0105 Bitcoins
-[rates.ether]
+[ether]
 bitcoin = 0.0105
 # If Bob buys Bitcoin for Ether, for 1 Bitcoin, he wants to sell at most 105.26 Ether
-[rates.bitcoin]
+[bitcoin]
 ether = 105.26
 
 [ledgers.bitcoin]

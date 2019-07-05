@@ -455,12 +455,18 @@ describe("Ledger action execution tests:", () => {
     const datastore = new DummyDatastore();
     datastore.getData = mockGetData;
 
+    const ledgerExecutor = new DummyLedgerExecutor();
+
+    const mockBitcoinGetBlockTime = jest.fn();
+    mockBitcoinGetBlockTime.mockReturnValueOnce(Promise.resolve(1557504725));
+    ledgerExecutor.bitcoinGetBlockTime = mockBitcoinGetBlockTime;
+
     const mockBitcoinBroadcastTransaction = jest.fn();
     mockBitcoinBroadcastTransaction.mockReturnValueOnce(
       "bitcoinrefundtransactionresponse"
     );
-    const ledgerExecutor = new DummyLedgerExecutor();
     ledgerExecutor.bitcoinBroadcastTransaction = mockBitcoinBroadcastTransaction;
+
     const actionExecutor = new ActionExecutor(
       comitNode,
       datastore,
@@ -490,11 +496,17 @@ describe("Ledger action execution tests:", () => {
 
     const datastore = new DummyDatastore();
     const ledgerExecutor = new DummyLedgerExecutor();
+
+    const mockEthereumGetTimestamp = jest.fn();
+    mockEthereumGetTimestamp.mockReturnValueOnce(Promise.resolve(1557504725));
+    ledgerExecutor.ethereumGetTimestamp = mockEthereumGetTimestamp;
+
     const mockEthereumSendTransactionTo = jest.fn();
     mockEthereumSendTransactionTo.mockReturnValueOnce(
       Promise.resolve(dummyTransactionReceipt)
     );
     ledgerExecutor.ethereumSendTransactionTo = mockEthereumSendTransactionTo;
+
     const actionExecutor = new ActionExecutor(
       comitNode,
       datastore,

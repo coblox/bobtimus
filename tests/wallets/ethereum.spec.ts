@@ -131,7 +131,7 @@ describe("Ethereum Wallet", () => {
 
       const amountFounded = await fundAddressOfPrivateKey(web3, privateKey);
       const balance = await wallet.getNominalBalance();
-      const balanceAfter = toWei(balance.toFixed(20));
+      const balanceAfter = toWei(balance.toFixed(10));
       expect(balanceAfter.toString()).toEqual(amountFounded.toString());
     }),
     20000

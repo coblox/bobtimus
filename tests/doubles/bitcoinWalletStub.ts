@@ -44,7 +44,7 @@ export default class BitcoinWalletStub implements BitcoinWallet {
     return returnOrThrow(this, "payToAdressTransactionId");
   }
 
-  public getBalance(): Big {
-    throw new Error("Unexpected call of BitcoinWalletStub.getBalance()");
+  public getNominalBalance(): Big {
+    throw new Error("Unexpected call of BitcoinWalletStub.getNominalBalance()");
   }
 }

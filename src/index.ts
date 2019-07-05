@@ -80,7 +80,7 @@ const config = Config.fromFile("./config.toml");
 
   const bitcoinBalanceLookup = async () => {
     if (bitcoinWallet) {
-      return bitcoinWallet.getBalance();
+      return bitcoinWallet.getNominalBalance();
     }
     return new Big(0);
   };
@@ -88,7 +88,7 @@ const config = Config.fromFile("./config.toml");
   const ethereumBalanceLookup = async (): Promise<Big> => {
     if (ethereumParams.ethereumWallet) {
       try {
-        return ethereumParams.ethereumWallet.getBalance();
+        return ethereumParams.ethereumWallet.getNominalBalance();
       } catch (e) {
         log("Ethereum balance not found");
       }

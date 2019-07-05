@@ -12,6 +12,7 @@ import {
 import { ECPairInterface } from "bitcoinjs-lib/types/ecpair";
 import coinSelect from "coinselect";
 import { getLogger } from "log4js";
+import Asset, { toNominalUnit } from "../asset";
 import {
   BitcoinBlockchain,
   networkFromString,
@@ -63,7 +64,7 @@ export interface BitcoinWallet {
     feeSatPerByte: Satoshis
   ): Promise<string>;
   getNetwork(): Network;
-  getBalance(): Big;
+  getNominalBalance(): Big;
 }
 
 export class InternalBitcoinWallet implements BitcoinWallet {
@@ -132,8 +133,16 @@ export class InternalBitcoinWallet implements BitcoinWallet {
     return this.network;
   }
 
-  public getBalance(): Big {
-    throw new Error("Not implemented");
+  public getNominalBalance(): Big {
+    let satBalance = new Big(0);
+    this.unspentOutputs.forEach((utxo: CsUtxo) => {
+      satBalance = satBalance.add(utxo.value);
+    });
+    const bitcoinBalance = toNominalUnit(Asset.Bitcoin, satBalance);
+    if (!bitcoinBalance) {
+      throw new Error("Internal Error: Bitcoin is not supported?");
+    }
+    return bitcoinBalance;
   }
 
   public async refreshUtxo() {

@@ -15,7 +15,7 @@ export default class DummyBitcoinWallet implements BitcoinWallet {
     throw new Error("payToAddress should not be called");
   }
 
-  public getBalance(): Big {
-    throw new Error("getBalance should not be called");
+  public getNominalBalance(): Big {
+    throw new Error("getNominalBalance should not be called");
   }
 }

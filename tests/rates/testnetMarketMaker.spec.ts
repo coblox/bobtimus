@@ -44,8 +44,8 @@ describe("Test the TestnetMarketMaker module", () => {
       // @ts-ignore: amounts are defined
       sellNominalAmount
     } = amounts;
-    expect(sellNominalAmount.toFixed()).toEqual("5"); // Based on the publish fraction
-    expect(buyNominalAmount.toFixed()).toEqual("0.525");
+    expect(sellNominalAmount).toEqual(new Big(5)); // Based on the publish fraction
+    expect(buyNominalAmount).toEqual(new Big(0.525));
   });
 
   it("Throws an error if the sell balance is zero when asking for amounts to publish", async () => {

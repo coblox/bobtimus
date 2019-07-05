@@ -1,7 +1,7 @@
 import BN from "bn.js";
 import utils from "ethereumjs-util";
 import Web3 from "web3";
-import { AbiItem, toBN, toWei } from "web3-utils";
+import { AbiItem, toWei } from "web3-utils";
 import { Web3EthereumWallet } from "../../src/wallets/ethereum";
 import parityTestContainer from "../containers/parityTestContainer";
 import containerTest from "../containerTest";
@@ -130,8 +130,8 @@ describe("Ethereum Wallet", () => {
       const wallet = await Web3EthereumWallet.newInstance(web3, privateKey);
 
       const amountFounded = await fundAddressOfPrivateKey(web3, privateKey);
-      const balance = await wallet.getBalance();
-      const balanceAfter = toWei(toBN(balance.toFixed()));
+      const balance = await wallet.getNominalBalance();
+      const balanceAfter = toWei(balance.toFixed(20));
       expect(balanceAfter.toString()).toEqual(amountFounded.toString());
     }),
     20000

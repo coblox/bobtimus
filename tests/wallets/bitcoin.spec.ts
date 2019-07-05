@@ -1,4 +1,5 @@
 /// <reference path="../../src/bitcoin/bitcoin-core.d.ts" />
+import Big from "big.js";
 import Client from "bitcoin-core";
 import { bip32, networks } from "bitcoinjs-lib";
 import { BitcoinCoreRpc } from "../../src/bitcoin/bitcoinCoreRpc";
@@ -142,8 +143,9 @@ describe("Bitcoin wallet", () => {
         await bitcoinClient.sendToAddress(address.toString(), 0.75);
       }
       await bitcoinClient.generate(1);
+      await wallet.refreshUtxo();
 
-      expect(await wallet.getBalance()).toEqual(3.75);
+      expect(await wallet.getNominalBalance()).toEqual(new Big(3.75));
     }),
     10000
   );

@@ -40,8 +40,10 @@ export default class EthereumWalletStub implements EthereumWallet {
     return returnOrThrow(this, "address");
   }
 
-  public getBalance(): Promise<Big> {
-    throw new Error("Unexpected Call of EthereumWalletStub.getBalance()");
+  public getNominalBalance(): Promise<Big> {
+    throw new Error(
+      "Unexpected Call of EthereumWalletStub.getNominalBalance()"
+    );
   }
 
   public sendTransactionTo(

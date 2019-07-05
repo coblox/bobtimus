@@ -42,7 +42,7 @@ export interface EthereumWallet {
 
   getAddress(): string;
 
-  getBalance(): Promise<Big>;
+  getNominalBalance(): Promise<Big>;
 }
 
 export class Web3EthereumWallet implements EthereumWallet {
@@ -128,7 +128,7 @@ export class Web3EthereumWallet implements EthereumWallet {
     return this.chainId;
   }
 
-  public async getBalance() {
+  public async getNominalBalance() {
     const wei = await this.web3.eth.getBalance(this.account);
     const ether = toNominalUnit(Asset.Ether, new Big(wei));
     if (!ether) {

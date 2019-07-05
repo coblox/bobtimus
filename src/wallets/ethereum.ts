@@ -108,6 +108,13 @@ export class Web3EthereumWallet implements EthereumWallet {
     return this.signAndSend(tx);
   }
 
+  public async getLatestBlockTimestamp() {
+    const latest = await this.web3.eth.getBlockNumber();
+    const block = await this.web3.eth.getBlock(latest);
+
+    return +block.timestamp;
+  }
+
   public getAddress() {
     return this.account;
   }

@@ -75,6 +75,7 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
       throw new Error("Bitcoin blockchain type not supported");
     }
   }
+
   private readonly bitcoinClient: any;
 
   constructor(username: string, password: string, host: string, port: number) {
@@ -85,6 +86,12 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
       host,
       port
     });
+  }
+
+  public getBlockTime(): Promise<number> {
+    log("Retrieving latest block");
+    const blockchaininfo = this.bitcoinClient.getblockchaininfo();
+    return blockchaininfo.mediantime;
   }
 
   public async broadcastTransaction(transaction: Transaction): Promise<string> {

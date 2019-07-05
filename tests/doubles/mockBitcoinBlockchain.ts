@@ -32,4 +32,8 @@ export default class MockBitcoinBlockchain implements BitcoinBlockchain {
       }
     ]);
   }
+
+  public getBlockTime(): Promise<number> {
+    return Promise.resolve(42);
+  }
 }

@@ -3,6 +3,7 @@ import { Transaction } from "bitcoinjs-lib";
 import BN from "bn.js";
 import { getLogger } from "log4js";
 import { Action } from "../gen/siren";
+import sleep from "../tests/sleep";
 import { networkFromString, Satoshis } from "./bitcoin/blockchain";
 import { ComitNode, hexToBN, hexToBuffer, LedgerAction } from "./comitNode";
 import { FieldDataSource } from "./fieldDataSource";
@@ -103,9 +104,35 @@ export class ActionExecutor {
     }
   }
 
+  private async handleRefund(
+    expiry: number | undefined,
+    getMedianBlockTime: () => Promise<number>
+  ) {
+    if (expiry) {
+      let currentMedianBlockTime = await getMedianBlockTime();
+      let diff = expiry - currentMedianBlockTime;
+
+      if (diff > 0) {
+        // logger.info(
+        //   `Initializing refund, waiting for median block time to pass ${expiry}`
+        // );
+
+        while (diff > 0) {
+          await sleep(1000);
+
+          currentMedianBlockTime = await getMedianBlockTime();
+          diff = expiry - currentMedianBlockTime;
+        }
+      }
+
+      // logger.info(`Median block time has passed ${expiry}, executing refund`);
+    }
+  }
+
   private async executeLedgerAction(action: LedgerAction) {
     logger.trace(`Execute Ledger Action: ${JSON.stringify(action)}`);
     try {
+      const network = action.payload.network;
       switch (action.type) {
         case "bitcoin-send-amount-to-address": {
           const satoshis = new Satoshis(action.payload.amount);
@@ -117,9 +144,14 @@ export class ActionExecutor {
           return Result.ok(result);
         }
         case "bitcoin-broadcast-signed-transaction": {
+          await this.handleRefund(action.payload.min_median_block_time, () =>
+            this.ledgerExecutor.bitcoinGetBlockTime(network)
+          );
+
           const transaction = Transaction.fromHex(action.payload.hex);
           const result = await this.ledgerExecutor.bitcoinBroadcastTransaction(
-            transaction
+            transaction,
+            network
           );
           return Result.ok(result);
         }
@@ -136,6 +168,10 @@ export class ActionExecutor {
           return Result.ok(result);
         }
         case "ethereum-call-contract": {
+          await this.handleRefund(action.payload.min_block_timestamp, () =>
+            this.ledgerExecutor.ethereumGetTimestamp(network)
+          );
+
           const params = {
             gasLimit: hexToBN(action.payload.gas_limit),
             to: action.payload.contract_address,

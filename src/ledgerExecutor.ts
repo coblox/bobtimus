@@ -3,7 +3,11 @@ import BN = require("bn.js");
 import { getLogger } from "log4js";
 import { TransactionReceipt } from "web3-core/types";
 import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
-import { BitcoinBlockchain, Satoshis } from "./bitcoin/blockchain";
+import {
+  BitcoinBlockchain,
+  networkFromString,
+  Satoshis
+} from "./bitcoin/blockchain";
 import { hexToBuffer } from "./comitNode";
 import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import { BitcoinWallet } from "./wallets/bitcoin";
@@ -40,13 +44,19 @@ export interface ILedgerExecutor {
     amount: Satoshis,
     network: Network
   ) => Promise<string>;
-  bitcoinBroadcastTransaction: (transaction: Transaction) => Promise<string>;
+  bitcoinBroadcastTransaction: (
+    transaction: Transaction,
+    network: string
+  ) => Promise<string>;
   ethereumDeployContract: (
     params: EthereumSharedTransactionParams & EthereumDeployContractParams
   ) => Promise<TransactionReceipt>;
   ethereumSendTransactionTo: (
     params: EthereumSharedTransactionParams & EthereumSendTransactionToParams
   ) => Promise<TransactionReceipt>;
+
+  bitcoinGetBlockTime(network: string): Promise<number>;
+  ethereumGetTimestamp(network: string): Promise<number>;
 }
 
 // TODO: consider testing this
@@ -89,10 +99,28 @@ export class LedgerExecutor implements ILedgerExecutor {
     );
   }
 
-  public bitcoinBroadcastTransaction(transaction: Transaction) {
-    const bitcoinBlockchain = this.validateBitcoinBlockchain();
+  public bitcoinBroadcastTransaction(
+    transaction: Transaction,
+    network: string
+  ) {
+    const bitcoinBlockchain = this.validateBitcoinWallet(
+      networkFromString(network)
+    ).bitcoinBlockchain;
 
     return bitcoinBlockchain.broadcastTransaction(transaction);
+  }
+
+  public async bitcoinGetBlockTime(network: string): Promise<number> {
+    const bitcoinBlockchain = this.validateBitcoinWallet(
+      networkFromString(network)
+    ).bitcoinBlockchain;
+    return bitcoinBlockchain.getBlockTime();
+  }
+
+  public async ethereumGetTimestamp(network: string): Promise<number> {
+    const ethereumWallt = await this.validateEthereumWallet(network);
+
+    return ethereumWallt.ethereumWallet.getLatestBlockTimestamp();
   }
 
   public async ethereumDeployContract(
@@ -149,18 +177,15 @@ export class LedgerExecutor implements ILedgerExecutor {
         `Incompatible Bitcoin network. Received: ${network}, but wallet is ${this.bitcoinWallet.getNetwork()}`
       );
     }
-    return {
-      bitcoinWallet: this.bitcoinWallet,
-      bitcoinFeeService: this.bitcoinFeeService
-    };
-  }
-
-  private validateBitcoinBlockchain() {
-    // TODO: Do we want to double check the network?
     if (!this.bitcoinBlockchain) {
       throw new Error(`Bitcoin Blockchain is not available.`);
     }
-    return this.bitcoinBlockchain;
+
+    return {
+      bitcoinWallet: this.bitcoinWallet,
+      bitcoinFeeService: this.bitcoinFeeService,
+      bitcoinBlockchain: this.bitcoinBlockchain
+    };
   }
 
   private async validateEthereumWallet(network: string) {

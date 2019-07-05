@@ -1,7 +1,7 @@
 import BN from "bn.js";
 import utils from "ethereumjs-util";
 import Web3 from "web3";
-import { AbiItem } from "web3-utils";
+import { AbiItem, toBN, toWei } from "web3-utils";
 import { Web3EthereumWallet } from "../../src/wallets/ethereum";
 import parityTestContainer from "../containers/parityTestContainer";
 import containerTest from "../containerTest";
@@ -101,7 +101,8 @@ describe("Ethereum Wallet", () => {
       const invocationData = Buffer.from(methodCall.substring(2), "hex");
 
       const receipt = await wallet.sendTransactionTo({
-        to: deploymentReceipt.contractAddress || "", // get around the typechecker
+        // @ts-ignore
+        to: deploymentReceipt.contractAddress,
         gasPrice: new BN(10),
         gasLimit: new BN(1_000_000),
         data: invocationData
@@ -116,5 +117,23 @@ describe("Ethereum Wallet", () => {
       expect(logData).toContain("Thomas");
     }),
     30000
+  );
+
+  test(
+    "given initial funding, returns the correct balance",
+    containerTest(parityTestContainer, async ({ container }) => {
+      const web3 = new Web3(
+        new Web3.providers.HttpProvider(
+          `http://localhost:${container.getMappedPort(8545)}`
+        )
+      );
+      const wallet = await Web3EthereumWallet.newInstance(web3, privateKey);
+
+      const amountFounded = await fundAddressOfPrivateKey(web3, privateKey);
+      const balance = await wallet.getBalance();
+      const balanceAfter = toWei(toBN(balance.toFixed()));
+      expect(balanceAfter.toString()).toEqual(amountFounded.toString());
+    }),
+    20000
   );
 });

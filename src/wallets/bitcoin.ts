@@ -155,7 +155,7 @@ export class InternalBitcoinWallet implements BitcoinWallet {
     });
     await Promise.all(promises);
     const numberOfUtxos = this.unspentOutputs.size;
-    logger.trace(`${numberOfUtxos} UTXOs found`);
+    logger.debug(`${numberOfUtxos} UTXOs found`);
     return numberOfUtxos;
   }
 

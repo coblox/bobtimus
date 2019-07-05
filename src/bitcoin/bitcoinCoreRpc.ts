@@ -89,13 +89,13 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
 
   public async broadcastTransaction(transaction: Transaction): Promise<string> {
     const hex = transaction.toHex();
-    logger.trace("Broadcasting transaction ", hex);
+    logger.info("Broadcasting transaction ", hex);
     return this.bitcoinClient.sendRawTransaction(hex);
   }
 
   public async findHdOutputs(extendedPublicKeys: string[]): Promise<Utxo[]> {
     const scanobjects = extendedPublicKeys.map(exPubKey => {
-      logger.trace(`Send ${exPubKey} to bitcoind for scanning`);
+      logger.info(`Send ${exPubKey} to bitcoind for scanning`);
       return {
         desc: `combo(${exPubKey}/*)`,
         range: 1000

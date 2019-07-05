@@ -12,6 +12,7 @@ import { InternalBitcoinWallet } from "./wallets/bitcoin";
 import { Web3EthereumWallet } from "./wallets/ethereum";
 
 const logger = getLogger();
+const pollIntervalMillis = 10000;
 configure("./logconfig.json");
 
 const initBitcoin = async (config: Config) => {
@@ -126,8 +127,12 @@ const config = Config.fromFile("./config.toml");
   };
 
   setInterval(() => {
-    shoot().then(() => logger.info("Execution done"));
-  }, 10000);
+    shoot().then(() =>
+      logger.trace(
+        `Polling new information from comit-node in ${pollIntervalMillis} ms again`
+      )
+    );
+  }, pollIntervalMillis);
 
   if (bitcoinWallet) {
     await bitcoinWallet.refreshUtxo();

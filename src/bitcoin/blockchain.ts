@@ -27,7 +27,7 @@ export class Satoshis {
       // `scantxoutset` somehow returned a strange value that is not a satoshi integer
       // Could not reproduce the issue but better put a fail-safe and use a satoshi than
       // Break
-      logger.debug(`scantxoutset returned a non-integer satoshi: ${sats}`);
+      logger.warn(`scantxoutset returned a non-integer satoshi: ${sats}`);
       sats = Math.floor(sats);
     }
 
@@ -44,9 +44,7 @@ export class Satoshis {
     }
 
     if (!Number.isInteger(inner)) {
-      logger.debug(
-        "Only whole Satoshis are supported, precision has been lost"
-      );
+      logger.info("Only whole Satoshis are supported, precision has been lost");
       inner = Math.round(inner);
     }
     this.inner = inner;

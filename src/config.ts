@@ -47,7 +47,7 @@ export class Config {
     const tomlConfig: TomlConfig = parsedConfig;
 
     if (!tomlConfig.seedWords) {
-      logger.trace("Generating seed words");
+      logger.info("Generating seed words");
       const seedWords = generateMnemonic(256);
       Object.assign(tomlConfig, { seedWords });
       backupAndWriteConfig(filePath, tomlConfig);

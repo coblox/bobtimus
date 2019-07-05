@@ -26,7 +26,7 @@ export class ActionSelector {
 
       return this.selectSwapAction(swap);
     }
-    logger.warn(`The given entity is not a swap; entity ${entity}`);
+    logger.error(`The given entity is not a swap; entity ${entity}`);
     return undefined;
   }
 
@@ -63,7 +63,7 @@ export class ActionSelector {
         this.selectedActions.push(declineAction);
         return declineAction;
       } else {
-        logger.debug("Decline action is unavailable");
+        logger.error("Decline action is unavailable");
       }
     } else if (refundAction) {
       // Only refund action available, doing nothing for now

@@ -1,6 +1,6 @@
-import debug from "debug";
+import { getLogger } from "log4js";
 
-const log = debug("bobtimus::asset");
+const logger = getLogger();
 
 enum Asset {
   Bitcoin = "bitcoin",
@@ -14,7 +14,7 @@ export function toAsset(asset: string) {
     case Asset.Ether:
       return Asset.Ether;
     default:
-      log(`Asset not supported: ${asset}`);
+      logger.error(`Asset not supported: ${asset}`);
       return undefined;
   }
 }

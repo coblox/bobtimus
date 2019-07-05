@@ -1,13 +1,12 @@
 {
   "appenders": {
-    "file": {
-      "type": "file",
-      "filename": "logs/bobtimus.log"
+    "out": {
+      "type": "stdout"
     }
   },
   "categories": {
     "default": {
-      "appenders": ["file"],
+      "appenders": ["out"],
       "level": "debug"
     }
   }

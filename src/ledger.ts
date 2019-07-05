@@ -1,6 +1,6 @@
-import debug from "debug";
+import { getLogger } from "log4js";
 
-const log = debug("bobtimus::ledger");
+const logger = getLogger();
 
 enum Ledger {
   Bitcoin = "bitcoin",
@@ -14,7 +14,7 @@ export function toLedger(ledger: string) {
     case Ledger.Ethereum:
       return Ledger.Ethereum;
     default:
-      log(`Ledger not supported: ${ledger}`);
+      logger.error(`Ledger not supported: ${ledger}`);
       return undefined;
   }
 }

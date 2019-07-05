@@ -106,7 +106,7 @@ export class LedgerExecutor implements ILedgerExecutor {
     const gasPrice = await ethereumFeeService.retrieveGasPrice();
 
     const parameters = { ...params, gasPrice };
-    logger.debug(
+    logger.info(
       `Invoking deployContract on Ethereum Wallet with ${JSON.stringify(
         parameters
       )}`
@@ -131,7 +131,7 @@ export class LedgerExecutor implements ILedgerExecutor {
       data: params.data ? hexToBuffer(params.data) : undefined
     };
 
-    logger.debug(
+    logger.info(
       `Invoking sendTransaction on Ethereum Wallet with ${parameters}`
     );
     return ethereumWallet.sendTransactionTo(parameters);

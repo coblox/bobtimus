@@ -1,7 +1,8 @@
 import Big from "big.js";
-import debug = require("debug");
+import { getLogger } from "log4js";
 import Asset from "./asset";
-const log = debug("bobtimus:rates");
+
+const logger = getLogger();
 
 export interface TradeAmounts {
   buyAsset: Asset;
@@ -22,7 +23,9 @@ export function isTradeAcceptable(
   const rate = ratesConfig[buyAsset][sellAsset];
 
   if (!rate) {
-    log(`Rate not configured for buy: ${buyAsset}, sell: ${sellAsset}`);
+    logger.error(
+      `Rate not configured for buy: ${buyAsset}, sell: ${sellAsset}`
+    );
     return false;
   }
 

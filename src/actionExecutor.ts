@@ -113,9 +113,9 @@ export class ActionExecutor {
       let diff = expiry - currentMedianBlockTime;
 
       if (diff > 0) {
-        // logger.info(
-        //   `Initializing refund, waiting for median block time to pass ${expiry}`
-        // );
+        logger.info(
+          `Initializing refund, waiting for median block time to pass ${expiry}`
+        );
 
         while (diff > 0) {
           await sleep(1000);
@@ -125,7 +125,7 @@ export class ActionExecutor {
         }
       }
 
-      // logger.info(`Median block time has passed ${expiry}, executing refund`);
+      logger.info(`Median block time has passed ${expiry}, executing refund`);
     }
   }
 

@@ -89,7 +89,7 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
   }
 
   public getBlockTime(): Promise<number> {
-    log("Retrieving latest block");
+    logger.info("Retrieving latest block");
     const blockchaininfo = this.bitcoinClient.getblockchaininfo();
     return blockchaininfo.mediantime;
   }

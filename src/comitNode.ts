@@ -103,7 +103,7 @@ export class ComitNode {
       };
     }
 
-    logger.debug(
+    logger.trace(
       `Doing a ${options.method} request to ${
         options.uri
       } with body: ${JSON.stringify(options.body)}`

@@ -1,13 +1,13 @@
 import { bip32 } from "bitcoinjs-lib";
 import BN from "bn.js";
-import debug from "debug";
 import EthereumTx from "ethereumjs-tx";
 import utils from "ethereumjs-util";
+import { getLogger } from "log4js";
 import Web3 from "web3";
 import { TransactionReceipt } from "web3-core";
 import { EthereumConfig } from "../config";
 
-const log = debug("bobtimus:wallets:ethereum");
+const logger = getLogger();
 
 export interface SharedTransactionParams {
   value?: BN;
@@ -55,8 +55,12 @@ export class Web3EthereumWallet implements EthereumWallet {
       .privateKey;
 
     if (!privateKey) {
+      logger.error(
+        `Freshly derived HD key does not have the private key, parameters 
+        [ethereumConfig: ${ethereumConfig}, seed: ${seed}, accountIndex: ${accountIndex}]`
+      );
       throw new Error(
-        "Internal Error, freshly derived HD key does not have the private key."
+        "Internal Error, freshly derived HD key does not have the private key"
       );
     }
 
@@ -137,7 +141,7 @@ export class Web3EthereumWallet implements EthereumWallet {
     const serializedTx = tx.serialize();
     const hex = "0x" + serializedTx.toString("hex");
 
-    log(`Invoking web3.eth.sendSignedTransaction with ${hex}`);
+    logger.debug(`Invoking web3.eth.sendSignedTransaction with ${hex}`);
     return this.web3.eth.sendSignedTransaction(hex);
   }
 }

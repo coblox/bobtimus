@@ -1,8 +1,8 @@
 import BN = require("bn.js");
-import debug from "debug";
+import { getLogger } from "log4js";
 import request from "request-promise-native";
 
-const log = debug("bobtimus:ethereum:gasService");
+const logger = getLogger();
 
 export class EthereumGasPriceService {
   public static default() {
@@ -31,12 +31,14 @@ export class EthereumGasPriceService {
       const response = await request(options);
       const gasPrice = response[strategy];
       if (!gasPrice) {
-        log(`Strategy not found ${strategy}`);
+        logger.info(`Ethereum gas price strategy not found ${strategy}, 
+          falling back to default gas price ${this.defaultGasPrice}`);
         return this.defaultGasPrice;
       }
       return new BN(gasPrice);
     } catch (err) {
-      log(`Could not retrieve fees from feeservice: ${err}`);
+      logger.info(`Could not retrieve fees from Ethereum feeservice: ${err}, 
+        falling back to default gas price ${this.defaultGasPrice}`);
       return this.defaultGasPrice;
     }
   }

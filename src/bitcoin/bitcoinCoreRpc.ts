@@ -1,11 +1,11 @@
 /// <reference path="./bitcoin-core.d.ts" />
 import Client from "bitcoin-core";
 import { Transaction } from "bitcoinjs-lib";
-import debug from "debug";
+import { getLogger } from "log4js";
 import { BitcoinConfig } from "../config";
 import { Bitcoin, BitcoinBlockchain, Satoshis, Utxo } from "./blockchain";
 
-const log = debug("bobtimus:bitcoin:core_rpc");
+const logger = getLogger();
 
 interface RpcUtxo {
   txid: string;
@@ -89,26 +89,29 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
 
   public async broadcastTransaction(transaction: Transaction): Promise<string> {
     const hex = transaction.toHex();
-    log("Broadcasting transaction ", hex);
+    logger.info("Broadcasting transaction ", hex);
     return this.bitcoinClient.sendRawTransaction(hex);
   }
 
   public async findHdOutputs(extendedPublicKeys: string[]): Promise<Utxo[]> {
     const scanobjects = extendedPublicKeys.map(exPubKey => {
-      log(`Send ${exPubKey} to bitcoind for scanning`);
+      logger.info(`Send ${exPubKey} to bitcoind for scanning`);
       return {
         desc: `combo(${exPubKey}/*)`,
         range: 1000
       };
     });
 
-    log("Starting `scantxoutset` which is a long blocking non-cached call");
+    logger.debug(
+      "Starting `scantxoutset` which is a long blocking non-cached call"
+    );
     const result = await this.bitcoinClient.command(
       "scantxoutset",
       "start",
       scanobjects
     );
     if (!result || !result.success || result.unspents === undefined) {
+      logger.error(`Transaction scan failed: ${result}`);
       throw new Error(`Transaction scan failed: ${result}`);
     }
     const promises = result.unspents.map(async (res: RpcUtxo) => {
@@ -130,12 +133,14 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
   ): Promise<string> {
     const txHex = await this.bitcoinClient.getRawTransaction(txId);
     if (typeof txHex !== "string") {
+      logger.error(`Error retrieving transaction hex: ${txId}`);
       throw new Error(`Error retrieving transaction hex: ${txId}`);
     }
     const transaction: RpcTransaction = await this.bitcoinClient.decodeRawTransaction(
       txHex
     );
     if (typeof transaction !== "object") {
+      logger.error(`Error decoding transaction: ${txId}`);
       throw new Error(`Error decoding transaction: ${txId}`);
     }
 

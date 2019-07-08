@@ -1,14 +1,14 @@
 import { Result } from "@badrap/result/dist";
 import { Transaction } from "bitcoinjs-lib";
 import BN from "bn.js";
-import debug from "debug";
+import { getLogger } from "log4js";
 import { Action } from "../gen/siren";
 import { networkFromString, Satoshis } from "./bitcoin/blockchain";
 import { ComitNode, hexToBN, hexToBuffer, LedgerAction } from "./comitNode";
 import { FieldDataSource } from "./fieldDataSource";
 import { ILedgerExecutor } from "./ledgerExecutor";
 
-const log = debug("bobtimus:actionExecutor");
+const logger = getLogger();
 
 export class ActionExecutor {
   private datastore: FieldDataSource;
@@ -39,14 +39,14 @@ export class ActionExecutor {
     let result: Result<any, Error>;
 
     const triggerResult = await this.triggerRequestFromAction(action);
-    log(`Response from action: ${JSON.stringify(triggerResult)}`);
+    logger.trace(`Response from action: ${JSON.stringify(triggerResult)}`);
     result = triggerResult;
     // If the response has a type and payload then a ledger action is needed
     if (triggerResult.isOk) {
       const response = triggerResult.unwrap();
       if (response.type && response.payload) {
         result = await this.executeLedgerAction(response);
-        log(`executeLedgerAction response: ${JSON.stringify(result)}`);
+        logger.debug(`executeLedgerAction response: ${JSON.stringify(result)}`);
       }
     }
 
@@ -74,6 +74,7 @@ export class ActionExecutor {
     }
 
     if (action.method === "POST" && action.type !== "application/json") {
+      logger.error("Only 'application/json' action type is supported.");
       throw new Error("Only 'application/json' action type is supported.");
     }
     try {
@@ -95,7 +96,7 @@ export class ActionExecutor {
         executedAction => executedAction.href === action.href
       )
     ) {
-      log(`Cannot execute action twice: ${JSON.stringify(action)}!`);
+      logger.debug(`Cannot execute action twice: ${JSON.stringify(action)}!`);
       return true;
     } else {
       return false;
@@ -103,7 +104,7 @@ export class ActionExecutor {
   }
 
   private async executeLedgerAction(action: LedgerAction) {
-    log(`Execute Ledger Action: ${JSON.stringify(action)}`);
+    logger.trace(`Execute Ledger Action: ${JSON.stringify(action)}`);
     try {
       switch (action.type) {
         case "bitcoin-send-amount-to-address": {

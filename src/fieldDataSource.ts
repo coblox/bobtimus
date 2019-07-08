@@ -1,10 +1,10 @@
-import debug = require("debug");
+import { getLogger } from "log4js";
 import { Field } from "../gen/siren";
 import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import { BitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
 
-const log = debug("bobtimus:datastore");
+const logger = getLogger();
 
 export interface FieldDataSource {
   getData: (field: Field) => any;
@@ -32,7 +32,7 @@ export class DefaultFieldDataSource implements FieldDataSource {
   }
 
   public async getData(field: Field) {
-    log(`Trying to find data for ${JSON.stringify(field)}`);
+    logger.trace(`Trying to find data for ${JSON.stringify(field)}`);
     if (
       this.ethereumWallet &&
       field.class.includes("ethereum") &&
@@ -56,5 +56,6 @@ export class DefaultFieldDataSource implements FieldDataSource {
     ) {
       return await this.bitcoinFeeService.retrieveSatsPerByte();
     }
+    logger.warn(`Could not find data for ${JSON.stringify(field)}`);
   }
 }

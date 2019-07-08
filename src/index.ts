@@ -1,4 +1,4 @@
-import debug from "debug";
+import { configure, getLogger } from "log4js";
 import { ActionExecutor } from "./actionExecutor";
 import { ActionSelector } from "./actionSelector";
 import { BitcoinCoreRpc } from "./bitcoin/bitcoinCoreRpc";
@@ -11,7 +11,9 @@ import { LedgerExecutor } from "./ledgerExecutor";
 import { InternalBitcoinWallet } from "./wallets/bitcoin";
 import { Web3EthereumWallet } from "./wallets/ethereum";
 
-const log = debug("bobtimus:index");
+const logger = getLogger();
+const pollIntervalMillis = 10000;
+configure("./logconfig.json");
 
 const initBitcoin = async (config: Config) => {
   if (!config.bitcoinConfig) {
@@ -94,30 +96,30 @@ const config = Config.fromFile("./config.toml");
 
   const shoot = async () => {
     const swaps = await comitNode.getSwaps();
-    log(`Found ${swaps.length} swap(s)`);
+    logger.trace(`Found ${swaps.length} swap(s)`);
 
     for (const swap of swaps) {
       const id = swap.properties ? swap.properties.id : undefined;
       try {
         const selectedAction = await actionSelector.selectActions(swap);
         if (selectedAction) {
-          log(
+          logger.trace(
             `Selected action for swap ${id}: ${JSON.stringify(selectedAction)}`
           );
           const executionResult = await actionExecutor.execute(
             selectedAction,
             config.maxRetries
           );
-          log(
+          logger.trace(
             `Action execution response for swap ${id}: ${JSON.stringify(
               executionResult
             )}`
           );
         } else {
-          log(`No action returned for swap ${id}`);
+          logger.trace(`No action returned for swap ${id}`);
         }
       } catch (err) {
-        log(
+        logger.error(
           `Error has occurred for swap ${id}. Error is: ${JSON.stringify(err)}`
         );
       }
@@ -125,8 +127,12 @@ const config = Config.fromFile("./config.toml");
   };
 
   setInterval(() => {
-    shoot().then(() => log("Execution done"));
-  }, 10000);
+    shoot().then(() =>
+      logger.trace(
+        `Polling new information from comit-node in ${pollIntervalMillis} ms again`
+      )
+    );
+  }, pollIntervalMillis);
 
   if (bitcoinWallet) {
     await bitcoinWallet.refreshUtxo();

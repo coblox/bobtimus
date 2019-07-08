@@ -1,7 +1,7 @@
 import { networks, Transaction } from "bitcoinjs-lib";
-import debug from "debug";
+import { getLogger } from "log4js";
 
-const log = debug("bobtimus:bitcoin:blockchain");
+const logger = getLogger();
 
 const SATS_IN_BITCOIN = 100000000;
 
@@ -27,7 +27,7 @@ export class Satoshis {
       // `scantxoutset` somehow returned a strange value that is not a satoshi integer
       // Could not reproduce the issue but better put a fail-safe and use a satoshi than
       // Break
-      log(`non-integer satoshi: ${sats}`);
+      logger.warn(`scantxoutset returned a non-integer satoshi: ${sats}`);
       sats = Math.floor(sats);
     }
 
@@ -44,7 +44,7 @@ export class Satoshis {
     }
 
     if (!Number.isInteger(inner)) {
-      log("Only whole Satoshis are supported, precision has been lost");
+      logger.info("Only whole Satoshis are supported, precision has been lost");
       inner = Math.round(inner);
     }
     this.inner = inner;

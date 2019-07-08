@@ -119,7 +119,7 @@ const config = Config.fromFile("./config.toml");
           logger.trace(`No action returned for swap ${id}`);
         }
       } catch (err) {
-        logger.debug(
+        logger.error(
           `Error has occurred for swap ${id}. Error is: ${JSON.stringify(err)}`
         );
       }

@@ -243,7 +243,7 @@ export class InternalBitcoinWallet implements BitcoinWallet {
   private getPrivateKey(address: string) {
     const res = this.usedAddresses[address];
     if (!res) {
-      logger.error(`Cannot find id of input's address ${address}`);
+      logger.error(`Cannot find address ${address}`);
       throw new Error(`Cannot find id of input's address ${address}`);
     }
     const hd = this.deriveForId(res);

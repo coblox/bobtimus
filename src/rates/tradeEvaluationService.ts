@@ -1,10 +1,13 @@
 import Big from "big.js";
+import debug = require("debug");
 import Asset from "../asset";
-import StaticRates, { ConfigRates } from "./staticRates";
-import TestnetMarketMaker, {
-  BalanceLookups,
-  TestnetMarketMakerConfig
-} from "./testnetMarketMaker";
+import { Config } from "../config";
+import { BitcoinWallet } from "../wallets/bitcoin";
+import { EthereumWallet } from "../wallets/ethereum";
+import StaticRates from "./staticRates";
+import TestnetMarketMaker from "./testnetMarketMaker";
+
+const log = debug("bobtimus:tradeAmounts");
 
 export interface TradeAmounts {
   buyAsset: Asset;
@@ -18,27 +21,53 @@ export interface TradeEvaluationService {
 }
 
 export interface InitialiseRateParameters {
-  testnetMarketMakerConfig?: TestnetMarketMakerConfig;
-  configRates?: ConfigRates;
-  balanceLookups?: BalanceLookups;
+  config: Config;
+  ethereumWallet?: EthereumWallet;
+  bitcoinWallet?: BitcoinWallet;
 }
-export function initialiseRate({
-  testnetMarketMakerConfig,
-  configRates,
-  balanceLookups
+export function getRateService({
+  config,
+  ethereumWallet,
+  bitcoinWallet
 }: InitialiseRateParameters): TradeEvaluationService {
-  if (testnetMarketMakerConfig && configRates) {
+  const testnetMarketMakerConfig = config.testnetMarketMaker;
+  const staticRatesConfig = config.staticRates;
+
+  if (testnetMarketMakerConfig && staticRatesConfig) {
     throw new Error("Multiple rate strategies provided.");
   }
 
-  if (configRates) {
-    return new StaticRates(configRates);
+  if (staticRatesConfig) {
+    return new StaticRates(staticRatesConfig);
   } else if (testnetMarketMakerConfig) {
-    if (!balanceLookups) {
-      throw new Error(
-        "Balance lookup callbacks needed for TestnetMarketMaker stategy."
-      );
-    }
+    const bitcoinBalanceLookup = async () => {
+      try {
+        if (bitcoinWallet) {
+          return bitcoinWallet.getNominalBalance();
+        }
+      } catch (e) {
+        log("Bitcoin balance not found");
+      }
+
+      return Promise.resolve(new Big(0));
+    };
+
+    const ethereumBalanceLookup = async () => {
+      if (ethereumWallet) {
+        try {
+          return ethereumWallet.getNominalBalance();
+        } catch (e) {
+          log("Ethereum balance not found");
+        }
+      }
+      return Promise.resolve(new Big(0));
+    };
+
+    const balanceLookups = {
+      bitcoin: bitcoinBalanceLookup,
+      ether: ethereumBalanceLookup
+    };
+
     return new TestnetMarketMaker(testnetMarketMakerConfig, balanceLookups);
   } else {
     throw new Error("No rate strategy defined.");

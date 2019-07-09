@@ -8,21 +8,25 @@ interface BitcoinWalletStubArgs {
   network?: Network;
   address?: string;
   payToAdressTransactionId?: string;
+  nominalBalance?: number;
 }
 
 export default class BitcoinWalletStub implements BitcoinWallet {
   public readonly network?: Network;
   public readonly address?: string;
   public readonly payToAdressTransactionId?: string;
+  public readonly nominalBalance?: number;
 
   constructor({
     network,
     address,
-    payToAdressTransactionId
+    payToAdressTransactionId,
+    nominalBalance
   }: BitcoinWalletStubArgs) {
     this.network = network;
     this.address = address;
     this.payToAdressTransactionId = payToAdressTransactionId;
+    this.nominalBalance = nominalBalance;
   }
 
   public getNetwork(): Network {
@@ -45,6 +49,6 @@ export default class BitcoinWalletStub implements BitcoinWallet {
   }
 
   public getNominalBalance(): Big {
-    throw new Error("Unexpected call of BitcoinWalletStub.getNominalBalance()");
+    return returnOrThrow(this, "nominalBalance");
   }
 }

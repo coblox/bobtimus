@@ -12,21 +12,25 @@ interface EthereumWalletStubArgs {
   address?: string;
   deployContractReceipt?: TransactionReceipt;
   sendTransactionToReceipt?: TransactionReceipt;
+  nominalBalance?: number;
 }
 
 export default class EthereumWalletStub implements EthereumWallet {
   public readonly address?: string;
   public readonly deployContractReceipt?: TransactionReceipt;
   public readonly sendTransactionToReceipt?: TransactionReceipt;
+  public readonly nominalBalance?: number;
 
   constructor({
     address,
     deployContractReceipt,
-    sendTransactionToReceipt
+    sendTransactionToReceipt,
+    nominalBalance
   }: EthereumWalletStubArgs) {
     this.address = address;
     this.deployContractReceipt = deployContractReceipt;
     this.sendTransactionToReceipt = sendTransactionToReceipt;
+    this.nominalBalance = nominalBalance;
   }
 
   public deployContract(
@@ -41,9 +45,7 @@ export default class EthereumWalletStub implements EthereumWallet {
   }
 
   public getNominalBalance(): Promise<Big> {
-    throw new Error(
-      "Unexpected Call of EthereumWalletStub.getNominalBalance()"
-    );
+    return returnOrThrow(this, "nominalBalance");
   }
 
   public sendTransactionTo(

@@ -1,29 +1,25 @@
-import Big from "big.js";
 import BN = require("bn.js");
 import { Config } from "../../src/config";
-import { initialiseRate } from "../../src/rates/tradeEvaluationService";
+import { getRateService } from "../../src/rates/tradeEvaluationService";
+import BitcoinWalletStub from "../doubles/bitcoinWalletStub";
+import EthereumWalletStub from "../doubles/ethereumWalletStub";
 
 describe("Test TradeEvaluationService module", () => {
-  const bitcoinBalanceLookup = async (): Promise<Big> => {
-    return Promise.resolve(new Big(0));
-  };
+  const bitcoinWallet = new BitcoinWalletStub({
+    nominalBalance: 1
+  });
 
-  const ethereumBalanceLookup = async (): Promise<Big> => {
-    return Promise.resolve(new Big(0));
-  };
-
-  const balanceLookups = {
-    bitcoin: bitcoinBalanceLookup,
-    ether: ethereumBalanceLookup
-  };
+  const ethereumWallet = new EthereumWalletStub({
+    nominalBalance: 1
+  });
 
   it("should load the static rate if present in configuration", () => {
     const config = Config.fromFile("./tests/configs/staticRates.toml");
     console.log(config);
-    const rates = initialiseRate({
-      testnetMarketMakerConfig: config.testnetMarketMaker,
-      configRates: config.staticRates,
-      balanceLookups
+    const rates = getRateService({
+      config,
+      bitcoinWallet,
+      ethereumWallet
     });
 
     expect(rates).toBeDefined();
@@ -31,10 +27,10 @@ describe("Test TradeEvaluationService module", () => {
 
   it("should set the marketmaker if no rates defined in the config", () => {
     const config = Config.fromFile("./tests/configs/testnetMarketMaker.toml");
-    const rates = initialiseRate({
-      testnetMarketMakerConfig: config.testnetMarketMaker,
-      configRates: config.staticRates,
-      balanceLookups
+    const rates = getRateService({
+      config,
+      bitcoinWallet,
+      ethereumWallet
     });
 
     expect(rates).toBeDefined();
@@ -83,10 +79,10 @@ describe("Test TradeEvaluationService module", () => {
     });
 
     expect(() => {
-      initialiseRate({
-        testnetMarketMakerConfig: config.testnetMarketMaker,
-        configRates: config.staticRates,
-        balanceLookups
+      getRateService({
+        config,
+        bitcoinWallet,
+        ethereumWallet
       });
     }).toThrow(/Multiple rate strategies provided./);
   });
@@ -121,10 +117,10 @@ describe("Test TradeEvaluationService module", () => {
     });
 
     expect(() =>
-      initialiseRate({
-        testnetMarketMakerConfig: config.testnetMarketMaker,
-        configRates: config.staticRates,
-        balanceLookups
+      getRateService({
+        config,
+        bitcoinWallet,
+        ethereumWallet
       })
     ).toThrowError(/No rate strategy defined./);
   });

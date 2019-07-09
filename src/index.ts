@@ -9,7 +9,7 @@ import { Config } from "./config";
 import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import { DefaultFieldDataSource } from "./fieldDataSource";
 import { LedgerExecutor } from "./ledgerExecutor";
-import { initialiseRate } from "./rates/rates";
+import { initialiseRate } from "./rates/tradeEvaluationService";
 import { InternalBitcoinWallet } from "./wallets/bitcoin";
 import { Web3EthereumWallet } from "./wallets/ethereum";
 

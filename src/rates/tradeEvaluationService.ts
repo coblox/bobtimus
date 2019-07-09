@@ -13,7 +13,7 @@ export interface TradeAmounts {
   sellNominalAmount: Big;
 }
 
-export interface Rates {
+export interface TradeEvaluationService {
   isTradeAcceptable: (tradeAmounts: TradeAmounts) => Promise<boolean>;
 }
 
@@ -26,7 +26,7 @@ export function initialiseRate({
   testnetMarketMakerConfig,
   configRates,
   balanceLookups
-}: InitialiseRateParameters): Rates {
+}: InitialiseRateParameters): TradeEvaluationService {
   if (testnetMarketMakerConfig && configRates) {
     throw new Error("Multiple rate strategies provided.");
   }

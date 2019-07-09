@@ -5,7 +5,7 @@ import { toAsset, toNominalUnit } from "./asset";
 import { Swap } from "./comitNode";
 import { Config } from "./config";
 import { toLedger } from "./ledger";
-import { Rates } from "./rates/rates";
+import { TradeEvaluationService } from "./rates/tradeEvaluationService";
 
 const logger = getLogger();
 
@@ -14,9 +14,9 @@ Big.DP = 30;
 export class ActionSelector {
   private config: Config;
   private selectedActions: Action[];
-  private rates: Rates;
+  private rates: TradeEvaluationService;
 
-  constructor(config: Config, rates: Rates) {
+  constructor(config: Config, rates: TradeEvaluationService) {
     this.config = config;
     this.selectedActions = [];
     this.rates = rates;
@@ -78,21 +78,21 @@ export class ActionSelector {
     return undefined;
   }
 
-  private shouldSelectAccept(swap: Swap) {
+  private shouldSelectAccept(swap: Swap): Promise<boolean> {
     const alphaLedger = toLedger(swap.properties.parameters.alpha_ledger.name);
     const betaLedger = toLedger(swap.properties.parameters.beta_ledger.name);
     const alphaAsset = toAsset(swap.properties.parameters.alpha_asset.name);
     const betaAsset = toAsset(swap.properties.parameters.beta_asset.name);
 
     if (!alphaAsset || !betaAsset || !alphaLedger || !betaLedger) {
-      return false;
+      return Promise.resolve(false);
     }
 
     if (
       !this.config.isSupportedAndConfigured(alphaLedger) ||
       !this.config.isSupportedAndConfigured(betaLedger)
     ) {
-      return false;
+      return Promise.resolve(false);
     }
 
     const alphaNominalAmount = toNominalUnit(
@@ -105,7 +105,7 @@ export class ActionSelector {
     );
 
     if (!alphaNominalAmount || !betaNominalAmount) {
-      return false;
+      return Promise.resolve(false);
     }
 
     // Bob always buys Alpha

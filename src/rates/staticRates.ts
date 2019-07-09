@@ -1,7 +1,7 @@
 import Big from "big.js";
 import { getLogger } from "log4js";
 import Asset from "../asset";
-import { Rates } from "./rates";
+import { TradeEvaluationService } from "./tradeEvaluationService";
 
 const logger = getLogger();
 
@@ -16,7 +16,7 @@ export type ConfigRates = {
   [buyAsset in Asset]: { [sellAsset in Asset]?: number }
 };
 
-export default class StaticRates implements Rates {
+export default class StaticRates implements TradeEvaluationService {
   private readonly configRates: ConfigRates;
   constructor(configRates: ConfigRates) {
     this.configRates = configRates;

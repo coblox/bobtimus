@@ -1,9 +1,9 @@
 import Big from "big.js";
 import BN = require("bn.js");
 import { Config } from "../../src/config";
-import { initialiseRate } from "../../src/rates/rates";
+import { initialiseRate } from "../../src/rates/tradeEvaluationService";
 
-describe("Test Rates module", () => {
+describe("Test TradeEvaluationService module", () => {
   const bitcoinBalanceLookup = async (): Promise<Big> => {
     return Promise.resolve(new Big(0));
   };

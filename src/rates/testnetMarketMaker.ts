@@ -1,6 +1,6 @@
 import Big from "big.js";
 import Asset from "../asset";
-import { Rates, TradeAmounts } from "./rates";
+import { TradeAmounts, TradeEvaluationService } from "./tradeEvaluationService";
 
 export type BalanceLookups = {
   [asset in Asset]: () => Promise<Big> // Always nominal quantity
@@ -28,7 +28,7 @@ export interface TestnetMarketMakerConfig {
  * The max amounts are a configurable fraction of the available balance, which is slightly bigger than the published amount
  *
  */
-export default class TestnetMarketMaker implements Rates {
+export default class TestnetMarketMaker implements TradeEvaluationService {
   private readonly rateSpread: number;
   private readonly publishFraction: number;
   private readonly maxFraction: number;

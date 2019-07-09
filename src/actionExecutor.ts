@@ -3,7 +3,6 @@ import { Transaction } from "bitcoinjs-lib";
 import BN from "bn.js";
 import { getLogger } from "log4js";
 import { Action } from "../gen/siren";
-import sleep from "../tests/sleep";
 import { networkFromString, Satoshis } from "./bitcoin/blockchain";
 import { ComitNode, hexToBN, hexToBuffer, LedgerAction } from "./comitNode";
 import { FieldDataSource } from "./fieldDataSource";
@@ -57,7 +56,7 @@ export class ActionExecutor {
       result = Result.err(new Error("Maximum number of retries reached"));
     } else {
       // It failed, try again in x milliseconds
-      await this.sleep(timeout);
+      await sleep(timeout);
       return this.execute(action, maxRetries - 1, timeout);
     }
 
@@ -104,31 +103,6 @@ export class ActionExecutor {
     }
   }
 
-  private async handleRefund(
-    expiry: number | undefined,
-    getMedianBlockTime: () => Promise<number>
-  ) {
-    if (expiry) {
-      let currentMedianBlockTime = await getMedianBlockTime();
-      let diff = expiry - currentMedianBlockTime;
-
-      if (diff > 0) {
-        logger.info(
-          `Initializing refund, waiting for median block time to pass ${expiry}`
-        );
-
-        while (diff > 0) {
-          await sleep(1000);
-
-          currentMedianBlockTime = await getMedianBlockTime();
-          diff = expiry - currentMedianBlockTime;
-        }
-      }
-
-      logger.info(`Median block time has passed ${expiry}, executing refund`);
-    }
-  }
-
   private async executeLedgerAction(action: LedgerAction) {
     logger.trace(`Execute Ledger Action: ${JSON.stringify(action)}`);
     try {
@@ -144,9 +118,12 @@ export class ActionExecutor {
           return Result.ok(result);
         }
         case "bitcoin-broadcast-signed-transaction": {
-          await this.handleRefund(action.payload.min_median_block_time, () =>
-            this.ledgerExecutor.bitcoinGetBlockTime(network)
-          );
+          const minMedianBlockTime = action.payload.min_median_block_time;
+          if (minMedianBlockTime) {
+            await sleepTillBlockchainTimeReached(minMedianBlockTime, () =>
+              this.ledgerExecutor.bitcoinGetBlockTime(network)
+            );
+          }
 
           const transaction = Transaction.fromHex(action.payload.hex);
           const result = await this.ledgerExecutor.bitcoinBroadcastTransaction(
@@ -168,9 +145,12 @@ export class ActionExecutor {
           return Result.ok(result);
         }
         case "ethereum-call-contract": {
-          await this.handleRefund(action.payload.min_block_timestamp, () =>
-            this.ledgerExecutor.ethereumGetTimestamp(network)
-          );
+          const minBlockTimestamp = action.payload.min_block_timestamp;
+          if (minBlockTimestamp) {
+            await sleepTillBlockchainTimeReached(minBlockTimestamp, () =>
+              this.ledgerExecutor.ethereumGetTimestamp(network)
+            );
+          }
 
           const params = {
             gasLimit: hexToBN(action.payload.gas_limit),
@@ -193,8 +173,31 @@ export class ActionExecutor {
       return Result.err(err);
     }
   }
+}
 
-  private async sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+async function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function sleepTillBlockchainTimeReached(
+  targetTime: number,
+  getCurrentBlockTime: () => Promise<number>
+) {
+  let currentBlockTime = await getCurrentBlockTime();
+  let diff = targetTime - currentBlockTime;
+
+  if (diff > 0) {
+    logger.info(
+      `Initializing refund, waiting for block time to pass ${targetTime}`
+    );
+
+    while (diff > 0) {
+      await sleep(1000);
+
+      currentBlockTime = await getCurrentBlockTime();
+      diff = targetTime - currentBlockTime;
+    }
   }
+
+  logger.info(`Block time has passed ${targetTime}, executing refund`);
 }

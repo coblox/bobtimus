@@ -161,23 +161,28 @@ describe("Action selector tests: ", () => {
   it("Should emit refund first then redeem action", async done => {
     const actionSelector = new ActionSelector(config, rates);
 
-    const redeemEntityAndAction = extractEntityAndAction(
-      swapsRedeemRefundStub,
-      "redeem"
-    );
-    const refundEntityAndAction = extractEntityAndAction(
-      swapsRedeemRefundStub,
-      "refund"
-    );
+    {
+      const { entity, action } = extractEntityAndAction(
+        swapsRedeemRefundStub,
+        "refund"
+      );
 
-    const actionResponse1 = await actionSelector.selectActions(
-      refundEntityAndAction.entity
-    );
-    expect(actionResponse1).toStrictEqual(refundEntityAndAction.action);
-    const actionResponse2 = await actionSelector.selectActions(
-      redeemEntityAndAction.entity
-    );
-    expect(actionResponse2).toStrictEqual(redeemEntityAndAction.action);
+      const actionResponse = await actionSelector.selectActions(entity);
+
+      expect(actionResponse).toStrictEqual(action);
+    }
+
+    {
+      const { entity, action } = extractEntityAndAction(
+        swapsRedeemRefundStub,
+        "redeem"
+      );
+
+      const actionResponse = await actionSelector.selectActions(entity);
+
+      expect(actionResponse).toStrictEqual(action);
+    }
+
     done();
   });
 });

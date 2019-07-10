@@ -8,6 +8,7 @@ import { Config } from "./config";
 import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import { DefaultFieldDataSource } from "./fieldDataSource";
 import { LedgerExecutor } from "./ledgerExecutor";
+import { getRateService } from "./rates/tradeEvaluationService";
 import { InternalBitcoinWallet } from "./wallets/bitcoin";
 import { Web3EthereumWallet } from "./wallets/ethereum";
 
@@ -76,6 +77,12 @@ const config = Config.fromFile("./config.toml");
   } = await initBitcoin(config);
   const ethereumParams = await initEthereum(config);
 
+  const tradeEvaluationService = getRateService({
+    config,
+    ethereumWallet: ethereumParams.ethereumWallet,
+    bitcoinWallet
+  });
+
   const ledgerExecutorParams = {
     bitcoinFeeService,
     bitcoinBlockchain,
@@ -86,7 +93,7 @@ const config = Config.fromFile("./config.toml");
   const comitNode = new ComitNode(config);
   const datastore = new DefaultFieldDataSource(ledgerExecutorParams);
   const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
-  const actionSelector = new ActionSelector(config);
+  const actionSelector = new ActionSelector(config, tradeEvaluationService);
 
   const actionExecutor = new ActionExecutor(
     comitNode,

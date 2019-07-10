@@ -1,3 +1,4 @@
+import Big from "big.js";
 import { networks } from "bitcoinjs-lib";
 import { BitcoinWallet } from "../../src/wallets/bitcoin";
 
@@ -12,5 +13,9 @@ export default class DummyBitcoinWallet implements BitcoinWallet {
 
   public payToAddress(): Promise<string> {
     throw new Error("payToAddress should not be called");
+  }
+
+  public getNominalBalance(): Big {
+    throw new Error("getNominalBalance should not be called");
   }
 }

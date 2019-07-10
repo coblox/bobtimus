@@ -1,4 +1,5 @@
 /// <reference path="../../src/bitcoin/bitcoin-core.d.ts" />
+import Big from "big.js";
 import Client from "bitcoin-core";
 import { bip32, networks } from "bitcoinjs-lib";
 import { BitcoinCoreRpc } from "../../src/bitcoin/bitcoinCoreRpc";
@@ -40,7 +41,7 @@ describe("Bitcoin wallet", () => {
       );
 
       await sleep(3000);
-      await bitcoinClient.generate(200);
+      await bitcoinClient.generate(110);
 
       const address = wallet.getNewAddress();
       for (let i = 0; i < 5; i++) {
@@ -81,7 +82,7 @@ describe("Bitcoin wallet", () => {
       );
 
       await sleep(3000);
-      await bitcoinClient.generate(200);
+      await bitcoinClient.generate(110);
 
       const address = wallet.getNewAddress();
       for (let i = 0; i < 5; i++) {
@@ -100,6 +101,51 @@ describe("Bitcoin wallet", () => {
 
       const res = await bitcoinClient.getRawTransaction(tx);
       expect(typeof res).toBe("string");
+    }),
+    10000
+  );
+
+  it(
+    "should return the correct balance after finding all UTXOs",
+    containerTest(bitcoindTestContainer, async ({ container, auth }) => {
+      const port = await container.getMappedPort(18443);
+      const blockchain = new BitcoinCoreRpc(
+        auth.username,
+        auth.password,
+        "127.0.0.1",
+        port
+      );
+      const bitcoinClient = new Client({
+        protocol: "http",
+        username: auth.username,
+        password: auth.password,
+        host: "127.0.0.1",
+        port
+      });
+
+      const wallet = new InternalBitcoinWallet(
+        bip32.fromSeed(
+          Buffer.from(
+            "94cfb81f135f8d85d787a84173cf1e9fc51792f3723e2b93a162fa57a03370fd80971d026eed300544116dfee4d5b375c77ea86b65dfd44e2ecda58044684fe0",
+            "hex"
+          ),
+          networks.regtest
+        ),
+        blockchain,
+        networks.regtest
+      );
+
+      await sleep(3000);
+      await bitcoinClient.generate(110);
+
+      const address = wallet.getNewAddress();
+      for (let i = 0; i < 5; i++) {
+        await bitcoinClient.sendToAddress(address.toString(), 0.75);
+      }
+      await bitcoinClient.generate(1);
+      await wallet.refreshUtxo();
+
+      expect(await wallet.getNominalBalance()).toEqual(new Big(3.75));
     }),
     10000
   );

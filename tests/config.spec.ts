@@ -30,7 +30,7 @@ function cleanUpFiles(dir: string) {
 
 describe("Config tests", () => {
   it("should parse the config and being able to prepend with configured uri", () => {
-    const config = Config.fromFile("./tests/configs/default.toml");
+    const config = Config.fromFile("./tests/configs/staticRates.toml");
 
     const uriString = "http://localhost:8000/swaps/rfc003";
     const uriWithPath: uri.URI = new URI(uriString);
@@ -75,7 +75,7 @@ describe("Config tests", () => {
   });
 
   it("should parse the config with correct fee strategy selected", () => {
-    const config = Config.fromFile("./tests/configs/default.toml");
+    const config = Config.fromFile("./tests/configs/staticRates.toml");
 
     expect(config.bitcoinConfig).toBeDefined();
     expect(config.ethereumConfig).toBeDefined();
@@ -94,7 +94,7 @@ describe("Config tests", () => {
   });
 
   it("should parse the config with correct maximum retries", () => {
-    const config = Config.fromFile("./tests/configs/default.toml");
+    const config = Config.fromFile("./tests/configs/staticRates.toml");
     expect(config.maxRetries).toEqual(20);
   });
 });

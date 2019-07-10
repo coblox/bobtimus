@@ -1,11 +1,11 @@
 import Big from "big.js";
 import { getLogger } from "log4js";
 import { Action, Entity } from "../gen/siren";
-import { toAsset } from "./asset";
-import { Swap, toNominalUnit } from "./comitNode";
+import { toAsset, toNominalUnit } from "./asset";
+import { Swap } from "./comitNode";
 import { Config } from "./config";
 import { toLedger } from "./ledger";
-import { isTradeAcceptable } from "./ratesConfig";
+import { TradeEvaluationService } from "./rates/tradeEvaluationService";
 
 const logger = getLogger();
 
@@ -14,10 +14,12 @@ Big.DP = 30;
 export class ActionSelector {
   private config: Config;
   private selectedActions: Action[];
+  private rates: TradeEvaluationService;
 
-  constructor(config: Config) {
+  constructor(config: Config, rates: TradeEvaluationService) {
     this.config = config;
     this.selectedActions = [];
+    this.rates = rates;
   }
 
   public selectActions(entity: Entity) {
@@ -30,7 +32,7 @@ export class ActionSelector {
     return undefined;
   }
 
-  private selectSwapAction(swap: Swap) {
+  private async selectSwapAction(swap: Swap) {
     const actions = swap.actions;
     if (!actions) {
       logger.debug("No action available");
@@ -59,7 +61,7 @@ export class ActionSelector {
     }
 
     if (acceptAction && !this.wasReturned(acceptAction)) {
-      if (this.shouldSelectAccept(swap)) {
+      if (await this.shouldSelectAccept(swap)) {
         this.selectedActions.push(acceptAction);
         return acceptAction;
       } else if (declineAction && !this.wasReturned(declineAction)) {
@@ -76,32 +78,34 @@ export class ActionSelector {
     return undefined;
   }
 
-  private shouldSelectAccept(swap: Swap): boolean {
+  private shouldSelectAccept(swap: Swap): Promise<boolean> {
     const alphaLedger = toLedger(swap.properties.parameters.alpha_ledger.name);
     const betaLedger = toLedger(swap.properties.parameters.beta_ledger.name);
     const alphaAsset = toAsset(swap.properties.parameters.alpha_asset.name);
     const betaAsset = toAsset(swap.properties.parameters.beta_asset.name);
 
     if (!alphaAsset || !betaAsset || !alphaLedger || !betaLedger) {
-      return false;
+      return Promise.resolve(false);
     }
 
     if (
       !this.config.isSupportedAndConfigured(alphaLedger) ||
       !this.config.isSupportedAndConfigured(betaLedger)
     ) {
-      return false;
+      return Promise.resolve(false);
     }
 
     const alphaNominalAmount = toNominalUnit(
-      swap.properties.parameters.alpha_asset
+      alphaAsset,
+      new Big(swap.properties.parameters.alpha_asset.quantity)
     );
     const betaNominalAmount = toNominalUnit(
-      swap.properties.parameters.beta_asset
+      betaAsset,
+      new Big(swap.properties.parameters.beta_asset.quantity)
     );
 
     if (!alphaNominalAmount || !betaNominalAmount) {
-      return false;
+      return Promise.resolve(false);
     }
 
     // Bob always buys Alpha
@@ -112,7 +116,7 @@ export class ActionSelector {
       sellNominalAmount: betaNominalAmount
     };
 
-    return isTradeAcceptable(tradeAmounts, this.config.rates);
+    return this.rates.isTradeAcceptable(tradeAmounts);
   }
 
   private wasReturned(action: Action) {

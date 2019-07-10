@@ -1,4 +1,3 @@
-import Big from "big.js";
 import BN = require("bn.js");
 import { getLogger } from "log4js";
 import request from "request-promise-native";
@@ -110,25 +109,6 @@ export class ComitNode {
     );
 
     return request(options);
-  }
-}
-
-export function toNominalUnit(asset: Asset) {
-  switch (asset.name) {
-    case "bitcoin": {
-      const sats = new Big(asset.quantity);
-      const satsInBitcoin = new Big("100000000");
-      return sats.div(satsInBitcoin);
-    }
-    case "ether": {
-      const wei = new Big(asset.quantity);
-      const weiInEther = new Big("1000000000000000000");
-      return wei.div(weiInEther);
-    }
-    default: {
-      logger.error(`Unit conversion not support for ${asset}`);
-      return undefined;
-    }
   }
 }
 

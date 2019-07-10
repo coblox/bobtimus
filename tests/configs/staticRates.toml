@@ -1,0 +1,34 @@
+comitNodeUrl = "http://localhost:8000"
+seedWords = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"
+maxRetries = 20
+
+[rates.static]
+# If Bob buys Ether for Bitcoin, for 1 Ether, he wants to sell at most 0.0105 Bitcoins
+[ether]
+bitcoin = 0.0105
+# If Bob buys Bitcoin for Ether, for 1 Bitcoin, he wants to sell at most 105.26 Ether
+[bitcoin]
+ether = 105.26
+
+[ledgers.bitcoin]
+type = "coreRpc"
+# TODO: handle cookie file
+rpcUsername = "bitcoin"
+rpcPassword = "password"
+rpcHost = "127.0.0.1"
+rpcPort = 18443
+network = "regtest"
+
+[ledgers.bitcoin.fee]
+defaultFee = 10
+# The strategy is taken from https://bitcoinfees.earn.com/api/v1/fees/recommended, i.e. it can either be `fastestFee`,
+# `halfHourFee` or `hourFee`. If the service is not available, the default value will be taken
+strategy = "hourFee"
+
+[ledgers.ethereum.fee]
+defaultFee = 10
+# The strategy is taken from https://docs.ethgasstation.info/
+strategy = "average"
+
+[ledgers.ethereum]
+web3Endpoint = "http://localhost:8545"

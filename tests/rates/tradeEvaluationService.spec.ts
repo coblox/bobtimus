@@ -16,7 +16,6 @@ describe("Test TradeEvaluationService module", () => {
 
   it("should load the static rate if present in configuration", () => {
     const config = Config.fromFile("./tests/configs/staticRates.toml");
-    console.log(config);
     const rates = createTradeEvaluationService({
       config,
       bitcoinWallet,

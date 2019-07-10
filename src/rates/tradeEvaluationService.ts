@@ -1,5 +1,5 @@
 import Big from "big.js";
-import debug = require("debug");
+import { getLogger } from "log4js";
 import Asset from "../asset";
 import { Config } from "../config";
 import { BitcoinWallet } from "../wallets/bitcoin";
@@ -7,7 +7,7 @@ import { EthereumWallet } from "../wallets/ethereum";
 import StaticRates from "./staticRates";
 import TestnetMarketMaker from "./testnetMarketMaker";
 
-const log = debug("bobtimus:tradeAmounts");
+const logger = getLogger();
 
 export interface TradeAmounts {
   buyAsset: Asset;
@@ -46,7 +46,7 @@ export function getRateService({
           return bitcoinWallet.getNominalBalance();
         }
       } catch (e) {
-        log("Bitcoin balance not found");
+        logger.error("Bitcoin balance not found");
       }
 
       return Promise.resolve(new Big(0));
@@ -57,7 +57,7 @@ export function getRateService({
         try {
           return ethereumWallet.getNominalBalance();
         } catch (e) {
-          log("Ethereum balance not found");
+          logger.error("Ethereum balance not found");
         }
       }
       return Promise.resolve(new Big(0));

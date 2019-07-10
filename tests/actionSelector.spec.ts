@@ -147,31 +147,37 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit refund action", async done => {
-    const actionSelector = new ActionSelector(config);
-    const { entity, actionStub } = setupAction(swapsRefundStub);
+    const actionSelector = new ActionSelector(config, rates);
+    const { entity, action } = extractEntityAndAction(
+      swapsRefundStub,
+      "refund"
+    );
 
     const actionResponse = await actionSelector.selectActions(entity);
-    expect(actionResponse).toStrictEqual(actionStub);
+    expect(actionResponse).toStrictEqual(action);
     done();
   });
 
   it("Should emit refund first then redeem action", async done => {
-    const actionSelector = new ActionSelector(config);
-    const { entity } = setupAction(swapsRedeemRefundStub);
+    const actionSelector = new ActionSelector(config, rates);
 
-    // @ts-ignore
-    const redeemAction = entity.actions.find(
-      action => action.name === "redeem"
-    ) as Action;
-    // @ts-ignore
-    const refundAction = entity.actions.find(
-      action => action.name === "refund"
-    ) as Action;
+    const redeemEntityAndAction = extractEntityAndAction(
+      swapsRedeemRefundStub,
+      "redeem"
+    );
+    const refundEntityAndAction = extractEntityAndAction(
+      swapsRedeemRefundStub,
+      "refund"
+    );
 
-    const actionResponse1 = await actionSelector.selectActions(entity);
-    expect(actionResponse1).toStrictEqual(refundAction);
-    const actionResponse2 = await actionSelector.selectActions(entity);
-    expect(actionResponse2).toStrictEqual(redeemAction);
+    const actionResponse1 = await actionSelector.selectActions(
+      refundEntityAndAction.entity
+    );
+    expect(actionResponse1).toStrictEqual(refundEntityAndAction.action);
+    const actionResponse2 = await actionSelector.selectActions(
+      redeemEntityAndAction.entity
+    );
+    expect(actionResponse2).toStrictEqual(redeemEntityAndAction.action);
     done();
   });
 });

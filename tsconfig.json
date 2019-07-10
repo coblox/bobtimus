@@ -10,7 +10,7 @@
     "noEmit": true,
     "noImplicitAny": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": false,
+    "noUnusedParameters": true,
     "outDir": "dist",
     "resolveJsonModule": true,
     "skipLibCheck": true,

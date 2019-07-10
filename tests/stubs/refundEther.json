@@ -1,0 +1,10 @@
+{
+  "type": "ethereum-call-contract",
+  "payload": {
+    "contract_address": "0xa2f623a7aec2f71c17687ee234e3fd816b0fb917",
+    "gas_limit": "0x186a0",
+    "min_block_timestamp": 1557504724,
+    "network": "regtest",
+    "data": "0x"
+  }
+}

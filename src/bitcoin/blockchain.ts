@@ -56,6 +56,8 @@ export class Satoshis {
 }
 
 export interface BitcoinBlockchain {
+  getBlockTime(): Promise<number>;
+
   broadcastTransaction(transaction: Transaction): Promise<string>;
 
   /// Find the outputs for addresses generated with BIP32

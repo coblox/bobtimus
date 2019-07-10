@@ -8,6 +8,12 @@ export default class DummyLedgerExecutor implements ILedgerExecutor {
   public bitcoinPayToAddress(): Promise<string> {
     throw new Error(`bitcoinPayToAddress should not be called`);
   }
+  public bitcoinGetBlockTime(): Promise<number> {
+    throw new Error(`bitcoinBlockTime should not be called`);
+  }
+  public ethereumGetTimestamp(): Promise<number> {
+    throw new Error("ethereumGetTimestamp should not be called");
+  }
   public ethereumDeployContract(): Promise<TransactionReceipt> {
     throw new Error(`ethereumDeployContract should not be called`);
   }

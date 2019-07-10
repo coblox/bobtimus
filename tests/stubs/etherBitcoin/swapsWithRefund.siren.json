@@ -1,0 +1,70 @@
+{
+  "class": ["swaps"],
+  "entities": [
+    {
+      "class": ["swap"],
+      "rel": ["item"],
+      "properties": {
+        "role": "Alice",
+        "protocol": "rfc003",
+        "status": "IN_PROGRESS",
+        "id": "399e8ff5-9729-479e-aad8-49b03f8fc5d5",
+        "counterparty": "QmPRNaiDUcJmnuJWUyoADoqvFotwaMRFKV2RyZ7ZVr1fqd",
+        "parameters": {
+          "alpha_asset": {
+            "name": "ether",
+            "quantity": "110000000000000000000"
+          },
+          "alpha_ledger": {
+            "name": "ethereum",
+            "network": "regtest"
+          },
+          "beta_asset": {
+            "name": "bitcoin",
+            "quantity": "100000000"
+          },
+          "beta_ledger": {
+            "name": "bitcoin",
+            "network": "regtest"
+          }
+        }
+      },
+      "links": [
+        {
+          "rel": ["self"],
+          "href": "/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5"
+        },
+        {
+          "rel": ["human-protocol-spec"],
+          "href": "https://github.com/comit-network/RFCs/blob/master/RFC-003-SWAP-Basic.md"
+        }
+      ],
+      "actions": [
+        {
+          "name": "refund",
+          "class": [],
+          "method": "GET",
+          "href": "/swaps/rfc003/022b4e38-61fd-431a-af44-6240c7ac44d7/refund",
+          "fields": [
+            {
+              "name": "address",
+              "class": ["bitcoin", "address"],
+              "type": "text"
+            },
+            {
+              "name": "fee_per_byte",
+              "class": ["bitcoin", "feePerByte"],
+              "type": "number"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "rel": ["self"],
+      "href": "/swaps"
+    }
+  ]
+}

@@ -25,11 +25,11 @@ export interface InitialiseRateParameters {
   ethereumWallet?: EthereumWallet;
   bitcoinWallet?: BitcoinWallet;
 }
-export function createTradeEvaluationService({
+export async function createTradeEvaluationService({
   config,
   ethereumWallet,
   bitcoinWallet
-}: InitialiseRateParameters): TradeEvaluationService {
+}: InitialiseRateParameters) {
   const testnetMarketMakerConfig = config.testnetMarketMaker;
   const staticRatesConfig = config.staticRates;
 
@@ -68,7 +68,10 @@ export function createTradeEvaluationService({
       ether: ethereumBalanceLookup
     };
 
-    return new TestnetMarketMaker(testnetMarketMakerConfig, balanceLookups);
+    return await TestnetMarketMaker.create(
+      testnetMarketMakerConfig,
+      balanceLookups
+    );
   } else {
     throw new Error("No rate strategy defined.");
   }

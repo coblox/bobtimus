@@ -6,20 +6,21 @@ import {
   SendTransactionToParams,
   SharedTransactionParams
 } from "../../src/wallets/ethereum";
+import resolveOrReject from "./resolveOrReject";
 import returnOrThrow from "./returnOrThrow";
 
 interface EthereumWalletStubArgs {
   address?: string;
   deployContractReceipt?: TransactionReceipt;
   sendTransactionToReceipt?: TransactionReceipt;
-  nominalBalance?: number;
+  nominalBalance?: Big;
 }
 
 export default class EthereumWalletStub implements EthereumWallet {
   public readonly address?: string;
   public readonly deployContractReceipt?: TransactionReceipt;
   public readonly sendTransactionToReceipt?: TransactionReceipt;
-  public readonly nominalBalance?: number;
+  public readonly nominalBalance?: Big;
 
   constructor({
     address,
@@ -37,7 +38,7 @@ export default class EthereumWalletStub implements EthereumWallet {
     // @ts-ignore
     params: SharedTransactionParams & DeployContractParams
   ): Promise<TransactionReceipt> {
-    return returnOrThrow(this, "deployContractReceipt");
+    return resolveOrReject(this, "deployContractReceipt");
   }
 
   public getAddress(): string {
@@ -45,13 +46,13 @@ export default class EthereumWalletStub implements EthereumWallet {
   }
 
   public getNominalBalance(): Promise<Big> {
-    return returnOrThrow(this, "nominalBalance");
+    return resolveOrReject(this, "nominalBalance");
   }
 
   public sendTransactionTo(
     // @ts-ignore
     params: SharedTransactionParams & SendTransactionToParams
   ): Promise<TransactionReceipt> {
-    return returnOrThrow(this, "sendTransactionToReceipt");
+    return resolveOrReject(this, "sendTransactionToReceipt");
   }
 }

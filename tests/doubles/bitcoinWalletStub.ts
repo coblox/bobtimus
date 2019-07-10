@@ -2,20 +2,21 @@ import Big from "big.js";
 import { Network } from "bitcoinjs-lib";
 import { Satoshis } from "../../src/bitcoin/blockchain";
 import { BitcoinWallet } from "../../src/wallets/bitcoin";
+import resolveOrReject from "./resolveOrReject";
 import returnOrThrow from "./returnOrThrow";
 
 interface BitcoinWalletStubArgs {
   network?: Network;
   address?: string;
   payToAdressTransactionId?: string;
-  nominalBalance?: number;
+  nominalBalance?: Big;
 }
 
 export default class BitcoinWalletStub implements BitcoinWallet {
   public readonly network?: Network;
   public readonly address?: string;
   public readonly payToAdressTransactionId?: string;
-  public readonly nominalBalance?: number;
+  public readonly nominalBalance?: Big;
 
   constructor({
     network,
@@ -45,7 +46,7 @@ export default class BitcoinWalletStub implements BitcoinWallet {
     // @ts-ignore
     feeSatPerByte: Satoshis
   ): Promise<string> {
-    return returnOrThrow(this, "payToAdressTransactionId");
+    return resolveOrReject(this, "payToAdressTransactionId");
   }
 
   public getNominalBalance(): Big {

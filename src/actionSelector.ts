@@ -61,7 +61,7 @@ export class ActionSelector {
     }
 
     if (acceptAction && !this.wasReturned(acceptAction)) {
-      if (await this.shouldSelectAccept(swap)) {
+      if (await this.isAcceptable(swap)) {
         this.selectedActions.push(acceptAction);
         return acceptAction;
       } else if (declineAction && !this.wasReturned(declineAction)) {
@@ -78,7 +78,7 @@ export class ActionSelector {
     return undefined;
   }
 
-  private shouldSelectAccept(swap: Swap): Promise<boolean> {
+  private isAcceptable(swap: Swap): Promise<boolean> {
     const alphaLedger = toLedger(swap.properties.parameters.alpha_ledger.name);
     const betaLedger = toLedger(swap.properties.parameters.beta_ledger.name);
     const alphaAsset = toAsset(swap.properties.parameters.alpha_asset.name);

@@ -1,7 +1,7 @@
 import Big from "big.js";
 import BN = require("bn.js");
 import { Config } from "../../src/config";
-import { getRateService } from "../../src/rates/tradeEvaluationService";
+import { createTradeEvaluationService } from "../../src/rates/tradeEvaluationService";
 import BitcoinWalletStub from "../doubles/bitcoinWalletStub";
 import EthereumWalletStub from "../doubles/ethereumWalletStub";
 
@@ -17,7 +17,7 @@ describe("Test TradeEvaluationService module", () => {
   it("should load the static rate if present in configuration", () => {
     const config = Config.fromFile("./tests/configs/staticRates.toml");
     console.log(config);
-    const rates = getRateService({
+    const rates = createTradeEvaluationService({
       config,
       bitcoinWallet,
       ethereumWallet
@@ -28,7 +28,7 @@ describe("Test TradeEvaluationService module", () => {
 
   it("should set the marketmaker if no rates defined in the config", () => {
     const config = Config.fromFile("./tests/configs/testnetMarketMaker.toml");
-    const rates = getRateService({
+    const rates = createTradeEvaluationService({
       config,
       bitcoinWallet,
       ethereumWallet
@@ -80,7 +80,7 @@ describe("Test TradeEvaluationService module", () => {
     });
 
     expect(() => {
-      getRateService({
+      createTradeEvaluationService({
         config,
         bitcoinWallet,
         ethereumWallet
@@ -118,7 +118,7 @@ describe("Test TradeEvaluationService module", () => {
     });
 
     expect(() =>
-      getRateService({
+      createTradeEvaluationService({
         config,
         bitcoinWallet,
         ethereumWallet

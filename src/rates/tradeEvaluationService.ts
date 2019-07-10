@@ -25,7 +25,7 @@ export interface InitialiseRateParameters {
   ethereumWallet?: EthereumWallet;
   bitcoinWallet?: BitcoinWallet;
 }
-export function getRateService({
+export function createTradeEvaluationService({
   config,
   ethereumWallet,
   bitcoinWallet

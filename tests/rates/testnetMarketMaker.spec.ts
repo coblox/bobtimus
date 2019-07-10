@@ -36,7 +36,10 @@ describe("Test the TestnetMarketMaker module", () => {
       { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       createMockBalanceLookups(100, 1000)
     );
-    const amounts = await marketMaker.getAmountsToPublish(buyAsset, sellAsset);
+    const amounts = await marketMaker.calculateAmountsToPublish(
+      buyAsset,
+      sellAsset
+    );
     expect(amounts).toBeDefined();
     const {
       // @ts-ignore: amounts are defined
@@ -54,7 +57,7 @@ describe("Test the TestnetMarketMaker module", () => {
       createMockBalanceLookups(100, 0)
     );
     await expect(
-      marketMaker.getAmountsToPublish(Asset.Bitcoin, Asset.Ether)
+      marketMaker.calculateAmountsToPublish(Asset.Bitcoin, Asset.Ether)
     ).rejects.toThrowError("Insufficient funds");
   });
 
@@ -79,7 +82,10 @@ describe("Test the TestnetMarketMaker module", () => {
       { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       createMockBalanceLookups(100, 1000)
     );
-    const amounts = await marketMaker.getAmountsToPublish(buyAsset, sellAsset);
+    const amounts = await marketMaker.calculateAmountsToPublish(
+      buyAsset,
+      sellAsset
+    );
     expect(amounts).toBeDefined();
     const {
       // @ts-ignore: amounts are defined
@@ -103,7 +109,10 @@ describe("Test the TestnetMarketMaker module", () => {
       createMockBalanceLookups(100, 1000)
     );
 
-    const amounts = await marketMaker.getAmountsToPublish(buyAsset, sellAsset);
+    const amounts = await marketMaker.calculateAmountsToPublish(
+      buyAsset,
+      sellAsset
+    );
     expect(amounts).toBeDefined();
     const {
       // @ts-ignore: amounts are defined

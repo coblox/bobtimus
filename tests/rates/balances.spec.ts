@@ -6,7 +6,6 @@ describe("Balances tests", () => {
   let bitcoinBalance = -1;
   let ethereumBalance = -1;
 
-  let balances: Balances;
   const lowFundsThresholdPercentage = 20;
 
   async function createMockBalances() {
@@ -14,7 +13,7 @@ describe("Balances tests", () => {
       bitcoin: () => Promise.resolve(new Big(bitcoinBalance)),
       ether: () => Promise.resolve(new Big(ethereumBalance))
     };
-    balances = await Balances.create(
+    return await Balances.create(
       mockBalanceLookups,
       lowFundsThresholdPercentage
     );
@@ -23,7 +22,7 @@ describe("Balances tests", () => {
   it("Should return the changed balance after the balance changed", async () => {
     bitcoinBalance = 1;
     ethereumBalance = 2;
-    await createMockBalances();
+    const balances = await createMockBalances();
 
     expect(await balances.getBalance(Asset.Bitcoin)).toEqual(new Big(1));
     expect(await balances.getBalance(Asset.Ether)).toEqual(new Big(2));
@@ -38,7 +37,7 @@ describe("Balances tests", () => {
   it("Should return the original balance after the balance changed", async () => {
     bitcoinBalance = 1;
     ethereumBalance = 2;
-    await createMockBalances();
+    const balances = await createMockBalances();
 
     expect(await balances.getOriginalBalance(Asset.Bitcoin)).toEqual(
       new Big(1)
@@ -56,14 +55,14 @@ describe("Balances tests", () => {
 
   it("Should return insufficient funds if funds are 0", async () => {
     bitcoinBalance = 0;
-    await createMockBalances();
+    const balances = await createMockBalances();
 
     expect(await balances.isSufficientFunds(Asset.Bitcoin)).toBeFalsy();
   });
 
   it("Should return insufficient funds if balance minus trade amount is equal or below 0", async () => {
     bitcoinBalance = 1;
-    await createMockBalances();
+    const balances = await createMockBalances();
 
     expect(
       await balances.isSufficientFunds(Asset.Bitcoin, new Big(1.0001))
@@ -72,7 +71,7 @@ describe("Balances tests", () => {
 
   it("Should return low funds if balance is below the threshold", async () => {
     bitcoinBalance = 10;
-    await createMockBalances();
+    const balances = await createMockBalances();
     bitcoinBalance = 1;
     expect(await balances.isLowBalance(Asset.Bitcoin)).toBeTruthy();
     bitcoinBalance = 2;
@@ -81,7 +80,7 @@ describe("Balances tests", () => {
 
   it("Should not return low funds if balance is over the threshold", async () => {
     bitcoinBalance = 10;
-    await createMockBalances();
+    const balances = await createMockBalances();
     bitcoinBalance = 2.1;
 
     expect(await balances.isLowBalance(Asset.Bitcoin)).toBeFalsy();

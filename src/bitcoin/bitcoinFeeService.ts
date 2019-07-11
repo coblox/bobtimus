@@ -41,9 +41,10 @@ export class BitcoinFeeService {
       return fee;
     } catch (err) {
       logger.info(
-        `Could not retrieve fees from Bitcoin feeservice: ${err}, falling back to default fee ${
+        `Could not retrieve fees from Bitcoin feeservice, falling back to default fee ${
           this.defaultFee
-        }`
+        }`,
+        err
       );
       return this.defaultFee;
     }

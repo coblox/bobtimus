@@ -37,8 +37,11 @@ export class EthereumGasPriceService {
       }
       return new BN(gasPrice);
     } catch (err) {
-      logger.info(`Could not retrieve fees from Ethereum feeservice: ${err}, 
-        falling back to default gas price ${this.defaultGasPrice}`);
+      logger.info(
+        `Could not retrieve fees from Ethereum feeservice, 
+        falling back to default gas price ${this.defaultGasPrice}`,
+        err
+      );
       return this.defaultGasPrice;
     }
   }

@@ -46,7 +46,7 @@ export function createTradeEvaluationService({
           return bitcoinWallet.getNominalBalance();
         }
       } catch (e) {
-        logger.error("Bitcoin balance not found");
+        logger.error("Bitcoin balance not found", e);
       }
 
       return Promise.resolve(new Big(0));
@@ -57,7 +57,7 @@ export function createTradeEvaluationService({
         try {
           return ethereumWallet.getNominalBalance();
         } catch (e) {
-          logger.error("Ethereum balance not found");
+          logger.error("Ethereum balance not found", e);
         }
       }
       return Promise.resolve(new Big(0));

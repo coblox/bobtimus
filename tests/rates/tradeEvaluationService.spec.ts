@@ -1,3 +1,4 @@
+import Big from "big.js";
 import BN = require("bn.js");
 import { Config } from "../../src/config";
 import { getRateService } from "../../src/rates/tradeEvaluationService";
@@ -6,11 +7,11 @@ import EthereumWalletStub from "../doubles/ethereumWalletStub";
 
 describe("Test TradeEvaluationService module", () => {
   const bitcoinWallet = new BitcoinWalletStub({
-    nominalBalance: 1
+    nominalBalance: new Big(1)
   });
 
   const ethereumWallet = new EthereumWalletStub({
-    nominalBalance: 1
+    nominalBalance: new Big(1)
   });
 
   it("should load the static rate if present in configuration", () => {

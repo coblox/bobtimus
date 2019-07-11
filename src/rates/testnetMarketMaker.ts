@@ -66,7 +66,7 @@ export default class TestnetMarketMaker implements TradeEvaluationService {
    * @param {string} sellAsset The asset to sell
    * @return {buyNominalAmount: number, sellNominalAmount: number} The buy and sell amounts to publish (in nominal)
    */
-  public async getAmountsToPublish(
+  public async calculateAmountsToPublish(
     buyAsset: Asset,
     sellAsset: Asset
   ): Promise<{ buyNominalAmount: Big; sellNominalAmount: Big }> {

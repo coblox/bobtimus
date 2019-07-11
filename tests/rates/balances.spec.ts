@@ -1,43 +1,51 @@
 import Big from "big.js";
 import Asset from "../../src/asset";
-import Balances, { BalanceLookups } from "../../src/rates/balances";
+import Balances from "../../src/rates/balances";
 
+function balance(balance: number) {
+  return Promise.resolve(new Big(balance));
+}
+
+// Explanation of how these tests work:
+// The arrow functions passed to `Balances.create` close over the local variables `bitcoinBalance` and `etherBalance` and
+// thus allow us to _change_ the balance after `Balances` has been constructed because the closure will be re-evaluated
+// on every call to `Balances.getBalance`
 describe("Balances tests", () => {
-  let bitcoinBalance = -1;
-  let ethereumBalance = -1;
-
   const lowFundsThresholdPercentage = 20;
 
-  async function createMockBalances() {
-    const mockBalanceLookups: BalanceLookups = {
-      bitcoin: () => Promise.resolve(new Big(bitcoinBalance)),
-      ether: () => Promise.resolve(new Big(ethereumBalance))
-    };
-    return await Balances.create(
-      mockBalanceLookups,
+  it("Should return the changed balance after the balance changed", async () => {
+    let bitcoinBalance = 1;
+    let etherBalance = 2;
+
+    const balances = await Balances.create(
+      {
+        bitcoin: () => balance(bitcoinBalance),
+        ether: () => balance(etherBalance)
+      },
       lowFundsThresholdPercentage
     );
-  }
-
-  it("Should return the changed balance after the balance changed", async () => {
-    bitcoinBalance = 1;
-    ethereumBalance = 2;
-    const balances = await createMockBalances();
 
     expect(await balances.getBalance(Asset.Bitcoin)).toEqual(new Big(1));
     expect(await balances.getBalance(Asset.Ether)).toEqual(new Big(2));
 
     bitcoinBalance = 0;
-    ethereumBalance = 0;
+    etherBalance = 0;
 
     expect(await balances.getBalance(Asset.Bitcoin)).toEqual(new Big(0));
     expect(await balances.getBalance(Asset.Ether)).toEqual(new Big(0));
   });
 
   it("Should return the original balance after the balance changed", async () => {
-    bitcoinBalance = 1;
-    ethereumBalance = 2;
-    const balances = await createMockBalances();
+    let bitcoinBalance = 1;
+    let etherBalance = 2;
+
+    const balances = await Balances.create(
+      {
+        bitcoin: () => balance(bitcoinBalance),
+        ether: () => balance(etherBalance)
+      },
+      lowFundsThresholdPercentage
+    );
 
     expect(await balances.getOriginalBalance(Asset.Bitcoin)).toEqual(
       new Big(1)
@@ -45,7 +53,7 @@ describe("Balances tests", () => {
     expect(await balances.getOriginalBalance(Asset.Ether)).toEqual(new Big(2));
 
     bitcoinBalance = 0;
-    ethereumBalance = 0;
+    etherBalance = 0;
 
     expect(await balances.getOriginalBalance(Asset.Bitcoin)).toEqual(
       new Big(1)
@@ -54,15 +62,25 @@ describe("Balances tests", () => {
   });
 
   it("Should return insufficient funds if funds are 0", async () => {
-    bitcoinBalance = 0;
-    const balances = await createMockBalances();
+    const balances = await Balances.create(
+      {
+        bitcoin: () => balance(0),
+        ether: () => balance(0)
+      },
+      lowFundsThresholdPercentage
+    );
 
     expect(await balances.isSufficientFunds(Asset.Bitcoin)).toBeFalsy();
   });
 
   it("Should return insufficient funds if balance minus trade amount is equal or below 0", async () => {
-    bitcoinBalance = 1;
-    const balances = await createMockBalances();
+    const balances = await Balances.create(
+      {
+        bitcoin: () => balance(1),
+        ether: () => balance(0)
+      },
+      lowFundsThresholdPercentage
+    );
 
     expect(
       await balances.isSufficientFunds(Asset.Bitcoin, new Big(1.0001))
@@ -70,17 +88,33 @@ describe("Balances tests", () => {
   });
 
   it("Should return low funds if balance is below the threshold", async () => {
-    bitcoinBalance = 10;
-    const balances = await createMockBalances();
+    let bitcoinBalance = 10;
+
+    const balances = await Balances.create(
+      {
+        bitcoin: () => balance(bitcoinBalance),
+        ether: () => balance(0)
+      },
+      lowFundsThresholdPercentage
+    );
+
     bitcoinBalance = 1;
     expect(await balances.isLowBalance(Asset.Bitcoin)).toBeTruthy();
+
     bitcoinBalance = 2;
     expect(await balances.isLowBalance(Asset.Bitcoin)).toBeTruthy();
   });
 
   it("Should not return low funds if balance is over the threshold", async () => {
-    bitcoinBalance = 10;
-    const balances = await createMockBalances();
+    let bitcoinBalance = 10;
+
+    const balances = await Balances.create(
+      {
+        bitcoin: () => balance(bitcoinBalance),
+        ether: () => balance(0)
+      },
+      lowFundsThresholdPercentage
+    );
     bitcoinBalance = 2.1;
 
     expect(await balances.isLowBalance(Asset.Bitcoin)).toBeFalsy();

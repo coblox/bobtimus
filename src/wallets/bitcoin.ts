@@ -134,14 +134,16 @@ export class InternalBitcoinWallet implements BitcoinWallet {
   }
 
   public getNominalBalance(): Big {
-    let satBalance = new Big(0);
-    this.unspentOutputs.forEach((utxo: CsUtxo) => {
-      satBalance = satBalance.add(utxo.value);
-    });
+    const satBalance = Array.from(this.unspentOutputs.values()).reduce(
+      (sum, next) => sum.add(next.value),
+      new Big(0)
+    );
+
     const bitcoinBalance = toNominalUnit(Asset.Bitcoin, satBalance);
     if (!bitcoinBalance) {
       throw new Error("Internal Error: Bitcoin is not supported?");
     }
+
     return bitcoinBalance;
   }
 

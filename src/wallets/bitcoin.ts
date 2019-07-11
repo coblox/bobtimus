@@ -70,7 +70,7 @@ export interface BitcoinWallet {
 export class InternalBitcoinWallet implements BitcoinWallet {
   /// accountIndex is the account number (hardened) that will be passed to the bitcoin Wallet
   /// ie, m/i'. Best practice to use different accounts for different blockchain in case an extended
-  /// private key get leaked.
+  /// private key gets leaked.
   public static fromConfig(
     bitcoinConfig: BitcoinConfig,
     bitcoinBlockchain: BitcoinBlockchain,

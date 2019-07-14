@@ -1,0 +1,12 @@
+version: 1
+update_configs:
+  - package_manager: "javascript"
+    directory: "/"
+    update_schedule: "weekly"
+    default_labels:
+      - "dependencies"
+      - "automagically-mergify-this"
+    allowed_updates:
+      - match:
+          update_type: "all"
+          dependency_type: "direct"

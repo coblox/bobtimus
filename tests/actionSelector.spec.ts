@@ -4,6 +4,7 @@ import { ActionSelector } from "../src/actionSelector";
 import { Config, TomlConfig } from "../src/config";
 import StaticRates, { ConfigRates } from "../src/rates/staticRates";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
+import swapsErc20AcceptDeclineStub from "./stubs/bitcoinEther/swapsWithErc20AcceptDecline.siren.json";
 import swapsRedeemBitcoinEther from "./stubs/bitcoinEther/swapsWithRedeem.siren.json";
 import swapsFundEtherBitcoinStub from "./stubs/etherBitcoin/swapsWithFund.siren.json";
 import swapsRedeemRefundStub from "./stubs/etherBitcoin/swapsWithRedeemRefund.siren.json";
@@ -86,6 +87,18 @@ describe("Action selector tests: ", () => {
     const actionSelector = new ActionSelector(config, rates);
     const { entity, action } = extractEntityAndAction(
       swapsAcceptDeclineStub,
+      "decline"
+    );
+
+    const actionResponse = await actionSelector.selectActions(entity);
+    expect(actionResponse).toStrictEqual(action);
+    done();
+  });
+
+  it("Should emit decline because of unsupported trading pair", async done => {
+    const actionSelector = new ActionSelector(config, rates);
+    const { entity, action } = extractEntityAndAction(
+      swapsErc20AcceptDeclineStub,
       "decline"
     );
 

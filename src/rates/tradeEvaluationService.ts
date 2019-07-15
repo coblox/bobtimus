@@ -4,6 +4,7 @@ import Asset from "../asset";
 import { Config } from "../config";
 import { BitcoinWallet } from "../wallets/bitcoin";
 import { EthereumWallet } from "../wallets/ethereum";
+import Balances from "./balances";
 import StaticRates from "./staticRates";
 import TestnetMarketMaker from "./testnetMarketMaker";
 
@@ -25,11 +26,11 @@ export interface InitialiseRateParameters {
   ethereumWallet?: EthereumWallet;
   bitcoinWallet?: BitcoinWallet;
 }
-export function createTradeEvaluationService({
+export async function createTradeEvaluationService({
   config,
   ethereumWallet,
   bitcoinWallet
-}: InitialiseRateParameters): TradeEvaluationService {
+}: InitialiseRateParameters) {
   const testnetMarketMakerConfig = config.testnetMarketMaker;
   const staticRatesConfig = config.staticRates;
 
@@ -68,7 +69,12 @@ export function createTradeEvaluationService({
       ether: ethereumBalanceLookup
     };
 
-    return new TestnetMarketMaker(testnetMarketMakerConfig, balanceLookups);
+    const balances = await Balances.create(
+      balanceLookups,
+      config.lowBalanceThresholdPercentage
+    );
+
+    return new TestnetMarketMaker(testnetMarketMakerConfig, balances);
   } else {
     throw new Error("No rate strategy defined.");
   }

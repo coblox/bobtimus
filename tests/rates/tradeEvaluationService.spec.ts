@@ -14,7 +14,7 @@ describe("Test TradeEvaluationService module", () => {
     nominalBalance: new Big(1)
   });
 
-  it("should load the static rate if present in configuration", () => {
+  it("should load the static rate if present in configuration", async () => {
     const config = Config.fromFile("./tests/configs/staticRates.toml");
     const rates = createTradeEvaluationService({
       config,
@@ -22,10 +22,10 @@ describe("Test TradeEvaluationService module", () => {
       ethereumWallet
     });
 
-    expect(rates).toBeDefined();
+    await expect(rates).toBeDefined();
   });
 
-  it("should set the marketmaker if no rates defined in the config", () => {
+  it("should set the marketmaker if no rates defined in the config", async () => {
     const config = Config.fromFile("./tests/configs/testnetMarketMaker.toml");
     const rates = createTradeEvaluationService({
       config,
@@ -33,10 +33,10 @@ describe("Test TradeEvaluationService module", () => {
       ethereumWallet
     });
 
-    expect(rates).toBeDefined();
+    await expect(rates).toBeDefined();
   });
 
-  it("should throw if both rate strategies are present in the config file", () => {
+  it("should throw if both rate strategies are present in the config file", async () => {
     const config = new Config({
       comitNodeUrl: "http://localhost:8000",
       seedWords:
@@ -78,16 +78,16 @@ describe("Test TradeEvaluationService module", () => {
       }
     });
 
-    expect(() => {
+    await expect(
       createTradeEvaluationService({
         config,
         bitcoinWallet,
         ethereumWallet
-      });
-    }).toThrow(/Multiple rate strategies provided./);
+      })
+    ).rejects.toThrowError("Multiple rate strategies provided.");
   });
 
-  it("should throw if no rate strategy is present in the config file", () => {
+  it("should throw if no rate strategy is present in the config file", async () => {
     const config = new Config({
       comitNodeUrl: "http://localhost:8000",
       seedWords:
@@ -116,12 +116,12 @@ describe("Test TradeEvaluationService module", () => {
       }
     });
 
-    expect(() =>
+    await expect(
       createTradeEvaluationService({
         config,
         bitcoinWallet,
         ethereumWallet
       })
-    ).toThrowError(/No rate strategy defined./);
+    ).rejects.toThrowError("No rate strategy defined.");
   });
 });

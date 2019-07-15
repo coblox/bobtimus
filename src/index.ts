@@ -77,7 +77,7 @@ const config = Config.fromFile("./config.toml");
   } = await initBitcoin(config);
   const ethereumParams = await initEthereum(config);
 
-  const tradeEvaluationService = createTradeEvaluationService({
+  const tradeEvaluationService = await createTradeEvaluationService({
     config,
     ethereumWallet: ethereumParams.ethereumWallet,
     bitcoinWallet

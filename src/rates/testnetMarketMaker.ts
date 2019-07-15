@@ -1,10 +1,10 @@
 import Big from "big.js";
+import { getLogger } from "log4js";
 import Asset from "../asset";
+import Balances from "./balances";
 import { TradeAmounts, TradeEvaluationService } from "./tradeEvaluationService";
 
-export type BalanceLookups = {
-  [asset in Asset]: () => Promise<Big>; // Always nominal quantity
-};
+const logger = getLogger();
 
 export interface TestnetMarketMakerConfig {
   rateSpread: number;
@@ -32,7 +32,7 @@ export default class TestnetMarketMaker implements TradeEvaluationService {
   private readonly rateSpread: number;
   private readonly publishFraction: number;
   private readonly maxFraction: number;
-  private readonly balanceLookups: BalanceLookups;
+  private readonly balances: Balances;
 
   /** Initialize the TestnetMarketMaker class.
    *
@@ -40,13 +40,14 @@ export default class TestnetMarketMaker implements TradeEvaluationService {
    * @param {number} publishFraction Fraction of the sell asset balance that we publish for trades
    * @param {number} maxFraction Max fraction of the sell asset balance we are happy to trade (ie, trading nth of balance means that you can do n trades at the same time)
    * @param {BalanceLookups} balanceLookups Callbacks that returns the current balance of a given asset
+   * @param {Map<Asset, Big>} startupBalances The balance of each asset upon initialization of the market makes to be able to react on low funds.
    * @return {TestnetMarketMaker} The new MarketMaker object
    *
    * Note that {maxFraction} > {publishFraction} must be true or none of the published amounts will be accepted
    */
-  constructor(
+  public constructor(
     { rateSpread, publishFraction, maxFraction }: TestnetMarketMakerConfig,
-    balanceLookups: BalanceLookups
+    balanceLookups: Balances
   ) {
     if (maxFraction >= publishFraction) {
       throw new Error(
@@ -57,7 +58,7 @@ export default class TestnetMarketMaker implements TradeEvaluationService {
     this.rateSpread = rateSpread;
     this.publishFraction = publishFraction;
     this.maxFraction = maxFraction;
-    this.balanceLookups = balanceLookups;
+    this.balances = balanceLookups;
   }
 
   /** Provide the amounts to publish
@@ -70,9 +71,15 @@ export default class TestnetMarketMaker implements TradeEvaluationService {
     buyAsset: Asset,
     sellAsset: Asset
   ): Promise<{ buyNominalAmount: Big; sellNominalAmount: Big }> {
-    await this.checkSufficientFunds(sellAsset);
-    const buyBalance = await this.balanceLookups[buyAsset]();
-    const sellBalance = await this.balanceLookups[sellAsset]();
+    const sufficientFunds = await this.balances.isSufficientFunds(sellAsset);
+    if (!sufficientFunds) {
+      throw new Error(
+        `Insufficient funding of asset ${sellAsset} to publish amounts`
+      );
+    }
+
+    const buyBalance: Big = await this.balances.getBalance(buyAsset);
+    const sellBalance: Big = await this.balances.getBalance(sellAsset);
 
     const buyAmount = buyBalance
       .div(this.publishFraction)
@@ -95,9 +102,8 @@ export default class TestnetMarketMaker implements TradeEvaluationService {
     buyAsset,
     buyNominalAmount
   }: TradeAmounts) {
-    await this.checkSufficientFunds(sellAsset);
-    const buyBalance = await this.balanceLookups[buyAsset]();
-    const sellBalance = await this.balanceLookups[sellAsset]();
+    const buyBalance: Big = await this.balances.getBalance(buyAsset);
+    const sellBalance: Big = await this.balances.getBalance(sellAsset);
 
     const maxSellAmount = sellBalance.div(this.maxFraction);
 
@@ -105,16 +111,31 @@ export default class TestnetMarketMaker implements TradeEvaluationService {
       return false;
     }
 
+    const sufficientFunds = await this.balances.isSufficientFunds(
+      sellAsset,
+      sellNominalAmount
+    );
+    if (!sufficientFunds) {
+      logger.error(
+        `Insufficient funds, asset ${sellAsset} balance is ${this.balances.getBalance(
+          sellAsset
+        )} but trade requires ${sellNominalAmount}`
+      );
+      return false;
+    }
+
+    const lowFunds = await this.balances.isLowBalance(sellAsset);
+    if (lowFunds) {
+      logger.warn(
+        `Funds low on asset ${sellAsset}, only has ${this.balances.getOriginalBalance(
+          sellAsset
+        )} of balance left`
+      );
+    }
+
     const currentBuyRate = buyBalance.div(sellBalance);
     const tradeBuyRate = buyNominalAmount.div(sellNominalAmount);
 
     return tradeBuyRate >= currentBuyRate;
-  }
-
-  private async checkSufficientFunds(sellAsset: Asset) {
-    const balance = await this.balanceLookups[sellAsset]();
-    if (balance.eq(0)) {
-      throw new Error("Insufficient funds");
-    }
   }
 }

@@ -45,6 +45,7 @@ export interface TomlConfig {
     ethereum?: EthereumConfig;
   };
   maxRetries?: number;
+  lowBalanceThresholdPercentage?: number;
 }
 
 export class Config {
@@ -69,9 +70,13 @@ export class Config {
   public bitcoinConfig?: BitcoinConfig;
   public ethereumConfig?: EthereumConfig;
   public maxRetries: number;
+  public lowBalanceThresholdPercentage: number;
 
   constructor(tomlConfig: TomlConfig) {
     this.maxRetries = tomlConfig.maxRetries ? tomlConfig.maxRetries : 10;
+    this.lowBalanceThresholdPercentage = tomlConfig.lowBalanceThresholdPercentage
+      ? tomlConfig.lowBalanceThresholdPercentage
+      : 20;
 
     const ledgers = throwIfFalse(tomlConfig, "ledgers");
     this.bitcoinConfig = ledgers.bitcoin;

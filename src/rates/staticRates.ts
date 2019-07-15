@@ -13,7 +13,7 @@ export interface TradeAmounts {
 }
 
 export type ConfigRates = {
-  [buyAsset in Asset]: { [sellAsset in Asset]?: number }
+  [buyAsset in Asset]: { [sellAsset in Asset]?: number };
 };
 
 export default class StaticRates implements TradeEvaluationService {

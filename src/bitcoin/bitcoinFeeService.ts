@@ -31,9 +31,7 @@ export class BitcoinFeeService {
       const fee: number = response[strategy];
       if (!fee) {
         logger.info(
-          `Strategy not found ${strategy}, falling back to default fee ${
-            this.defaultFee
-          }`
+          `Strategy not found ${strategy}, falling back to default fee ${this.defaultFee}`
         );
         return this.defaultFee;
       }
@@ -41,9 +39,7 @@ export class BitcoinFeeService {
       return fee;
     } catch (err) {
       logger.info(
-        `Could not retrieve fees from Bitcoin feeservice, falling back to default fee ${
-          this.defaultFee
-        }`,
+        `Could not retrieve fees from Bitcoin feeservice, falling back to default fee ${this.defaultFee}`,
         err
       );
       return this.defaultFee;

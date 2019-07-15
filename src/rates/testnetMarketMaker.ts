@@ -3,7 +3,7 @@ import Asset from "../asset";
 import { TradeAmounts, TradeEvaluationService } from "./tradeEvaluationService";
 
 export type BalanceLookups = {
-  [asset in Asset]: () => Promise<Big> // Always nominal quantity
+  [asset in Asset]: () => Promise<Big>; // Always nominal quantity
 };
 
 export interface TestnetMarketMakerConfig {

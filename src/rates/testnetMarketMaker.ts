@@ -4,7 +4,7 @@ import { List } from "underscore";
 import Asset from "../asset";
 import { forAsset } from "../ledger";
 import Balances from "./balances";
-import { Trade, TradeAmountPair, TradeService } from "./tradeService";
+import { TradeAmountPair, TradeService } from "./tradeService";
 
 const logger = getLogger();
 
@@ -106,45 +106,44 @@ export default class TestnetMarketMaker implements TradeService {
    * @param {TradeAmountPair} tradeAmounts The proposed quantities for the trade
    * @return {boolean} True if the trade should proceed (rate and amounts are acceptable), False otherwise
    */
-  public async isTradeAcceptable({
-    sellAsset,
-    sellNominalAmount,
-    buyAsset,
-    buyNominalAmount
-  }: Trade) {
-    const buyBalance: Big = await this.balances.getBalance(buyAsset);
-    const sellBalance: Big = await this.balances.getBalance(sellAsset);
+  public async isTradeAcceptable({ buy, sell }: TradeAmountPair) {
+    const buyBalance: Big = await this.balances.getBalance(buy.asset);
+    const sellBalance: Big = await this.balances.getBalance(sell.asset);
 
     const maxSellAmount = sellBalance.div(this.maxFraction);
 
-    if (sellNominalAmount.gt(maxSellAmount)) {
+    if (sell.quantity.gt(maxSellAmount)) {
       return false;
     }
 
     const sufficientFunds = await this.balances.isSufficientFunds(
-      sellAsset,
-      sellNominalAmount
+      sell.asset,
+      sell.quantity
     );
     if (!sufficientFunds) {
       logger.error(
-        `Insufficient funds, asset ${sellAsset} balance is ${this.balances.getBalance(
-          sellAsset
-        )} but trade requires ${sellNominalAmount}`
+        `Insufficient funds, asset ${
+          sell.asset
+        } balance is ${this.balances.getBalance(
+          sell.asset
+        )} but trade requires ${sell.quantity}`
       );
       return false;
     }
 
-    const lowFunds = await this.balances.isLowBalance(sellAsset);
+    const lowFunds = await this.balances.isLowBalance(sell.asset);
     if (lowFunds) {
       logger.warn(
-        `Funds low on asset ${sellAsset}, only has ${this.balances.getOriginalBalance(
-          sellAsset
+        `Funds low on asset ${
+          sell.asset
+        }, only has ${this.balances.getOriginalBalance(
+          sell.asset
         )} of balance left`
       );
     }
 
     const currentBuyRate = buyBalance.div(sellBalance);
-    const tradeBuyRate = buyNominalAmount.div(sellNominalAmount);
+    const tradeBuyRate = buy.quantity.div(sell.quantity);
 
     return tradeBuyRate >= currentBuyRate;
   }

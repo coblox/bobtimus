@@ -3,7 +3,7 @@ import { getLogger } from "log4js";
 import { List } from "underscore";
 import Asset from "../asset";
 import Ledger from "../ledger";
-import { Trade, TradeAmountPair, TradeService } from "./tradeService";
+import { TradeAmountPair, TradeService } from "./tradeService";
 
 const logger = getLogger();
 
@@ -17,24 +17,19 @@ export default class StaticRates implements TradeService {
     this.configRates = configRates;
   }
 
-  public isTradeAcceptable({
-    buyAsset,
-    sellNominalAmount,
-    buyNominalAmount,
-    sellAsset
-  }: Trade) {
-    const rate = this.configRates[buyAsset][sellAsset];
+  public isTradeAcceptable({ buy, sell }: TradeAmountPair) {
+    const rate = this.configRates[buy.asset][sell.asset];
 
     if (!rate) {
       logger.warn(
-        `Rate not configured for buy: ${buyAsset}, sell: ${sellAsset}`
+        `Rate not configured for buy: ${buy.asset}, sell: ${sell.asset}`
       );
       return Promise.resolve(false);
     }
 
-    const maxSell = buyNominalAmount.mul(rate);
+    const maxSell = buy.quantity.mul(rate);
 
-    return Promise.resolve(maxSell.gte(sellNominalAmount));
+    return Promise.resolve(maxSell.gte(sell.quantity));
   }
 
   public calculateAmountsToPublish(): Promise<List<TradeAmountPair>> {

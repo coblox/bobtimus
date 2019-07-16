@@ -12,13 +12,6 @@ import TestnetMarketMaker from "./testnetMarketMaker";
 
 const logger = getLogger();
 
-export interface Trade {
-  buyAsset: Asset;
-  sellAsset: Asset;
-  buyNominalAmount: Big;
-  sellNominalAmount: Big;
-}
-
 export interface TradeAmount {
   ledger: Ledger;
   asset: Asset;
@@ -31,7 +24,7 @@ export interface TradeAmountPair {
 }
 
 export interface TradeService {
-  isTradeAcceptable: (trade: Trade) => Promise<boolean>;
+  isTradeAcceptable: (tradeAmountPair: TradeAmountPair) => Promise<boolean>;
   calculateAmountsToPublish: () => Promise<List<TradeAmountPair>>;
 }
 

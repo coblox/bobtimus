@@ -5,7 +5,7 @@ import { toAsset, toNominalUnit } from "./asset";
 import { Swap } from "./comitNode";
 import { Config } from "./config";
 import { toLedger } from "./ledger";
-import { TradeService } from "./rates/tradeService";
+import { TradeAmountPair, TradeService } from "./rates/tradeService";
 
 const logger = getLogger();
 
@@ -109,11 +109,17 @@ export class ActionSelector {
     }
 
     // Bob always buys Alpha
-    const trade = {
-      buyAsset: alphaAsset,
-      sellAsset: betaAsset,
-      buyNominalAmount: alphaNominalAmount,
-      sellNominalAmount: betaNominalAmount
+    const trade: TradeAmountPair = {
+      buy: {
+        asset: alphaAsset,
+        ledger: alphaLedger,
+        quantity: alphaNominalAmount
+      },
+      sell: {
+        asset: betaAsset,
+        ledger: betaLedger,
+        quantity: betaNominalAmount
+      }
     };
 
     return this.rates.isTradeAcceptable(trade);

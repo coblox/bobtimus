@@ -82,13 +82,21 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 0)
     );
 
+    const tradeAmountPair = {
+      buy: {
+        ledger: Ledger.Bitcoin,
+        asset: Asset.Bitcoin,
+        quantity: new Big(0.1)
+      },
+      sell: {
+        ledger: Ledger.Ethereum,
+        asset: Asset.Ether,
+        quantity: new Big(1)
+      }
+    };
+
     await expect(
-      marketMaker.isTradeAcceptable({
-        buyAsset: Asset.Bitcoin,
-        buyNominalAmount: new Big(0.1),
-        sellAsset: Asset.Ether,
-        sellNominalAmount: new Big(1)
-      })
+      marketMaker.isTradeAcceptable(tradeAmountPair)
     ).resolves.toBeFalsy();
   });
 
@@ -103,14 +111,7 @@ describe("Test the TestnetMarketMaker module", () => {
     );
     expect(amounts).toBeDefined();
 
-    await expect(
-      marketMaker.isTradeAcceptable({
-        sellAsset: amounts.sell.asset,
-        sellNominalAmount: amounts.sell.quantity,
-        buyAsset: amounts.buy.asset,
-        buyNominalAmount: amounts.buy.quantity
-      })
-    ).resolves.toBeTruthy();
+    await expect(marketMaker.isTradeAcceptable(amounts)).resolves.toBeTruthy();
   });
 
   it("accepts a trade that is more profitable than the acceptable rate", async () => {
@@ -124,15 +125,9 @@ describe("Test the TestnetMarketMaker module", () => {
       sellAsset
     );
     expect(amounts).toBeDefined();
+    amounts.buy.quantity = amounts.buy.quantity.add(1);
 
-    await expect(
-      marketMaker.isTradeAcceptable({
-        buyAsset: amounts.buy.asset,
-        buyNominalAmount: amounts.buy.quantity.add(1),
-        sellAsset: amounts.sell.asset,
-        sellNominalAmount: amounts.sell.quantity
-      })
-    ).resolves.toBeTruthy();
+    await expect(marketMaker.isTradeAcceptable(amounts)).resolves.toBeTruthy();
   });
 
   it("accepts a trade that uses max fraction", async () => {
@@ -141,15 +136,21 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
+    const tradeAmountPair = {
+      buy: {
+        ledger: Ledger.Bitcoin,
+        asset: Asset.Bitcoin,
+        quantity: new Big(1)
+      },
+      sell: {
+        ledger: Ledger.Ethereum,
+        asset: Asset.Ether,
+        quantity: new Big(10)
+      }
+    };
+
     await expect(
-      marketMaker.isTradeAcceptable(
-        {
-          buyAsset,
-          buyNominalAmount: new Big(1),
-          sellAsset,
-          sellNominalAmount: new Big(10)
-        } // 10 is the max fraction: 1000/100
-      )
+      marketMaker.isTradeAcceptable(tradeAmountPair)
     ).resolves.toBeTruthy();
   });
 
@@ -159,13 +160,21 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
+    const tradeAmountPair = {
+      buy: {
+        ledger: Ledger.Bitcoin,
+        asset: Asset.Bitcoin,
+        quantity: new Big(0.1)
+      },
+      sell: {
+        ledger: Ledger.Ethereum,
+        asset: Asset.Ether,
+        quantity: new Big(1.1)
+      }
+    };
+
     await expect(
-      marketMaker.isTradeAcceptable({
-        buyAsset,
-        buyNominalAmount: new Big(0.1),
-        sellAsset,
-        sellNominalAmount: new Big(1.1)
-      })
+      marketMaker.isTradeAcceptable(tradeAmountPair)
     ).resolves.toBeFalsy();
   });
 
@@ -175,15 +184,21 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
+    const tradeAmountPair = {
+      buy: {
+        ledger: Ledger.Bitcoin,
+        asset: Asset.Bitcoin,
+        quantity: new Big(10)
+      },
+      sell: {
+        ledger: Ledger.Ethereum,
+        asset: Asset.Ether,
+        quantity: new Big(11) // 10 is the max fraction: 1000/100
+      }
+    };
+
     await expect(
-      marketMaker.isTradeAcceptable(
-        {
-          buyAsset,
-          buyNominalAmount: new Big(10),
-          sellAsset,
-          sellNominalAmount: new Big(11)
-        } // 10 is the max fraction: 1000/100
-      )
+      marketMaker.isTradeAcceptable(tradeAmountPair)
     ).resolves.toBeFalsy();
   });
 

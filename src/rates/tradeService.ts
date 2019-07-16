@@ -1,7 +1,9 @@
 import Big from "big.js";
 import { getLogger } from "log4js";
+import { List } from "underscore";
 import Asset from "../asset";
 import { Config } from "../config";
+import Ledger from "../ledger";
 import { BitcoinWallet } from "../wallets/bitcoin";
 import { EthereumWallet } from "../wallets/ethereum";
 import Balances from "./balances";
@@ -10,15 +12,27 @@ import TestnetMarketMaker from "./testnetMarketMaker";
 
 const logger = getLogger();
 
-export interface TradeAmounts {
+export interface Trade {
   buyAsset: Asset;
   sellAsset: Asset;
   buyNominalAmount: Big;
   sellNominalAmount: Big;
 }
 
-export interface TradeEvaluationService {
-  isTradeAcceptable: (tradeAmounts: TradeAmounts) => Promise<boolean>;
+export interface TradeAmount {
+  ledger: Ledger;
+  asset: Asset;
+  quantity: number;
+}
+
+export interface TradeAmounts {
+  buy: TradeAmount;
+  sell: TradeAmount;
+}
+
+export interface TradeService {
+  isTradeAcceptable: (trade: Trade) => Promise<boolean>;
+  getAmountsToPublish: () => Promise<List<TradeAmounts>>;
 }
 
 export interface InitialiseRateParameters {
@@ -26,6 +40,7 @@ export interface InitialiseRateParameters {
   ethereumWallet?: EthereumWallet;
   bitcoinWallet?: BitcoinWallet;
 }
+
 export async function createTradeEvaluationService({
   config,
   ethereumWallet,

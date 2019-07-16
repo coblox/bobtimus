@@ -5,7 +5,7 @@ import { toAsset, toNominalUnit } from "./asset";
 import { Swap } from "./comitNode";
 import { Config } from "./config";
 import { toLedger } from "./ledger";
-import { TradeEvaluationService } from "./rates/tradeEvaluationService";
+import { TradeService } from "./rates/tradeService";
 
 const logger = getLogger();
 
@@ -14,9 +14,9 @@ Big.DP = 30;
 export class ActionSelector {
   private config: Config;
   private selectedActions: Action[];
-  private rates: TradeEvaluationService;
+  private rates: TradeService;
 
-  constructor(config: Config, rates: TradeEvaluationService) {
+  constructor(config: Config, rates: TradeService) {
     this.config = config;
     this.selectedActions = [];
     this.rates = rates;
@@ -109,14 +109,14 @@ export class ActionSelector {
     }
 
     // Bob always buys Alpha
-    const tradeAmounts = {
+    const trade = {
       buyAsset: alphaAsset,
       sellAsset: betaAsset,
       buyNominalAmount: alphaNominalAmount,
       sellNominalAmount: betaNominalAmount
     };
 
-    return this.rates.isTradeAcceptable(tradeAmounts);
+    return this.rates.isTradeAcceptable(trade);
   }
 
   private wasReturned(action: Action) {

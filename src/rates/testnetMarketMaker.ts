@@ -1,8 +1,9 @@
 import Big from "big.js";
 import { getLogger } from "log4js";
+import { List } from "underscore";
 import Asset from "../asset";
 import Balances from "./balances";
-import { TradeAmounts, TradeEvaluationService } from "./tradeEvaluationService";
+import { Trade, TradeAmounts, TradeService } from "./tradeService";
 
 const logger = getLogger();
 
@@ -28,7 +29,7 @@ export interface TestnetMarketMakerConfig {
  * The max amounts are a configurable fraction of the available balance, which is slightly bigger than the published amount
  *
  */
-export default class TestnetMarketMaker implements TradeEvaluationService {
+export default class TestnetMarketMaker implements TradeService {
   private readonly rateSpread: number;
   private readonly publishFraction: number;
   private readonly maxFraction: number;
@@ -101,7 +102,7 @@ export default class TestnetMarketMaker implements TradeEvaluationService {
     sellNominalAmount,
     buyAsset,
     buyNominalAmount
-  }: TradeAmounts) {
+  }: Trade) {
     const buyBalance: Big = await this.balances.getBalance(buyAsset);
     const sellBalance: Big = await this.balances.getBalance(sellAsset);
 
@@ -137,5 +138,9 @@ export default class TestnetMarketMaker implements TradeEvaluationService {
     const tradeBuyRate = buyNominalAmount.div(sellNominalAmount);
 
     return tradeBuyRate >= currentBuyRate;
+  }
+
+  public async getAmountsToPublish(): Promise<List<TradeAmounts>> {
+    throw new Error("not implemented");
   }
 }

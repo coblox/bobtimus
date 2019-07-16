@@ -185,4 +185,49 @@ describe("Test the TestnetMarketMaker module", () => {
       )
     ).resolves.toBeFalsy();
   });
+
+  it("Should return the amounts according to the balance", async () => {
+    const amountsMock = {
+      amounts: [
+        {
+          timestamp: "2019-07-15T21:45:59.12",
+          protocol: "rfc003",
+          buy: {
+            ledger: "ethereum",
+            asset: "ether",
+            quantity: "5"
+          },
+          sell: {
+            ledger: "bitcoin",
+            asset: "bitcoin",
+            quantity: "0.525"
+          }
+        },
+        {
+          timestamp: "2019-07-15T21:11:13.02",
+          buy: {
+            ledger: "bitcoin",
+            asset: "bitcoin",
+            quantity: "0.5"
+          },
+          sell: {
+            ledger: "ethereum",
+            asset: "ether",
+            quantity: "5.25"
+          },
+          protocol: "rfc003"
+        }
+      ]
+    };
+
+    const marketMaker = new TestnetMarketMaker(
+      { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
+      await createMockBalances(100, 1000)
+    );
+
+    const amounts = await marketMaker.getAmountsToPublish();
+
+    expect(amounts[0].buy).toEqual(amountsMock.amounts[0].buy);
+    expect(amounts[1].sell).toEqual(amountsMock.amounts[1].sell);
+  });
 });

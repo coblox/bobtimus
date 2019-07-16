@@ -1,11 +1,11 @@
 import Big from "big.js";
 import BN = require("bn.js");
 import { Config } from "../../src/config";
-import { createTradeEvaluationService } from "../../src/rates/tradeEvaluationService";
+import { createTradeEvaluationService } from "../../src/rates/tradeService";
 import BitcoinWalletStub from "../doubles/bitcoinWalletStub";
 import EthereumWalletStub from "../doubles/ethereumWalletStub";
 
-describe("Test TradeEvaluationService module", () => {
+describe("Test TradeService module", () => {
   const bitcoinWallet = new BitcoinWalletStub({
     nominalBalance: new Big(1)
   });

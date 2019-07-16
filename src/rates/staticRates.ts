@@ -1,22 +1,15 @@
-import Big from "big.js";
 import { getLogger } from "log4js";
+import { List } from "underscore";
 import Asset from "../asset";
-import { TradeEvaluationService } from "./tradeEvaluationService";
+import { Trade, TradeAmounts, TradeService } from "./tradeService";
 
 const logger = getLogger();
-
-export interface TradeAmounts {
-  buyAsset: Asset;
-  sellAsset: Asset;
-  buyNominalAmount: Big;
-  sellNominalAmount: Big;
-}
 
 export type ConfigRates = {
   [buyAsset in Asset]: { [sellAsset in Asset]?: number };
 };
 
-export default class StaticRates implements TradeEvaluationService {
+export default class StaticRates implements TradeService {
   private readonly configRates: ConfigRates;
   constructor(configRates: ConfigRates) {
     this.configRates = configRates;
@@ -27,7 +20,7 @@ export default class StaticRates implements TradeEvaluationService {
     sellNominalAmount,
     buyNominalAmount,
     sellAsset
-  }: TradeAmounts) {
+  }: Trade) {
     const rate = this.configRates[buyAsset][sellAsset];
 
     if (!rate) {
@@ -40,5 +33,9 @@ export default class StaticRates implements TradeEvaluationService {
     const maxSell = buyNominalAmount.mul(rate);
 
     return Promise.resolve(maxSell.gte(sellNominalAmount));
+  }
+
+  public getAmountsToPublish(): Promise<List<TradeAmounts>> {
+    throw new Error("not implemented");
   }
 }

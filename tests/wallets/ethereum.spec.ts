@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import utils from "ethereumjs-util";
+import { privateToAddress } from "ethereumjs-util";
 import Web3 from "web3";
 import { AbiItem, toWei } from "web3-utils";
 import { Web3EthereumWallet } from "../../src/wallets/ethereum";
@@ -11,7 +11,7 @@ import sleep from "../sleep";
 
 async function fundAddressOfPrivateKey(web3: Web3, privateKey: Buffer) {
   const initialFunding = new BN(web3.utils.toWei("10", "ether"));
-  const address = "0x" + utils.privateToAddress(privateKey).toString("hex");
+  const address = "0x" + privateToAddress(privateKey).toString("hex");
 
   const ethereumHarness = new EthereumHarness(web3);
   await ethereumHarness.fund(address, initialFunding);

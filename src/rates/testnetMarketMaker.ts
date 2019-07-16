@@ -2,8 +2,9 @@ import Big from "big.js";
 import { getLogger } from "log4js";
 import { List } from "underscore";
 import Asset from "../asset";
+import { forAsset } from "../ledger";
 import Balances from "./balances";
-import { Trade, TradeAmounts, TradeService } from "./tradeService";
+import { Trade, TradeAmountPair, TradeService } from "./tradeService";
 
 const logger = getLogger();
 
@@ -68,10 +69,10 @@ export default class TestnetMarketMaker implements TradeService {
    * @param {string} sellAsset The asset to sell
    * @return {buyNominalAmount: number, sellNominalAmount: number} The buy and sell amounts to publish (in nominal)
    */
-  public async calculateAmountsToPublish(
+  public async calculateAmountsToPublishForAsset(
     buyAsset: Asset,
     sellAsset: Asset
-  ): Promise<{ buyNominalAmount: Big; sellNominalAmount: Big }> {
+  ): Promise<TradeAmountPair> {
     const sufficientFunds = await this.balances.isSufficientFunds(sellAsset);
     if (!sufficientFunds) {
       throw new Error(
@@ -87,14 +88,22 @@ export default class TestnetMarketMaker implements TradeService {
       .mul(1 + this.rateSpread / 100);
 
     return {
-      buyNominalAmount: buyAmount,
-      sellNominalAmount: sellBalance.div(this.publishFraction)
+      buy: {
+        asset: buyAsset,
+        ledger: forAsset(buyAsset),
+        quantity: buyAmount
+      },
+      sell: {
+        asset: sellAsset,
+        ledger: forAsset(sellAsset),
+        quantity: sellBalance.div(this.publishFraction)
+      }
     };
   }
 
   /** Returns whether the proposed rate is above the acceptable rate
    *
-   * @param {TradeAmounts} tradeAmounts The proposed quantities for the trade
+   * @param {TradeAmountPair} tradeAmounts The proposed quantities for the trade
    * @return {boolean} True if the trade should proceed (rate and amounts are acceptable), False otherwise
    */
   public async isTradeAcceptable({
@@ -140,7 +149,16 @@ export default class TestnetMarketMaker implements TradeService {
     return tradeBuyRate >= currentBuyRate;
   }
 
-  public async getAmountsToPublish(): Promise<List<TradeAmounts>> {
-    throw new Error("not implemented");
+  public async calculateAmountsToPublish(): Promise<List<TradeAmountPair>> {
+    const tradePairs = new Array<TradeAmountPair>();
+
+    tradePairs.push(
+      await this.calculateAmountsToPublishForAsset(Asset.Bitcoin, Asset.Ether)
+    );
+    tradePairs.push(
+      await this.calculateAmountsToPublishForAsset(Asset.Ether, Asset.Bitcoin)
+    );
+
+    return tradePairs;
   }
 }

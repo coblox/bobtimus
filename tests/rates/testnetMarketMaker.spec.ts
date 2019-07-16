@@ -1,7 +1,10 @@
 import Big from "big.js";
+import { List } from "underscore";
 import Asset from "../../src/asset";
+import Ledger from "../../src/ledger";
 import Balances, { BalanceLookups } from "../../src/rates/balances";
 import TestnetMarketMaker from "../../src/rates/testnetMarketMaker";
+import { TradeAmountPair } from "../../src/rates/tradeService";
 
 async function createMockBalances(
   bitcoinBalance: number,
@@ -33,23 +36,32 @@ describe("Test the TestnetMarketMaker module", () => {
   });
 
   it("Returns the amounts to publish for buy and sell assets based on the balances, the configured published fraction and the rate spread", async () => {
+    const tradeAmountPair: TradeAmountPair = {
+      buy: {
+        ledger: Ledger.Bitcoin,
+        asset: Asset.Bitcoin,
+        quantity: new Big(0.525)
+      },
+      sell: {
+        ledger: Ledger.Ethereum,
+        asset: Asset.Ether,
+        quantity: new Big(5)
+      }
+    };
+
     const marketMaker = new TestnetMarketMaker(
       { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       await createMockBalances(100, 1000)
     );
-    const amounts = await marketMaker.calculateAmountsToPublish(
+
+    const amounts = await marketMaker.calculateAmountsToPublishForAsset(
       buyAsset,
       sellAsset
     );
     expect(amounts).toBeDefined();
-    const {
-      // @ts-ignore: amounts are defined
-      buyNominalAmount,
-      // @ts-ignore: amounts are defined
-      sellNominalAmount
-    } = amounts;
-    expect(sellNominalAmount).toEqual(new Big(5)); // Based on the publish fraction
-    expect(buyNominalAmount).toEqual(new Big(0.525));
+
+    expect(amounts.buy).toEqual(tradeAmountPair.buy); // Based on the publish fraction
+    expect(amounts.sell).toEqual(tradeAmountPair.sell);
   });
 
   it("Throws an error if the sell balance is zero when asking for amounts to publish", async () => {
@@ -58,7 +70,7 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 0)
     );
     await expect(
-      marketMaker.calculateAmountsToPublish(Asset.Bitcoin, Asset.Ether)
+      marketMaker.calculateAmountsToPublishForAsset(Asset.Bitcoin, Asset.Ether)
     ).rejects.toThrowError(
       "Insufficient funding of asset ether to publish amounts"
     );
@@ -85,23 +97,18 @@ describe("Test the TestnetMarketMaker module", () => {
       { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       await createMockBalances(100, 1000)
     );
-    const amounts = await marketMaker.calculateAmountsToPublish(
+    const amounts = await marketMaker.calculateAmountsToPublishForAsset(
       buyAsset,
       sellAsset
     );
     expect(amounts).toBeDefined();
-    const {
-      // @ts-ignore: amounts are defined
-      buyNominalAmount,
-      // @ts-ignore: amounts are defined
-      sellNominalAmount
-    } = amounts;
+
     await expect(
       marketMaker.isTradeAcceptable({
-        buyAsset,
-        buyNominalAmount,
-        sellAsset,
-        sellNominalAmount
+        sellAsset: amounts.sell.asset,
+        sellNominalAmount: amounts.sell.quantity,
+        buyAsset: amounts.buy.asset,
+        buyNominalAmount: amounts.buy.quantity
       })
     ).resolves.toBeTruthy();
   });
@@ -112,24 +119,18 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const amounts = await marketMaker.calculateAmountsToPublish(
+    const amounts = await marketMaker.calculateAmountsToPublishForAsset(
       buyAsset,
       sellAsset
     );
     expect(amounts).toBeDefined();
-    const {
-      // @ts-ignore: amounts are defined
-      buyNominalAmount,
-      // @ts-ignore: amounts are defined
-      sellNominalAmount
-    } = amounts;
 
     await expect(
       marketMaker.isTradeAcceptable({
-        buyAsset,
-        buyNominalAmount: buyNominalAmount.add(1),
-        sellAsset,
-        sellNominalAmount
+        buyAsset: amounts.buy.asset,
+        buyNominalAmount: amounts.buy.quantity.add(1),
+        sellAsset: amounts.sell.asset,
+        sellNominalAmount: amounts.sell.quantity
       })
     ).resolves.toBeTruthy();
   });
@@ -187,47 +188,41 @@ describe("Test the TestnetMarketMaker module", () => {
   });
 
   it("Should return the amounts according to the balance", async () => {
-    const amountsMock = {
-      amounts: [
-        {
-          timestamp: "2019-07-15T21:45:59.12",
-          protocol: "rfc003",
-          buy: {
-            ledger: "ethereum",
-            asset: "ether",
-            quantity: "5"
-          },
-          sell: {
-            ledger: "bitcoin",
-            asset: "bitcoin",
-            quantity: "0.525"
-          }
+    const tradeAmountPairs: List<TradeAmountPair> = [
+      {
+        buy: {
+          ledger: Ledger.Bitcoin,
+          asset: Asset.Bitcoin,
+          quantity: new Big(0.525)
         },
-        {
-          timestamp: "2019-07-15T21:11:13.02",
-          buy: {
-            ledger: "bitcoin",
-            asset: "bitcoin",
-            quantity: "0.5"
-          },
-          sell: {
-            ledger: "ethereum",
-            asset: "ether",
-            quantity: "5.25"
-          },
-          protocol: "rfc003"
+        sell: {
+          ledger: Ledger.Ethereum,
+          asset: Asset.Ether,
+          quantity: new Big(5)
         }
-      ]
-    };
+      },
+      {
+        buy: {
+          ledger: Ledger.Ethereum,
+          asset: Asset.Ether,
+          quantity: new Big(5.25)
+        },
+        sell: {
+          ledger: Ledger.Bitcoin,
+          asset: Asset.Bitcoin,
+          quantity: new Big(0.5)
+        }
+      }
+    ];
 
     const marketMaker = new TestnetMarketMaker(
       { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       await createMockBalances(100, 1000)
     );
 
-    const amounts = await marketMaker.getAmountsToPublish();
+    const amounts = await marketMaker.calculateAmountsToPublish();
 
-    expect(amounts[0].buy).toEqual(amountsMock.amounts[0].buy);
-    expect(amounts[1].sell).toEqual(amountsMock.amounts[1].sell);
+    expect(amounts[0].buy).toEqual(tradeAmountPairs[0].buy);
+    expect(amounts[1].sell).toEqual(tradeAmountPairs[1].sell);
   });
 });

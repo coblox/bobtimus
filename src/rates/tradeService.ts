@@ -22,17 +22,17 @@ export interface Trade {
 export interface TradeAmount {
   ledger: Ledger;
   asset: Asset;
-  quantity: number;
+  quantity: Big;
 }
 
-export interface TradeAmounts {
+export interface TradeAmountPair {
   buy: TradeAmount;
   sell: TradeAmount;
 }
 
 export interface TradeService {
   isTradeAcceptable: (trade: Trade) => Promise<boolean>;
-  getAmountsToPublish: () => Promise<List<TradeAmounts>>;
+  calculateAmountsToPublish: () => Promise<List<TradeAmountPair>>;
 }
 
 export interface InitialiseRateParameters {

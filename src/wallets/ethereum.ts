@@ -2,7 +2,7 @@ import Big from "big.js";
 import { bip32 } from "bitcoinjs-lib";
 import BN from "bn.js";
 import EthereumTx from "ethereumjs-tx";
-import utils from "ethereumjs-util";
+import { privateToAddress } from "ethereumjs-util";
 import { getLogger } from "log4js";
 import Web3 from "web3";
 import { TransactionReceipt } from "web3-core";
@@ -89,7 +89,7 @@ export class Web3EthereumWallet implements EthereumWallet {
   private constructor(web3: Web3, privateKey: Buffer, chainId: number) {
     this.web3 = web3;
     this.chainId = chainId;
-    this.account = "0x" + utils.privateToAddress(privateKey).toString("hex");
+    this.account = "0x" + privateToAddress(privateKey).toString("hex");
     this.privateKey = privateKey;
 
     // Why? Because: https://github.com/ethereum/web3.js/issues/2822

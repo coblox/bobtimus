@@ -97,4 +97,93 @@ describe("Config tests", () => {
     const config = Config.fromFile("./tests/configs/staticRates.toml");
     expect(config.maxRetries).toEqual(20);
   });
+
+  describe("bitcoin", () => {
+    const minimalConfig = {
+      comitNodeUrl: "http://localhost:9939",
+      lowBalanceThresholdPercentage: 0,
+      maxRetries: 0,
+      rates: {},
+      seedWords:
+        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"
+    };
+
+    // for now, coreRpc details are mandatory
+    // as soon as we add a 2nd way to connect bobtimus to the bitcoin network,
+    // 1. this test will be obsolete
+    // 2. we need a test that only one connector is specified
+    it("should fail if coreRpc is not provided", () => {
+      const configFn = () =>
+        new Config({
+          ...minimalConfig,
+          ledgers: {
+            bitcoin: {
+              fee: {
+                defaultFee: 10,
+                strategy: "foo"
+              },
+              network: "regtest"
+            }
+          }
+        });
+
+      expect(configFn).toThrowError(/coreRpc details must be provided/);
+    });
+
+    it("should fail if cookieFile and password are specified", () => {
+      const configFn = () =>
+        new Config({
+          ...minimalConfig,
+          ledgers: {
+            bitcoin: {
+              fee: {
+                defaultFee: 10,
+                strategy: "foo"
+              },
+              network: "regtest",
+              coreRpc: {
+                host: "localhost",
+                port: 18843,
+                auth: {
+                  cookieFile: "/etc/bitcoin/testnet3/.cookie",
+                  password: "youwouldntknow"
+                }
+              }
+            }
+          }
+        });
+
+      expect(configFn).toThrowError(
+        /specify either cookie file or username\/password/
+      );
+    });
+
+    it("should fail if cookieFile and username are specified", () => {
+      const configFn = () =>
+        new Config({
+          ...minimalConfig,
+          ledgers: {
+            bitcoin: {
+              fee: {
+                defaultFee: 10,
+                strategy: "foo"
+              },
+              network: "regtest",
+              coreRpc: {
+                host: "localhost",
+                port: 18843,
+                auth: {
+                  cookieFile: "/etc/bitcoin/testnet3/.cookie",
+                  username: "bitcoin"
+                }
+              }
+            }
+          }
+        });
+
+      expect(configFn).toThrowError(
+        /specify either cookie file or username\/password/
+      );
+    });
+  });
 });

@@ -39,11 +39,14 @@ const config = new Config({
   },
   ledgers: {
     bitcoin: {
-      type: "coreRpc",
-      rpcUsername: "bitcoin",
-      rpcPassword: "password",
-      rpcHost: "127.0.0.1",
-      rpcPort: 18443,
+      coreRpc: {
+        host: "127.0.0.1",
+        port: 18443,
+        auth: {
+          username: "bitcoin",
+          password: "password"
+        }
+      },
       network: "regtest",
       fee: {
         defaultFee: 10,

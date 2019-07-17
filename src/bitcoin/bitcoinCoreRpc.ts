@@ -2,7 +2,12 @@
 import Client from "bitcoin-core";
 import { Transaction } from "bitcoinjs-lib";
 import { getLogger } from "log4js";
-import { BitcoinConfig } from "../config";
+import {
+  BitcoindCoreRpcBasicAuth,
+  BitcoindCoreRpcConfig,
+  BitcoindCoreRpcCookieAuth
+} from "../config";
+import { BitcoindAuthCookie } from "./bitcoindAuthCookie";
 import { Bitcoin, BitcoinBlockchain, Satoshis, Utxo } from "./blockchain";
 
 const logger = getLogger();
@@ -46,34 +51,13 @@ interface RpcTransaction {
 }
 
 export class BitcoinCoreRpc implements BitcoinBlockchain {
-  public static fromConfig(config: BitcoinConfig): BitcoinCoreRpc {
-    if (config.type === "coreRpc") {
-      if (
-        !config.rpcUsername ||
-        !config.rpcPassword ||
-        !config.rpcHost ||
-        !config.rpcPort
-      ) {
-        throw new Error(
-          `rpcUsername(${
-            config.rpcUsername
-          }), rpcPassword(${!!config.rpcPassword}), rpcHost(${
-            config.rpcHost
-          }), rpcPort(${
-            config.rpcPort
-          }) are mandatory for coreRpc Bitcoin blockchain type`
-        );
-      }
+  public static fromConfig(config: BitcoindCoreRpcConfig): BitcoinCoreRpc {
+    const cookieFile = (config.auth as BitcoindCoreRpcCookieAuth).cookieFile;
+    const { username, password } = cookieFile
+      ? BitcoindAuthCookie.fromFile(cookieFile)
+      : (config.auth as BitcoindCoreRpcBasicAuth);
 
-      return new BitcoinCoreRpc(
-        config.rpcUsername,
-        config.rpcPassword,
-        config.rpcHost,
-        config.rpcPort
-      );
-    } else {
-      throw new Error("Bitcoin blockchain type not supported");
-    }
+    return new BitcoinCoreRpc(username, password, config.host, config.port);
   }
 
   private readonly bitcoinClient: any;

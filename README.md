@@ -33,11 +33,9 @@ Feature we will not do:
 
 1. Clone this repo: `git clone https://github.com/coblox/bobtimus.git`
 2. Install dependencies: `yarn`
-3. Copy the default config file to root: `cp ./tests/configs/default.toml ./config.toml`
-4. Modify the appropriate config parameters to ensure Bobtimus can connect to the blockchain nodes
-5. [Make up your own seed words](https://duckduckgo.com/?q=generate+BIP39) and update them in the config file
-6. Let's go: `DEBUG=bobtimus:* yarn run start`
-7. Fund Bitcoin and Ethereum wallets (addresses are printed at the start of the logs)
+3. Create a config file in the working dir of bobtimus (have a look at `tests/configs` for inspiration)
+4. Let's go: `yarn run start`
+5. Fund Bitcoin and Ethereum wallets (addresses are printed at the start of the logs)
 
 Note: The `seedWords` present in the config file are used to generate both Bitcoin and Ethereum HD wallets. Hence, Bobtimus will retain its balance even after a restart. 
 

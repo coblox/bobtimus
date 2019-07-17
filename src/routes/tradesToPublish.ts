@@ -3,17 +3,18 @@ import { Response } from "express";
 import { getLogger } from "log4js";
 import { BitcoinConfig } from "../config";
 import Ledger from "../ledger";
-import { TradeService } from "../rates/tradeService";
+import { Trade, TradeService } from "../rates/tradeService";
 import { EthereumWallet } from "../wallets/ethereum";
 
 const logger = getLogger();
+
+const previousTradesLookup: Map<string, Trade> = new Map<string, Trade>();
 
 export function getAmountsToPublishRoute(
   tradeService: TradeService,
   bitcoinConfig: BitcoinConfig,
   ethereumWallet: EthereumWallet,
-  peerId: string,
-  timestamp?: Date
+  peerId: string
 ) {
   // @ts-ignore
   return async (req: Request, res: Response) => {
@@ -41,7 +42,7 @@ export function getAmountsToPublishRoute(
         ],
         rates: trades.map(trade => {
           return {
-            timestamp: timestamp ? timestamp : trade.timestamp,
+            timestamp: getTradeTimestamp(trade),
             protocol: trade.protocol,
             buy: {
               ledger: trade.buy.ledger,
@@ -64,4 +65,32 @@ export function getAmountsToPublishRoute(
       res.send({ error: e.message });
     }
   };
+}
+
+function getTradeTimestamp(current: Trade): string {
+  const key =
+    current.buy.ledger +
+    current.buy.asset +
+    current.sell.ledger +
+    current.sell.asset;
+
+  const previous = previousTradesLookup.get(key);
+  if (!previous) {
+    previousTradesLookup.set(key, current);
+    return formatTimestamp(current.timestamp);
+  }
+
+  if (
+    current.sell.quantity.eq(previous.sell.quantity) &&
+    current.buy.quantity.eq(previous.buy.quantity)
+  ) {
+    return formatTimestamp(previous.timestamp);
+  }
+
+  previousTradesLookup.set(key, current);
+  return formatTimestamp(current.timestamp);
+}
+
+function formatTimestamp(timestamp: Date | undefined): string {
+  return timestamp ? timestamp.toUTCString() : new Date().toUTCString();
 }

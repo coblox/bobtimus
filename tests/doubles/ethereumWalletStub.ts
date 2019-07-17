@@ -14,6 +14,8 @@ interface EthereumWalletStubArgs {
   deployContractReceipt?: TransactionReceipt;
   sendTransactionToReceipt?: TransactionReceipt;
   nominalBalance?: Big;
+  chainId?: number;
+  lastBlockTimestamp?: number;
 }
 
 export default class EthereumWalletStub implements EthereumWallet {
@@ -21,17 +23,23 @@ export default class EthereumWalletStub implements EthereumWallet {
   public readonly deployContractReceipt?: TransactionReceipt;
   public readonly sendTransactionToReceipt?: TransactionReceipt;
   public readonly nominalBalance?: Big;
+  public readonly chainId?: number;
+  public readonly lastBlockTimestamp?: number;
 
   constructor({
     address,
     deployContractReceipt,
     sendTransactionToReceipt,
-    nominalBalance
+    nominalBalance,
+    chainId,
+    lastBlockTimestamp
   }: EthereumWalletStubArgs) {
     this.address = address;
     this.deployContractReceipt = deployContractReceipt;
     this.sendTransactionToReceipt = sendTransactionToReceipt;
     this.nominalBalance = nominalBalance;
+    this.chainId = chainId;
+    this.lastBlockTimestamp = lastBlockTimestamp;
   }
 
   public deployContract(
@@ -54,5 +62,13 @@ export default class EthereumWalletStub implements EthereumWallet {
     params: SharedTransactionParams & SendTransactionToParams
   ): Promise<TransactionReceipt> {
     return resolveOrReject(this, "sendTransactionToReceipt");
+  }
+
+  public getChainId(): number {
+    return returnOrThrow(this, "chainId");
+  }
+
+  public getLatestBlockTimestamp(): Promise<number> {
+    return resolveOrReject(this, "lastBlockTimestamp");
   }
 }

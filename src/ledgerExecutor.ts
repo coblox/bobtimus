@@ -11,7 +11,7 @@ import {
 import { hexToBuffer } from "./comitNode";
 import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import { BitcoinWallet } from "./wallets/bitcoin";
-import { Web3EthereumWallet } from "./wallets/ethereum";
+import { EthereumWallet } from "./wallets/ethereum";
 
 const logger = getLogger();
 
@@ -33,7 +33,7 @@ interface EthereumDeployContractParams {
 export interface LedgerExecutorParams {
   bitcoinBlockchain?: BitcoinBlockchain;
   bitcoinWallet?: BitcoinWallet;
-  ethereumWallet?: Web3EthereumWallet;
+  ethereumWallet?: EthereumWallet;
   bitcoinFeeService?: BitcoinFeeService;
   ethereumFeeService?: EthereumGasPriceService;
 }
@@ -63,7 +63,7 @@ export interface ILedgerExecutor {
 export class LedgerExecutor implements ILedgerExecutor {
   private readonly bitcoinBlockchain?: BitcoinBlockchain;
   private readonly bitcoinWallet?: BitcoinWallet;
-  private readonly ethereumWallet?: Web3EthereumWallet;
+  private readonly ethereumWallet?: EthereumWallet;
   private readonly bitcoinFeeService?: BitcoinFeeService;
   private readonly ethereumFeeService?: EthereumGasPriceService;
 

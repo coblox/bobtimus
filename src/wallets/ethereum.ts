@@ -42,7 +42,11 @@ export interface EthereumWallet {
 
   getAddress(): string;
 
+  getChainId(): number;
+
   getNominalBalance(): Promise<Big>;
+
+  getLatestBlockTimestamp(): Promise<number>;
 }
 
 export class Web3EthereumWallet implements EthereumWallet {
@@ -78,7 +82,7 @@ export class Web3EthereumWallet implements EthereumWallet {
   public static async newInstance(web3: Web3, privateKey: Buffer) {
     const chainId = await web3.eth.net.getId();
 
-    return new Web3EthereumWallet(web3, privateKey, chainId);
+    return new Web3EthereumWallet(web3, privateKey, chainId) as EthereumWallet;
   }
 
   private web3: Web3;

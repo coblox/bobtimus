@@ -82,6 +82,16 @@ export class ComitNode {
     return request(options).then(response => response.entities);
   }
 
+  public getMetaData(): Promise<Entity> {
+    const options = {
+      method: "GET",
+      url: this.config.prependUrlIfNeeded("/").toString(),
+      json: true
+    };
+
+    return request(options).then(response => response.entity);
+  }
+
   public request(method: any, url: string, data: any) {
     let options;
     if (method === "GET") {

@@ -1,6 +1,7 @@
 comitNodeUrl = "http://localhost:8000"
 seedWords = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"
 maxRetries = 20
+apiPort = 3000
 
 [rates.static]
 # If Bob buys Ether for Bitcoin, for 1 Ether, he wants to sell at most 0.0105 Bitcoins

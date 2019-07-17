@@ -1,10 +1,9 @@
 import Big from "big.js";
 import { getLogger } from "log4js";
-import { List } from "underscore";
 import Asset from "../asset";
 import { forAsset } from "../ledger";
 import Balances from "./balances";
-import { TradeAmountPair, TradeService } from "./tradeService";
+import { Trade, TradeService } from "./tradeService";
 
 const logger = getLogger();
 
@@ -63,20 +62,20 @@ export default class TestnetMarketMaker implements TradeService {
     this.balances = balanceLookups;
   }
 
-  /** Provide the amounts to publish
+  /** Provide the trades to publish
    *
-   * @param {string} buyAsset The asset to buy
-   * @param {string} sellAsset The asset to sell
-   * @return {buyNominalAmount: number, sellNominalAmount: number} The buy and sell amounts to publish (in nominal)
+   * @param {Asset} buyAsset The asset to buy
+   * @param {Asset} sellAsset The asset to sell
+   * @return {Trade} trade amounts and metadata to be published
    */
-  public async calculateAmountsToPublishForAsset(
+  public async prepareTradesToPublishForAsset(
     buyAsset: Asset,
     sellAsset: Asset
-  ): Promise<TradeAmountPair> {
+  ): Promise<Trade> {
     const sufficientFunds = await this.balances.isSufficientFunds(sellAsset);
     if (!sufficientFunds) {
       throw new Error(
-        `Insufficient funding of asset ${sellAsset} to publish amounts`
+        `Insufficient funding of asset ${sellAsset} to publish trades`
       );
     }
 
@@ -88,6 +87,8 @@ export default class TestnetMarketMaker implements TradeService {
       .mul(1 + this.rateSpread / 100);
 
     return {
+      protocol: "rfc003",
+      timestamp: new Date(),
       buy: {
         asset: buyAsset,
         ledger: forAsset(buyAsset),
@@ -103,10 +104,10 @@ export default class TestnetMarketMaker implements TradeService {
 
   /** Returns whether the proposed rate is above the acceptable rate
    *
-   * @param {TradeAmountPair} tradeAmounts The proposed quantities for the trade
+   * @param {Trade} tradeAmounts The proposed quantities for the trade
    * @return {boolean} True if the trade should proceed (rate and amounts are acceptable), False otherwise
    */
-  public async isTradeAcceptable({ buy, sell }: TradeAmountPair) {
+  public async isTradeAcceptable({ buy, sell }: Trade) {
     const buyBalance: Big = await this.balances.getBalance(buy.asset);
     const sellBalance: Big = await this.balances.getBalance(sell.asset);
 
@@ -148,16 +149,16 @@ export default class TestnetMarketMaker implements TradeService {
     return tradeBuyRate >= currentBuyRate;
   }
 
-  public async calculateAmountsToPublish(): Promise<List<TradeAmountPair>> {
-    const tradePairs = new Array<TradeAmountPair>();
+  public async prepareTradesToPublish(): Promise<Trade[]> {
+    const trades = new Array<Trade>();
 
-    tradePairs.push(
-      await this.calculateAmountsToPublishForAsset(Asset.Bitcoin, Asset.Ether)
+    trades.push(
+      await this.prepareTradesToPublishForAsset(Asset.Bitcoin, Asset.Ether)
     );
-    tradePairs.push(
-      await this.calculateAmountsToPublishForAsset(Asset.Ether, Asset.Bitcoin)
+    trades.push(
+      await this.prepareTradesToPublishForAsset(Asset.Ether, Asset.Bitcoin)
     );
 
-    return tradePairs;
+    return trades;
   }
 }

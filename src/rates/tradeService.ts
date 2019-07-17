@@ -1,6 +1,5 @@
 import Big from "big.js";
 import { getLogger } from "log4js";
-import { List } from "underscore";
 import Asset from "../asset";
 import { Config } from "../config";
 import Ledger from "../ledger";
@@ -18,14 +17,16 @@ export interface TradeAmount {
   quantity: Big;
 }
 
-export interface TradeAmountPair {
+export interface Trade {
+  protocol?: string;
+  timestamp?: Date;
   buy: TradeAmount;
   sell: TradeAmount;
 }
 
 export interface TradeService {
-  isTradeAcceptable: (tradeAmountPair: TradeAmountPair) => Promise<boolean>;
-  calculateAmountsToPublish: () => Promise<List<TradeAmountPair>>;
+  isTradeAcceptable: (trade: Trade) => Promise<boolean>;
+  prepareTradesToPublish: () => Promise<Trade[]>;
 }
 
 export interface InitialiseRateParameters {

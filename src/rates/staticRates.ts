@@ -1,9 +1,8 @@
 import Big from "big.js";
 import { getLogger } from "log4js";
-import { List } from "underscore";
 import Asset from "../asset";
 import Ledger from "../ledger";
-import { TradeAmountPair, TradeService } from "./tradeService";
+import { Trade, TradeService } from "./tradeService";
 
 const logger = getLogger();
 
@@ -17,7 +16,7 @@ export default class StaticRates implements TradeService {
     this.configRates = configRates;
   }
 
-  public isTradeAcceptable({ buy, sell }: TradeAmountPair) {
+  public isTradeAcceptable({ buy, sell }: Trade) {
     const rate = this.configRates[buy.asset][sell.asset];
 
     if (!rate) {
@@ -32,7 +31,7 @@ export default class StaticRates implements TradeService {
     return Promise.resolve(maxSell.gte(sell.quantity));
   }
 
-  public calculateAmountsToPublish(): Promise<List<TradeAmountPair>> {
+  public prepareTradesToPublish(): Promise<Trade[]> {
     const BTC_ETH = this.configRates.bitcoin.ether;
     const ETH_BTC = this.configRates.ether.bitcoin;
 
@@ -42,6 +41,8 @@ export default class StaticRates implements TradeService {
 
     return Promise.resolve([
       {
+        protocol: "rfc003",
+        timestamp: new Date(),
         buy: {
           ledger: Ledger.Bitcoin,
           asset: Asset.Bitcoin,
@@ -54,6 +55,8 @@ export default class StaticRates implements TradeService {
         }
       },
       {
+        protocol: "rfc003",
+        timestamp: new Date(),
         buy: {
           ledger: Ledger.Ethereum,
           asset: Asset.Ether,

@@ -33,6 +33,7 @@ export interface EthereumConfig {
 
 export interface TomlConfig {
   comitNodeUrl: string;
+  apiPort?: number;
   seedWords?: string;
   rates: {
     static?: ConfigRates;
@@ -64,6 +65,7 @@ export class Config {
   }
 
   public comitNodeUrl: string;
+  public apiPort: number;
   public staticRates?: ConfigRates;
   public testnetMarketMaker?: TestnetMarketMakerConfig;
   public seed: Buffer;
@@ -89,6 +91,7 @@ export class Config {
       : undefined;
 
     this.comitNodeUrl = throwIfFalse(tomlConfig, "comitNodeUrl");
+    this.apiPort = tomlConfig.apiPort ? tomlConfig.apiPort : 3000;
     this.seed = mnemonicToSeedSync(throwIfFalse(tomlConfig, "seedWords"));
   }
 

@@ -1,3 +1,4 @@
+import express = require("express");
 import { configure, getLogger } from "log4js";
 import { ActionExecutor } from "./actionExecutor";
 import { ActionSelector } from "./actionSelector";
@@ -9,12 +10,15 @@ import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import { DefaultFieldDataSource } from "./fieldDataSource";
 import { LedgerExecutor } from "./ledgerExecutor";
 import { createTradeEvaluationService } from "./rates/tradeService";
+import { getAmountsToPublishRoute } from "./routes/tradesToPublish";
 import { InternalBitcoinWallet } from "./wallets/bitcoin";
 import { Web3EthereumWallet } from "./wallets/ethereum";
 
 const logger = getLogger();
 const pollIntervalMillis = 10000;
 configure("./logconfig.json");
+
+const api = express();
 
 const initBitcoin = async (config: Config) => {
   if (!config.bitcoinConfig) {
@@ -77,7 +81,7 @@ const config = Config.fromFile("./config.toml");
   } = await initBitcoin(config);
   const ethereumParams = await initEthereum(config);
 
-  const tradeEvaluationService = await createTradeEvaluationService({
+  const tradeService = await createTradeEvaluationService({
     config,
     ethereumWallet: ethereumParams.ethereumWallet,
     bitcoinWallet
@@ -93,13 +97,19 @@ const config = Config.fromFile("./config.toml");
   const comitNode = new ComitNode(config);
   const datastore = new DefaultFieldDataSource(ledgerExecutorParams);
   const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
-  const actionSelector = new ActionSelector(config, tradeEvaluationService);
+  const actionSelector = new ActionSelector(config, tradeService);
 
   const actionExecutor = new ActionExecutor(
     comitNode,
     datastore,
     ledgerExecutor
   );
+
+  const comitNodeMetaData = await comitNode.getMetaData();
+  if (!comitNodeMetaData.properties || !comitNodeMetaData.properties.id) {
+    throw new Error("Could not retrieve peerId from comit-node");
+  }
+  const peerId = comitNodeMetaData.properties.id;
 
   const shoot = async () => {
     const swaps = await comitNode.getSwaps();
@@ -145,4 +155,24 @@ const config = Config.fromFile("./config.toml");
       bitcoinWallet.refreshUtxo();
     }, 60000);
   }
+
+  if (!config.bitcoinConfig) {
+    throw new Error("Bitcoin not initialized correctly");
+  }
+  if (!ethereumParams.ethereumWallet) {
+    throw new Error("Ethereum not initialized correctly");
+  }
+
+  api.get(
+    "/trades/publish",
+    getAmountsToPublishRoute(
+      tradeService,
+      config.bitcoinConfig,
+      ethereumParams.ethereumWallet,
+      peerId
+    )
+  );
+  api.listen(config.apiPort, () =>
+    console.log(`Bobtimus API exposed at port ${config.apiPort}`)
+  );
 })();

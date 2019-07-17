@@ -4,7 +4,7 @@ import Asset from "../../src/asset";
 import Ledger from "../../src/ledger";
 import Balances, { BalanceLookups } from "../../src/rates/balances";
 import TestnetMarketMaker from "../../src/rates/testnetMarketMaker";
-import { TradeAmountPair } from "../../src/rates/tradeService";
+import { Trade } from "../../src/rates/tradeService";
 
 async function createMockBalances(
   bitcoinBalance: number,
@@ -36,7 +36,7 @@ describe("Test the TestnetMarketMaker module", () => {
   });
 
   it("Returns the amounts to publish for buy and sell assets based on the balances, the configured published fraction and the rate spread", async () => {
-    const tradeAmountPair: TradeAmountPair = {
+    const trade: Trade = {
       buy: {
         ledger: Ledger.Bitcoin,
         asset: Asset.Bitcoin,
@@ -54,25 +54,25 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const amounts = await marketMaker.calculateAmountsToPublishForAsset(
+    const trades = await marketMaker.prepareTradesToPublishForAsset(
       buyAsset,
       sellAsset
     );
-    expect(amounts).toBeDefined();
+    expect(trades).toBeDefined();
 
-    expect(amounts.buy).toEqual(tradeAmountPair.buy); // Based on the publish fraction
-    expect(amounts.sell).toEqual(tradeAmountPair.sell);
+    expect(trades.buy).toEqual(trade.buy); // Based on the publish fraction
+    expect(trades.sell).toEqual(trade.sell);
   });
 
-  it("Throws an error if the sell balance is zero when asking for amounts to publish", async () => {
+  it("Throws an error if the sell balance is zero when asking for trades to publish", async () => {
     const marketMaker = new TestnetMarketMaker(
       { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       await createMockBalances(100, 0)
     );
     await expect(
-      marketMaker.calculateAmountsToPublishForAsset(Asset.Bitcoin, Asset.Ether)
+      marketMaker.prepareTradesToPublishForAsset(Asset.Bitcoin, Asset.Ether)
     ).rejects.toThrowError(
-      "Insufficient funding of asset ether to publish amounts"
+      "Insufficient funding of asset ether to publish trades"
     );
   });
 
@@ -82,7 +82,7 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 0)
     );
 
-    const tradeAmountPair = {
+    const trade = {
       buy: {
         ledger: Ledger.Bitcoin,
         asset: Asset.Bitcoin,
@@ -95,23 +95,21 @@ describe("Test the TestnetMarketMaker module", () => {
       }
     };
 
-    await expect(
-      marketMaker.isTradeAcceptable(tradeAmountPair)
-    ).resolves.toBeFalsy();
+    await expect(marketMaker.isTradeAcceptable(trade)).resolves.toBeFalsy();
   });
 
-  it("accepts a trade that uses the publish amounts", async () => {
+  it("accepts a trade that uses the publish trades", async () => {
     const marketMaker = new TestnetMarketMaker(
       { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       await createMockBalances(100, 1000)
     );
-    const amounts = await marketMaker.calculateAmountsToPublishForAsset(
+    const trades = await marketMaker.prepareTradesToPublishForAsset(
       buyAsset,
       sellAsset
     );
-    expect(amounts).toBeDefined();
+    expect(trades).toBeDefined();
 
-    await expect(marketMaker.isTradeAcceptable(amounts)).resolves.toBeTruthy();
+    await expect(marketMaker.isTradeAcceptable(trades)).resolves.toBeTruthy();
   });
 
   it("accepts a trade that is more profitable than the acceptable rate", async () => {
@@ -120,14 +118,14 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const amounts = await marketMaker.calculateAmountsToPublishForAsset(
+    const trades = await marketMaker.prepareTradesToPublishForAsset(
       buyAsset,
       sellAsset
     );
-    expect(amounts).toBeDefined();
-    amounts.buy.quantity = amounts.buy.quantity.add(1);
+    expect(trades).toBeDefined();
+    trades.buy.quantity = trades.buy.quantity.add(1);
 
-    await expect(marketMaker.isTradeAcceptable(amounts)).resolves.toBeTruthy();
+    await expect(marketMaker.isTradeAcceptable(trades)).resolves.toBeTruthy();
   });
 
   it("accepts a trade that uses max fraction", async () => {
@@ -136,7 +134,7 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const tradeAmountPair = {
+    const trade = {
       buy: {
         ledger: Ledger.Bitcoin,
         asset: Asset.Bitcoin,
@@ -149,9 +147,7 @@ describe("Test the TestnetMarketMaker module", () => {
       }
     };
 
-    await expect(
-      marketMaker.isTradeAcceptable(tradeAmountPair)
-    ).resolves.toBeTruthy();
+    await expect(marketMaker.isTradeAcceptable(trade)).resolves.toBeTruthy();
   });
 
   it("declines a trade whose rate is below the acceptable rate", async () => {
@@ -160,7 +156,7 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const tradeAmountPair = {
+    const trade = {
       buy: {
         ledger: Ledger.Bitcoin,
         asset: Asset.Bitcoin,
@@ -173,9 +169,7 @@ describe("Test the TestnetMarketMaker module", () => {
       }
     };
 
-    await expect(
-      marketMaker.isTradeAcceptable(tradeAmountPair)
-    ).resolves.toBeFalsy();
+    await expect(marketMaker.isTradeAcceptable(trade)).resolves.toBeFalsy();
   });
 
   it("declines a trade that sells above the max fraction", async () => {
@@ -184,7 +178,7 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const tradeAmountPair = {
+    const trade = {
       buy: {
         ledger: Ledger.Bitcoin,
         asset: Asset.Bitcoin,
@@ -197,13 +191,11 @@ describe("Test the TestnetMarketMaker module", () => {
       }
     };
 
-    await expect(
-      marketMaker.isTradeAcceptable(tradeAmountPair)
-    ).resolves.toBeFalsy();
+    await expect(marketMaker.isTradeAcceptable(trade)).resolves.toBeFalsy();
   });
 
-  it("Should return the amounts according to the balance", async () => {
-    const tradeAmountPairs: List<TradeAmountPair> = [
+  it("Should return the trades according to the balance", async () => {
+    const expected: List<Trade> = [
       {
         buy: {
           ledger: Ledger.Bitcoin,
@@ -235,9 +227,9 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const amounts = await marketMaker.calculateAmountsToPublish();
+    const trades = await marketMaker.prepareTradesToPublish();
 
-    expect(amounts[0].buy).toEqual(tradeAmountPairs[0].buy);
-    expect(amounts[1].sell).toEqual(tradeAmountPairs[1].sell);
+    expect(trades[0].buy).toEqual(expected[0].buy);
+    expect(trades[1].sell).toEqual(expected[1].sell);
   });
 });

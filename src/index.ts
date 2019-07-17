@@ -106,10 +106,27 @@ const config = Config.fromFile("./config.toml");
   );
 
   const comitNodeMetaData = await comitNode.getMetaData();
-  if (!comitNodeMetaData.properties || !comitNodeMetaData.properties.id) {
-    throw new Error("Could not retrieve peerId from comit-node");
+  if (!comitNodeMetaData) {
+    throw new Error("Could not retrieve meta-data from comit-node");
   }
-  const peerId = comitNodeMetaData.properties.id;
+  const peerId = comitNodeMetaData.id;
+
+  if (!config.bitcoinConfig) {
+    throw new Error("Bitcoin not initialized correctly");
+  }
+  if (!ethereumParams.ethereumWallet) {
+    throw new Error("Ethereum not initialized correctly");
+  }
+
+  api.get(
+    "/trades/publish",
+    getAmountsToPublishRoute(
+      tradeService,
+      config.bitcoinConfig,
+      ethereumParams.ethereumWallet,
+      peerId
+    )
+  );
 
   const shoot = async () => {
     const swaps = await comitNode.getSwaps();
@@ -149,29 +166,18 @@ const config = Config.fromFile("./config.toml");
     );
   }, pollIntervalMillis);
 
-  if (bitcoinWallet) {
-    await bitcoinWallet.refreshUtxo();
-    setInterval(() => {
-      bitcoinWallet.refreshUtxo();
-    }, 60000);
+  try {
+    if (bitcoinWallet) {
+      await bitcoinWallet.refreshUtxo();
+      setInterval(() => {
+        bitcoinWallet.refreshUtxo();
+      }, 60000);
+    }
+  } catch (e) {
+    logger.error(`Failed to refresh UTXO: ${e.message}`);
+    console.log(e.message);
   }
 
-  if (!config.bitcoinConfig) {
-    throw new Error("Bitcoin not initialized correctly");
-  }
-  if (!ethereumParams.ethereumWallet) {
-    throw new Error("Ethereum not initialized correctly");
-  }
-
-  api.get(
-    "/trades/publish",
-    getAmountsToPublishRoute(
-      tradeService,
-      config.bitcoinConfig,
-      ethereumParams.ethereumWallet,
-      peerId
-    )
-  );
   api.listen(config.apiPort, () =>
     console.log(`Bobtimus API exposed at port ${config.apiPort}`)
   );

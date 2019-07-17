@@ -32,6 +32,10 @@ export interface Swap {
   actions: Action[];
 }
 
+export interface ComitMetaData {
+  id: string;
+}
+
 export type LedgerAction =
   | {
       type: "bitcoin-send-amount-to-address";
@@ -82,14 +86,14 @@ export class ComitNode {
     return request(options).then(response => response.entities);
   }
 
-  public getMetaData(): Promise<Entity> {
+  public getMetaData(): Promise<ComitMetaData> {
     const options = {
       method: "GET",
       url: this.config.prependUrlIfNeeded("/").toString(),
       json: true
     };
 
-    return request(options).then(response => response.entity);
+    return request(options).then(response => response as ComitMetaData);
   }
 
   public request(method: any, url: string, data: any) {

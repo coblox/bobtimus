@@ -1,6 +1,7 @@
 import { Request } from "express";
 import { Response } from "express";
 import { getLogger } from "log4js";
+import { ComitMetadata } from "../comitNode";
 import { BitcoinConfig } from "../config";
 import Ledger from "../ledger";
 import { Trade, TradeService } from "../rates/tradeService";
@@ -14,13 +15,11 @@ export function getAmountsToPublishRoute(
   tradeService: TradeService,
   bitcoinConfig: BitcoinConfig,
   ethereumWallet: EthereumWallet,
-  peerId: string
+  comitMetadata: ComitMetadata
 ) {
   // @ts-ignore
   return async (req: Request, res: Response) => {
     try {
-      const trades = await tradeService.prepareTradesToPublish();
-
       if (!bitcoinConfig) {
         throw new Error("Bitcoin not configured correctly.");
       }
@@ -28,8 +27,15 @@ export function getAmountsToPublishRoute(
         throw new Error("Ethereum not configured correctly");
       }
 
+      const trades = await tradeService.prepareTradesToPublish();
+      const addressHint =
+        comitMetadata.listenAddresses.length > 0
+          ? comitMetadata.listenAddresses[0]
+          : undefined;
+
       const publishTradesResponse = {
-        peerId,
+        peerId: comitMetadata.id,
+        addressHint,
         ledgers: [
           {
             name: Ledger.Bitcoin,

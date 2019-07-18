@@ -1,5 +1,6 @@
 import Big from "big.js";
 import MockDate from "mockdate";
+import { ComitMetadata } from "../src/comitNode";
 import { BitcoinConfig, Config } from "../src/config";
 import Balances from "../src/rates/balances";
 import TestnetMarketMaker from "../src/rates/testnetMarketMaker";
@@ -24,6 +25,11 @@ function balance(balance: number) {
   return Promise.resolve(new Big(balance));
 }
 
+const comitMetadata = {
+  id: "somePeerId",
+  listenAddresses: ["/ip4/127.0.0.1/tcp/8011"]
+} as ComitMetadata;
+
 describe("Bobtimus API tests", () => {
   it("Should return the trade with the same timestamp if the quantities did not change", async () => {
     const bitcoinBalance = 100;
@@ -46,7 +52,7 @@ describe("Bobtimus API tests", () => {
       testnetMarketMaker,
       getBitcoinConfig(),
       ethereumWalletMock,
-      "somePeerId"
+      comitMetadata
     );
 
     const req = {
@@ -62,6 +68,7 @@ describe("Bobtimus API tests", () => {
 
     const expected = {
       peerId: "somePeerId",
+      addressHint: comitMetadata.listenAddresses[0],
       ledgers: [
         {
           name: "bitcoin",
@@ -138,7 +145,7 @@ describe("Bobtimus API tests", () => {
       testnetMarketMaker,
       getBitcoinConfig(),
       ethereumWalletMock,
-      "somePeerId"
+      comitMetadata
     );
 
     const req = {
@@ -154,6 +161,7 @@ describe("Bobtimus API tests", () => {
 
     const expected = {
       peerId: "somePeerId",
+      addressHint: comitMetadata.listenAddresses[0],
       ledgers: [
         {
           name: "bitcoin",

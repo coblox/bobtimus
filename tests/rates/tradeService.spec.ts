@@ -38,7 +38,7 @@ describe("Test TradeService module", () => {
 
   it("should throw if both rate strategies are present in the config file", async () => {
     const config = new Config({
-      comitNodeUrl: "http://localhost:8000",
+      cndUrl: "http://localhost:8000",
       seedWords:
         "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
       rates: {
@@ -89,7 +89,7 @@ describe("Test TradeService module", () => {
 
   it("should throw if no rate strategy is present in the config file", async () => {
     const config = new Config({
-      comitNodeUrl: "http://localhost:8000",
+      cndUrl: "http://localhost:8000",
       seedWords:
         "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
       rates: {},

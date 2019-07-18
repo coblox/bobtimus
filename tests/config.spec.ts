@@ -66,8 +66,10 @@ describe("Config tests", () => {
     expect(config.seed).toBeDefined();
     expect(config.seed).toEqual(seed);
 
-    expect(configAfter.comitNodeUrl).toBeDefined();
-    expect(configAfter.comitNodeUrl).toEqual(configBefore.comitNodeUrl);
+    expect(configAfter.cndUrl).toBeDefined();
+    expect(configAfter.cndUrl).toEqual(configBefore.cndUrl);
+    expect(configAfter.cndListenAddress).toBeDefined();
+    expect(configAfter.cndListenAddress).toEqual(configBefore.cndListenAddress);
     expect(configAfter.rates).toBeDefined();
     expect(configAfter.rates).toEqual(configBefore.rates);
     expect(configAfter.ledgers).toBeDefined();

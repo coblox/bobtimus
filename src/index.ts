@@ -109,7 +109,6 @@ const config = Config.fromFile("./config.toml");
   if (!comitNodeMetadata) {
     throw new Error("Could not retrieve meta-data from comit-node");
   }
-  const peerId = comitNodeMetadata.id;
 
   if (!config.bitcoinConfig) {
     throw new Error("Bitcoin not initialized correctly");
@@ -124,7 +123,7 @@ const config = Config.fromFile("./config.toml");
       tradeService,
       config.bitcoinConfig,
       ethereumParams.ethereumWallet,
-      peerId
+      comitNodeMetadata
     )
   );
 

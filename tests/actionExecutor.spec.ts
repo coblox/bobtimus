@@ -28,7 +28,7 @@ import refundBitcoin from "./stubs/refundBitcoin.json";
 import refundEther from "./stubs/refundEther.json";
 
 const config = new Config({
-  comitNodeUrl: "http://localhost:8000",
+  cndUrl: "http://localhost:8000",
   seedWords:
     "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
   rates: {

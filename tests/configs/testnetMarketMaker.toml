@@ -1,8 +1,9 @@
-comitNodeUrl = "http://localhost:8000"
+cndUrl = "http://localhost:8000"
+cndListenAddress = "/ip4/127.0.0.1/tcp/8011"
+apiPort = 3000
 seedWords = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"
 maxRetries = 20
 lowBalanceThresholdPercentage = 20
-apiPort = 3000
 
 [rates.marketMaker.testnet]
 rateSpread = 5

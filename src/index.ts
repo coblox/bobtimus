@@ -119,7 +119,7 @@ const config = Config.fromFile("./config.toml");
   }
 
   api.get(
-    "/trades/publish",
+    "/trades",
     getAmountsToPublishRoute(
       tradeService,
       config.bitcoinConfig,
@@ -174,7 +174,7 @@ const config = Config.fromFile("./config.toml");
       }, 60000);
     }
   } catch (e) {
-    logger.error(`Failed to refresh UTXO: ${e.message}`);
+    logger.error("Failed to refresh UTXO:", e.message);
     console.log(e.message);
   }
 

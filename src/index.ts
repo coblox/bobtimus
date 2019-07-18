@@ -118,7 +118,7 @@ const config = Config.fromFile("./config.toml");
 
   const comitNodeMetadata = await comitNode.getMetadata();
   if (!comitNodeMetadata) {
-    throw new Error("Could not retrieve meta-data from comit-node");
+    throw new Error("Could not retrieve metadata from comit-node");
   }
 
   if (!config.bitcoinConfig) {

@@ -30,21 +30,20 @@ describe("Comit Node library tests", () => {
 
   function mockComitMetadata(url: string) {
     const id = "QmYaEdADq9nZqNWLUXtMP9tnfjLKrwjMBuVSSNyPz2wLLd";
-    const listenAddresses = [
-      "/ip4/127.0.0.1/tcp/8011",
-      "/ip6/::1/tcp/8011",
-      "/ip4/192.168.1.36/tcp/8011"
-    ];
     const scope = nock(url)
       .get("/")
       .reply(200, {
         id,
-        listen_addresses: listenAddresses
+        listen_addresses: [
+          "/ip4/127.0.0.1/tcp/8011",
+          "/ip6/::1/tcp/8011",
+          "/ip4/192.168.1.36/tcp/8011"
+        ]
       });
-    return { scope, id, listenAddresses };
+    return { scope, id };
   }
 
-  it("should replace listenAddress with the one from the config file", async done => {
+  it("should get cnd id", async done => {
     const config = Config.fromFile("./tests/configs/staticRates.toml");
 
     const { scope, id } = mockComitMetadata(config.cndUrl);
@@ -52,22 +51,6 @@ describe("Comit Node library tests", () => {
 
     const metadata = await comitNode.getMetadata();
     expect(metadata.id).toEqual(id);
-    expect(metadata.listenAddresses).toEqual(["/ip4/127.0.0.1/tcp/8011"]);
-    expect(scope.isDone()).toBeTruthy();
-
-    done();
-  });
-
-  it("should take the returned addresses if no address was configured", async done => {
-    const config = Config.fromFile("./tests/configs/staticRates.toml");
-    config.cndListenAddress = undefined;
-
-    const { scope, id, listenAddresses } = mockComitMetadata(config.cndUrl);
-    const comitNode = new ComitNode(config);
-
-    const metadata = await comitNode.getMetadata();
-    expect(metadata.id).toEqual(id);
-    expect(metadata.listenAddresses).toEqual(listenAddresses);
     expect(scope.isDone()).toBeTruthy();
 
     done();

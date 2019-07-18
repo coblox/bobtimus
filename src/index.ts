@@ -134,7 +134,8 @@ const config = Config.fromFile("./config.toml");
       tradeService,
       config.bitcoinConfig,
       ethereumParams.ethereumWallet,
-      comitNodeMetadata
+      comitNodeMetadata.id,
+      config.cndListenAddress
     )
   );
 

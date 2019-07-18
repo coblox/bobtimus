@@ -25,9 +25,9 @@ function balance(balance: number) {
   return Promise.resolve(new Big(balance));
 }
 
+const addressHint = "/ip4/127.0.0.1/tcp/8011";
 const comitMetadata = {
-  id: "somePeerId",
-  listenAddresses: ["/ip4/127.0.0.1/tcp/8011"]
+  id: "somePeerId"
 } as ComitMetadata;
 
 describe("Bobtimus API tests", () => {
@@ -52,7 +52,8 @@ describe("Bobtimus API tests", () => {
       testnetMarketMaker,
       getBitcoinConfig(),
       ethereumWalletMock,
-      comitMetadata
+      comitMetadata.id,
+      addressHint
     );
 
     const req = {
@@ -68,7 +69,7 @@ describe("Bobtimus API tests", () => {
 
     const expected = {
       peerId: "somePeerId",
-      addressHint: comitMetadata.listenAddresses[0],
+      addressHint,
       ledgers: [
         {
           name: "bitcoin",
@@ -145,7 +146,8 @@ describe("Bobtimus API tests", () => {
       testnetMarketMaker,
       getBitcoinConfig(),
       ethereumWalletMock,
-      comitMetadata
+      comitMetadata.id,
+      addressHint
     );
 
     const req = {
@@ -161,7 +163,7 @@ describe("Bobtimus API tests", () => {
 
     const expected = {
       peerId: "somePeerId",
-      addressHint: comitMetadata.listenAddresses[0],
+      addressHint,
       ledgers: [
         {
           name: "bitcoin",

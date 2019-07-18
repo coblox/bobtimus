@@ -34,7 +34,6 @@ export interface Swap {
 
 export interface ComitMetadata {
   id: string;
-  listenAddresses: string[];
 }
 
 export type LedgerAction =
@@ -94,18 +93,7 @@ export class ComitNode {
       json: true
     };
 
-    return request(options).then(response => {
-      // TODO: cnd should return its public address. This is a workaround it's currently not returned. Related issue is: #79
-      let listenAddresses = response.listen_addresses;
-      if (this.config.cndListenAddress) {
-        listenAddresses = [this.config.cndListenAddress];
-      }
-
-      return {
-        id: response.id,
-        listenAddresses
-      } as ComitMetadata;
-    });
+    return request(options).then(response => response as ComitMetadata);
   }
 
   public request(method: any, url: string, data: any) {

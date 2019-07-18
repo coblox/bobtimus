@@ -32,7 +32,7 @@ export interface Swap {
   actions: Action[];
 }
 
-export interface ComitMetaData {
+export interface ComitMetadata {
   id: string;
 }
 
@@ -86,14 +86,14 @@ export class ComitNode {
     return request(options).then(response => response.entities);
   }
 
-  public getMetaData(): Promise<ComitMetaData> {
+  public getMetadata(): Promise<ComitMetadata> {
     const options = {
       method: "GET",
       url: this.config.prependUrlIfNeeded("/").toString(),
       json: true
     };
 
-    return request(options).then(response => response as ComitMetaData);
+    return request(options).then(response => response as ComitMetadata);
   }
 
   public request(method: any, url: string, data: any) {

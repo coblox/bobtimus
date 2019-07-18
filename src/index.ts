@@ -105,11 +105,11 @@ const config = Config.fromFile("./config.toml");
     ledgerExecutor
   );
 
-  const comitNodeMetaData = await comitNode.getMetaData();
-  if (!comitNodeMetaData) {
+  const comitNodeMetadata = await comitNode.getMetadata();
+  if (!comitNodeMetadata) {
     throw new Error("Could not retrieve meta-data from comit-node");
   }
-  const peerId = comitNodeMetaData.id;
+  const peerId = comitNodeMetadata.id;
 
   if (!config.bitcoinConfig) {
     throw new Error("Bitcoin not initialized correctly");

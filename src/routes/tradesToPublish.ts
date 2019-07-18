@@ -48,7 +48,7 @@ export function getAmountsToPublishRoute(
         ],
         rates: trades.map(trade => {
           return {
-            timestamp: getTradeTimestamp(trade),
+            timestamp: formatTimestamp(findLatestTradeTimestamp(trade)),
             protocol: trade.protocol,
             buy: {
               ledger: trade.buy.ledger,
@@ -73,7 +73,7 @@ export function getAmountsToPublishRoute(
   };
 }
 
-function getTradeTimestamp(current: Trade): string {
+export function findLatestTradeTimestamp(current: Trade): Date {
   const key =
     current.buy.ledger +
     current.buy.asset +
@@ -83,20 +83,24 @@ function getTradeTimestamp(current: Trade): string {
   const previous = previousTradesLookup.get(key);
   if (!previous) {
     previousTradesLookup.set(key, current);
-    return formatTimestamp(current.timestamp);
+    return current.timestamp;
   }
 
   if (
     current.sell.quantity.eq(previous.sell.quantity) &&
     current.buy.quantity.eq(previous.buy.quantity)
   ) {
-    return formatTimestamp(previous.timestamp);
+    return previous.timestamp;
+  }
+
+  if (previous.timestamp.getTime() > current.timestamp.getTime()) {
+    return previous.timestamp;
   }
 
   previousTradesLookup.set(key, current);
-  return formatTimestamp(current.timestamp);
+  return current.timestamp;
 }
 
-function formatTimestamp(timestamp: Date | undefined): string {
-  return timestamp ? timestamp.toUTCString() : new Date().toUTCString();
+function formatTimestamp(timestamp: Date): string {
+  return timestamp.toISOString();
 }

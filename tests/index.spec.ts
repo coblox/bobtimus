@@ -81,7 +81,7 @@ describe("Bobtimus API tests", () => {
       ],
       rates: [
         {
-          timestamp: "Sun, 14 Jun 2015 22:12:05 GMT",
+          timestamp: "2015-06-14T22:12:05.275Z",
           protocol: "rfc003",
           buy: {
             ledger: "bitcoin",
@@ -95,7 +95,7 @@ describe("Bobtimus API tests", () => {
           }
         },
         {
-          timestamp: "Sun, 14 Jun 2015 22:12:05 GMT",
+          timestamp: "2015-06-14T22:12:05.275Z",
           protocol: "rfc003",
           buy: {
             ledger: "ethereum",
@@ -174,7 +174,7 @@ describe("Bobtimus API tests", () => {
       ],
       rates: [
         {
-          timestamp: "Sun, 14 Jun 2015 22:12:05 GMT",
+          timestamp: "2015-06-14T22:12:05.275Z",
           protocol: "rfc003",
           buy: {
             ledger: "bitcoin",
@@ -188,7 +188,7 @@ describe("Bobtimus API tests", () => {
           }
         },
         {
-          timestamp: "Sun, 14 Jun 2015 22:12:05 GMT",
+          timestamp: "2015-06-14T22:12:05.275Z",
           protocol: "rfc003",
           buy: {
             ledger: "ethereum",
@@ -214,8 +214,8 @@ describe("Bobtimus API tests", () => {
     MockDate.set(1534319925275);
     expected.rates[0].buy.quantity = "0.0525";
     expected.rates[1].sell.quantity = "0.05";
-    expected.rates[0].timestamp = "Wed, 15 Aug 2018 07:58:45 GMT";
-    expected.rates[1].timestamp = "Wed, 15 Aug 2018 07:58:45 GMT";
+    expected.rates[0].timestamp = "2018-08-15T07:58:45.275Z";
+    expected.rates[1].timestamp = "2018-08-15T07:58:45.275Z";
     await apiCall(req as any, res as any);
     result = await res.sendCalledWith;
     expect(result).toBeDefined();

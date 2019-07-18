@@ -110,6 +110,7 @@ export class ActionSelector {
 
     // Bob always buys Alpha
     const trade: Trade = {
+      timestamp: new Date(),
       buy: {
         asset: alphaAsset,
         ledger: alphaLedger,

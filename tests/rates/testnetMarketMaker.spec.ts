@@ -37,6 +37,7 @@ describe("Test the TestnetMarketMaker module", () => {
 
   it("Returns the amounts to publish for buy and sell assets based on the balances, the configured published fraction and the rate spread", async () => {
     const trade: Trade = {
+      timestamp: new Date(),
       buy: {
         ledger: Ledger.Bitcoin,
         asset: Asset.Bitcoin,
@@ -83,6 +84,7 @@ describe("Test the TestnetMarketMaker module", () => {
     );
 
     const trade = {
+      timestamp: new Date(),
       buy: {
         ledger: Ledger.Bitcoin,
         asset: Asset.Bitcoin,
@@ -135,6 +137,7 @@ describe("Test the TestnetMarketMaker module", () => {
     );
 
     const trade = {
+      timestamp: new Date(),
       buy: {
         ledger: Ledger.Bitcoin,
         asset: Asset.Bitcoin,
@@ -157,6 +160,7 @@ describe("Test the TestnetMarketMaker module", () => {
     );
 
     const trade = {
+      timestamp: new Date(),
       buy: {
         ledger: Ledger.Bitcoin,
         asset: Asset.Bitcoin,
@@ -179,6 +183,7 @@ describe("Test the TestnetMarketMaker module", () => {
     );
 
     const trade = {
+      timestamp: new Date(),
       buy: {
         ledger: Ledger.Bitcoin,
         asset: Asset.Bitcoin,
@@ -197,6 +202,7 @@ describe("Test the TestnetMarketMaker module", () => {
   it("Should return the trades according to the balance", async () => {
     const expected: List<Trade> = [
       {
+        timestamp: new Date(),
         buy: {
           ledger: Ledger.Bitcoin,
           asset: Asset.Bitcoin,
@@ -209,6 +215,7 @@ describe("Test the TestnetMarketMaker module", () => {
         }
       },
       {
+        timestamp: new Date(),
         buy: {
           ledger: Ledger.Ethereum,
           asset: Asset.Ether,

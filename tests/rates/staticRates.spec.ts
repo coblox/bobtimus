@@ -13,6 +13,7 @@ describe("Rate tests", () => {
     };
 
     const trade = {
+      timestamp: new Date(),
       buy: {
         ledger: Ledger.Bitcoin,
         asset: Asset.Bitcoin,
@@ -36,6 +37,7 @@ describe("Rate tests", () => {
     };
 
     const trade = {
+      timestamp: new Date(),
       buy: {
         ledger: Ledger.Bitcoin,
         asset: Asset.Bitcoin,
@@ -55,6 +57,7 @@ describe("Rate tests", () => {
   it("Should return the amounts for configured rates", async () => {
     const trades: List<Trade> = [
       {
+        timestamp: new Date(),
         buy: {
           ledger: Ledger.Bitcoin,
           asset: Asset.Bitcoin,
@@ -67,6 +70,7 @@ describe("Rate tests", () => {
         }
       },
       {
+        timestamp: new Date(),
         buy: {
           ledger: Ledger.Ethereum,
           asset: Asset.Ether,

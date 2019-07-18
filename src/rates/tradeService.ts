@@ -19,7 +19,7 @@ export interface TradeAmount {
 
 export interface Trade {
   protocol?: string;
-  timestamp?: Date;
+  timestamp: Date;
   buy: TradeAmount;
   sell: TradeAmount;
 }

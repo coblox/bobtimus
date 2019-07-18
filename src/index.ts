@@ -178,7 +178,11 @@ const config = Config.fromFile("./config.toml");
     console.log(e.message);
   }
 
-  api.listen(config.apiPort, () =>
-    console.log(`Bobtimus API exposed at port ${config.apiPort}`)
-  );
+  if (config.apiPort) {
+    api.listen(config.apiPort, () =>
+      console.log(`API exposed at port ${config.apiPort}`)
+    );
+  } else {
+    console.warn("API port not configured - not exposing API");
+  }
 })();

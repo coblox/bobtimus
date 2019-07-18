@@ -27,7 +27,18 @@ const initBitcoin = async (config: Config) => {
     };
   }
 
-  const bitcoinBlockchain = BitcoinCoreRpc.fromConfig(config.bitcoinConfig);
+  if (!config.bitcoinConfig.coreRpc) {
+    logger.warn(
+      "Bitcoin config is specified without connection details to a bitcoin node"
+    );
+    return {
+      bitcoinFeeService: BitcoinFeeService.default()
+    };
+  }
+
+  const bitcoinBlockchain = BitcoinCoreRpc.fromConfig(
+    config.bitcoinConfig.coreRpc
+  );
   const bitcoinWallet = InternalBitcoinWallet.fromConfig(
     config.bitcoinConfig,
     bitcoinBlockchain,

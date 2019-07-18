@@ -31,7 +31,7 @@ function extractEntityAndAction(json: any, actionName: string) {
 }
 
 describe("Action selector tests: ", () => {
-  const tomlConfig = {
+  const tomlConfig: TomlConfig = {
     cndUrl: "http://localhost:8000",
     seedWords:
       "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
@@ -43,12 +43,15 @@ describe("Action selector tests: ", () => {
     },
     ledgers: {
       bitcoin: {
-        type: "coreRpc",
-        rpcUsername: "bitcoin",
-        rpcPassword: "password",
-        rpcHost: "127.0.0.1",
-        rpcPort: 18443,
         network: "regtest",
+        coreRpc: {
+          host: "127.0.0.1",
+          port: 18443,
+          auth: {
+            username: "bitcoin",
+            password: "password"
+          }
+        },
         fee: {
           defaultFee: 10,
           strategy: "hourFee"
@@ -63,7 +66,7 @@ describe("Action selector tests: ", () => {
       }
     }
   };
-  const config = new Config(tomlConfig as TomlConfig);
+  const config = new Config(tomlConfig);
   const rates = new StaticRates(tomlConfig.rates.static as ConfigRates);
 
   it("Should emit accept only", async done => {

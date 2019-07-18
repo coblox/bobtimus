@@ -5,12 +5,17 @@ apiPort = 3000
 [rates]
 
 [ledgers.bitcoin]
-type = "coreRpc"
-rpcUsername = "bitcoin"
-rpcPassword = "password"
-rpcHost = "127.0.0.1"
-rpcPort = 18443
 network = "regtest"
+
+[ledgers.bitcoin.coreRpc]
+host = "127.0.0.1"
+port = 18443
+
+[ledgers.bitcoin.coreRpc.auth]
+cookieFile = "/home/bitcoin/.bitcoin/regtest/.cookie"
+# Alternatively, you can also specify username and password here:
+# username = "bitcoin"
+# password = "password"
 
 [ledgers.ethereum]
 web3Endpoint = "http://localhost:8545"

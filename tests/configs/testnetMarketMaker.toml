@@ -11,12 +11,6 @@ maxFraction = 1000
 publishFraction = 2000
 
 [ledgers.bitcoin]
-type = "coreRpc"
-# TODO: handle cookie file
-rpcUsername = "bitcoin"
-rpcPassword = "password"
-rpcHost = "127.0.0.1"
-rpcPort = 18443
 network = "regtest"
 
 [ledgers.bitcoin.fee]
@@ -24,6 +18,16 @@ defaultFee = 10
 # The strategy is taken from https://bitcoinfees.earn.com/api/v1/fees/recommended, i.e. it can either be `fastestFee`,
 # `halfHourFee` or `hourFee`. If the service is not available, the default value will be taken
 strategy = "hourFee"
+
+[ledgers.bitcoin.coreRpc]
+host = "127.0.0.1"
+port = 18443
+
+[ledgers.bitcoin.coreRpc.auth]
+cookieFile = "/home/bitcoin/.bitcoin/regtest/.cookie"
+# Alternatively, you can also specify username and password here:
+# username = "bitcoin"
+# password = "password"
 
 [ledgers.ethereum.fee]
 defaultFee = 10

@@ -11,16 +11,27 @@ import { TestnetMarketMakerConfig } from "./rates/testnetMarketMaker";
 const logger = getLogger();
 
 export interface BitcoinConfig {
-  type: "coreRpc";
-  rpcUsername?: string;
-  rpcPassword?: string;
-  rpcHost?: string;
-  rpcPort?: number;
   network: string;
   fee: {
     defaultFee: number;
     strategy: string;
   };
+  coreRpc?: BitcoindCoreRpcConfig;
+}
+
+export interface BitcoindCoreRpcConfig {
+  host: string;
+  port: number;
+  auth: BitcoindCoreRpcCookieAuth | BitcoindCoreRpcBasicAuth;
+}
+
+export interface BitcoindCoreRpcCookieAuth {
+  cookieFile: string;
+}
+
+export interface BitcoindCoreRpcBasicAuth {
+  username: string;
+  password: string;
 }
 
 export interface EthereumConfig {
@@ -35,7 +46,7 @@ export interface TomlConfig {
   cndUrl: string;
   cndListenAddress?: string;
   apiPort?: number;
-  seedWords?: string;
+  seedWords: string;
   rates: {
     static?: ConfigRates;
     marketMaker?: {
@@ -53,16 +64,17 @@ export interface TomlConfig {
 export class Config {
   public static fromFile(filePath: string) {
     const parsedConfig: any = TOML.parse(fs.readFileSync(filePath, "utf8"));
-    const tomlConfig: TomlConfig = parsedConfig;
 
-    if (!tomlConfig.seedWords) {
+    if (!parsedConfig.seedWords) {
       logger.info("Generating seed words");
       const seedWords = generateMnemonic(256);
-      Object.assign(tomlConfig, { seedWords });
-      backupAndWriteConfig(filePath, tomlConfig);
+      Object.assign(parsedConfig, { seedWords });
+
+      const config = parsedConfig as TomlConfig;
+      backupAndWriteConfig(filePath, config);
     }
 
-    return new Config(tomlConfig);
+    return new Config(parsedConfig as TomlConfig);
   }
 
   public cndUrl: string;
@@ -82,8 +94,24 @@ export class Config {
       ? tomlConfig.lowBalanceThresholdPercentage
       : 20;
 
-    const ledgers = throwIfFalse(tomlConfig, "ledgers");
-    this.bitcoinConfig = ledgers.bitcoin;
+    const ledgers = throwIfAbsent(tomlConfig, "ledgers");
+    const bitcoinConfig = ledgers.bitcoin;
+
+    if (bitcoinConfig) {
+      if (!bitcoinConfig.coreRpc) {
+        throw new Error(
+          "For now, coreRpc details must be provided as its the only supported connector to Bitcoin"
+        );
+      }
+
+      const auth = throwIfAbsent(bitcoinConfig.coreRpc, "auth") as any;
+
+      if (auth.cookieFile && (auth.username || auth.password)) {
+        throw new Error("specify either cookie file or username/password");
+      }
+    }
+
+    this.bitcoinConfig = bitcoinConfig;
     this.ethereumConfig = ledgers.ethereum;
 
     const rates = tomlConfig.rates;
@@ -92,10 +120,10 @@ export class Config {
       ? rates.marketMaker.testnet
       : undefined;
 
-    this.cndUrl = throwIfFalse(tomlConfig, "cndUrl");
+    this.cndUrl = throwIfAbsent(tomlConfig, "cndUrl");
     this.cndListenAddress = tomlConfig.cndListenAddress;
     this.apiPort = tomlConfig.apiPort;
-    this.seed = mnemonicToSeedSync(throwIfFalse(tomlConfig, "seedWords"));
+    this.seed = mnemonicToSeedSync(throwIfAbsent(tomlConfig, "seedWords"));
   }
 
   public prependUrlIfNeeded(path: string): uri.URI {
@@ -142,10 +170,13 @@ function backupAndWriteConfig(filePath: string, config: TomlConfig) {
   fs.writeFileSync(filePath, toml);
 }
 
-function throwIfFalse(obj: any, prop: string) {
-  if (!obj[prop]) {
+function throwIfAbsent<T, K extends keyof T>(obj: T, prop: K): T[K] {
+  const child = obj[prop];
+
+  if (!child) {
     logger.error(`${prop} must be present in the config file`);
     throw new Error(`${prop} must be present in the config file`);
   }
-  return obj[prop];
+
+  return child;
 }

@@ -1,11 +1,8 @@
 import Big from "big.js";
-import MockDate from "mockdate";
 import Asset from "../../src/asset";
 import { ComitMetadata } from "../../src/comitNode";
 import { BitcoinConfig, Config } from "../../src/config";
 import Ledger from "../../src/ledger";
-import Balances from "../../src/rates/balances";
-import TestnetMarketMaker from "../../src/rates/testnetMarketMaker";
 import { Trade, TradeService } from "../../src/rates/tradeService";
 import {
   findLatestTradeTimestamp,
@@ -19,6 +16,7 @@ const future = new Date(present.getTime() + 5000);
 
 const btcEthTrade: Trade = {
   timestamp: present,
+  protocol: "rfc003",
   buy: {
     ledger: Ledger.Bitcoin,
     asset: Asset.Bitcoin,
@@ -33,6 +31,7 @@ const btcEthTrade: Trade = {
 
 const ethBtcTrade: Trade = {
   timestamp: past,
+  protocol: "rfc003",
   buy: {
     ledger: Ledger.Ethereum,
     asset: Asset.Ether,
@@ -57,10 +56,6 @@ const ethereumWalletMock = new EthereumWalletStub({
   nominalBalance: new Big(1000),
   chainId: 17
 });
-
-function balance(balance: number) {
-  return Promise.resolve(new Big(balance));
-}
 
 const addressHint = "/ip4/127.0.0.1/tcp/8011";
 const comitMetadata = {
@@ -166,25 +161,23 @@ describe("TradesToPublish tests ", () => {
     expect(tradeTimestamp2.getTime()).toStrictEqual(trade2.timestamp.getTime());
   });
 
-  it("Should return the trade with the same timestamp if the quantities did not change", async () => {
-    const bitcoinBalance = 100;
-    const etherBalance = 1000;
+  class MockMarketMaker implements TradeService {
+    protected trades: Trade[] = [ethBtcTrade, btcEthTrade];
 
-    const balances = await Balances.create(
-      {
-        bitcoin: () => balance(bitcoinBalance),
-        ether: () => balance(etherBalance)
-      },
-      20
-    );
+    public isTradeAcceptable(_: Trade): Promise<boolean> {
+      return Promise.resolve(true);
+    }
 
-    const testnetMarketMaker: TradeService = new TestnetMarketMaker(
-      { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
-      await balances
-    );
+    public prepareTradesToPublish() {
+      return Promise.resolve(this.trades);
+    }
+  }
+
+  it("Should return the trades and ledgers information", async () => {
+    const mockMarketMaker = new MockMarketMaker();
 
     const apiCall = getAmountsToPublishRoute(
-      testnetMarketMaker,
+      mockMarketMaker,
       getBitcoinConfig(),
       ethereumWalletMock,
       comitMetadata.id,
@@ -204,7 +197,7 @@ describe("TradesToPublish tests ", () => {
 
     const expected = {
       peerId: "somePeerId",
-      addressHint,
+      addressHint: "/ip4/127.0.0.1/tcp/8011",
       ledgers: [
         {
           name: "bitcoin",
@@ -217,142 +210,41 @@ describe("TradesToPublish tests ", () => {
       ],
       rates: [
         {
-          timestamp: "2015-06-14T22:12:05.275Z",
-          protocol: "rfc003",
           buy: {
-            ledger: "bitcoin",
-            asset: "bitcoin",
-            quantity: "0.525"
-          },
-          sell: {
-            ledger: "ethereum",
             asset: "ether",
-            quantity: "5"
-          }
+            ledger: "ethereum",
+            quantity: "80"
+          },
+          protocol: "rfc003",
+          sell: {
+            asset: "bitcoin",
+            ledger: "bitcoin",
+            quantity: "1"
+          },
+          timestamp: ethBtcTrade.timestamp.toISOString()
         },
         {
-          timestamp: "2015-06-14T22:12:05.275Z",
-          protocol: "rfc003",
           buy: {
-            ledger: "ethereum",
-            asset: "ether",
-            quantity: "5.25"
-          },
-          sell: {
-            ledger: "bitcoin",
             asset: "bitcoin",
-            quantity: "0.5"
-          }
+            ledger: "bitcoin",
+            quantity: "1"
+          },
+          protocol: "rfc003",
+          sell: {
+            asset: "ether",
+            ledger: "ethereum",
+            quantity: "100"
+          },
+          timestamp: btcEthTrade.timestamp.toISOString()
         }
       ]
     };
 
-    MockDate.set(1434319925275);
     await apiCall(req as any, res as any);
     let result = await res.sendCalledWith;
     expect(result).toBeDefined();
     expect(result).toEqual(expected);
 
-    MockDate.set(1534319925275);
-    await apiCall(req as any, res as any);
-    result = await res.sendCalledWith;
-    expect(result).toBeDefined();
-    expect(result).toEqual(expected);
-  });
-
-  it("Should return the trade with the same timestamp if the quantities did not change", async () => {
-    let bitcoinBalance = 100;
-    const etherBalance = 1000;
-
-    const balances = await Balances.create(
-      {
-        bitcoin: () => balance(bitcoinBalance),
-        ether: () => balance(etherBalance)
-      },
-      20
-    );
-
-    const testnetMarketMaker: TradeService = new TestnetMarketMaker(
-      { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
-      await balances
-    );
-
-    const apiCall = getAmountsToPublishRoute(
-      testnetMarketMaker,
-      getBitcoinConfig(),
-      ethereumWalletMock,
-      comitMetadata.id,
-      addressHint
-    );
-
-    const req = {
-      body: {}
-    };
-
-    const res = {
-      sendCalledWith: "",
-      async send(arg: any) {
-        this.sendCalledWith = arg;
-      }
-    };
-
-    const expected = {
-      peerId: "somePeerId",
-      addressHint,
-      ledgers: [
-        {
-          name: "bitcoin",
-          network: "regtest"
-        },
-        {
-          name: "ethereum",
-          network: "regtest"
-        }
-      ],
-      rates: [
-        {
-          timestamp: "2015-06-14T22:12:05.275Z",
-          protocol: "rfc003",
-          buy: {
-            ledger: "bitcoin",
-            asset: "bitcoin",
-            quantity: "0.525"
-          },
-          sell: {
-            ledger: "ethereum",
-            asset: "ether",
-            quantity: "5"
-          }
-        },
-        {
-          timestamp: "2015-06-14T22:12:05.275Z",
-          protocol: "rfc003",
-          buy: {
-            ledger: "ethereum",
-            asset: "ether",
-            quantity: "5.25"
-          },
-          sell: {
-            ledger: "bitcoin",
-            asset: "bitcoin",
-            quantity: "0.5"
-          }
-        }
-      ]
-    };
-
-    MockDate.set(1434319925275);
-    await apiCall(req as any, res as any);
-    let result = await res.sendCalledWith;
-    expect(result).toBeDefined();
-    expect(result).toEqual(expected);
-
-    bitcoinBalance = 10;
-    MockDate.set(1534319925275);
-    expected.rates[0].buy.quantity = "0.0525";
-    expected.rates[1].sell.quantity = "0.05";
-    expected.rates[0].timestamp = "2018-08-15T07:58:45.275Z";
-    expected.rates[1].timestamp = "2018-08-15T07:58:45.275Z";
     await apiCall(req as any, res as any);
     result = await res.sendCalledWith;
     expect(result).toBeDefined();

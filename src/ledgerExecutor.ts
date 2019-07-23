@@ -198,14 +198,28 @@ export class LedgerExecutor implements ILedgerExecutor {
     if (!ethereumFeeService) {
       throw new Error(`Ethereum Fee Service is not available.`);
     }
+
     // To fix this awkward comparison, make the comit_node use chainId for Ethereum: https://github.com/comit-network/RFCs/issues/73
-    if (
-      !(network === "regtest" && (await ethereumWallet.getChainId()) === 17)
-    ) {
+    const ethereumNetworkMappings: { [network: string]: number | undefined } = {
+      regtest: 17,
+      ropsten: 3
+    };
+
+    const mappedChainId = ethereumNetworkMappings[network];
+
+    if (!mappedChainId) {
       throw new Error(
-        `Incompatible Ethereum network. Received: ${network}, but wallet is chainID ${ethereumWallet.getChainId()}`
+        `Unsupported network. Bobtimus does not support Ethereum network '${network}' because no mapping to the chainId has been defined`
       );
     }
+
+    const connectedChainId = await ethereumWallet.getChainId();
+    if (connectedChainId !== mappedChainId) {
+      throw new Error(
+        `Incompatible Ethereum network. Received: '${network}'(chainId: ${mappedChainId}), but wallet chainID is ${connectedChainId}`
+      );
+    }
+
     return {
       ethereumWallet,
       ethereumFeeService

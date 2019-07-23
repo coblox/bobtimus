@@ -1,11 +1,11 @@
 import Big from "big.js";
 import BN = require("bn.js");
 import { Config } from "../../src/config";
-import { createTradeEvaluationService } from "../../src/rates/tradeEvaluationService";
+import { createTradeEvaluationService } from "../../src/rates/tradeService";
 import BitcoinWalletStub from "../doubles/bitcoinWalletStub";
 import EthereumWalletStub from "../doubles/ethereumWalletStub";
 
-describe("Test TradeEvaluationService module", () => {
+describe("Test TradeService module", () => {
   const bitcoinWallet = new BitcoinWalletStub({
     nominalBalance: new Big(1)
   });
@@ -38,7 +38,7 @@ describe("Test TradeEvaluationService module", () => {
 
   it("should throw if both rate strategies are present in the config file", async () => {
     const config = new Config({
-      comitNodeUrl: "http://localhost:8000",
+      cndUrl: "http://localhost:8000",
       seedWords:
         "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
       rates: {
@@ -92,7 +92,7 @@ describe("Test TradeEvaluationService module", () => {
 
   it("should throw if no rate strategy is present in the config file", async () => {
     const config = new Config({
-      comitNodeUrl: "http://localhost:8000",
+      cndUrl: "http://localhost:8000",
       seedWords:
         "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
       rates: {},

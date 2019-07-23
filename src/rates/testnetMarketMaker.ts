@@ -1,8 +1,9 @@
 import Big from "big.js";
 import { getLogger } from "log4js";
 import Asset from "../asset";
+import { forAsset } from "../ledger";
 import Balances from "./balances";
-import { TradeAmounts, TradeEvaluationService } from "./tradeEvaluationService";
+import { Trade, TradeService } from "./tradeService";
 
 const logger = getLogger();
 
@@ -28,7 +29,7 @@ export interface TestnetMarketMakerConfig {
  * The max amounts are a configurable fraction of the available balance, which is slightly bigger than the published amount
  *
  */
-export default class TestnetMarketMaker implements TradeEvaluationService {
+export default class TestnetMarketMaker implements TradeService {
   private readonly rateSpread: number;
   private readonly publishFraction: number;
   private readonly maxFraction: number;
@@ -61,20 +62,20 @@ export default class TestnetMarketMaker implements TradeEvaluationService {
     this.balances = balanceLookups;
   }
 
-  /** Provide the amounts to publish
+  /** Provide the trades to publish
    *
-   * @param {string} buyAsset The asset to buy
-   * @param {string} sellAsset The asset to sell
-   * @return {buyNominalAmount: number, sellNominalAmount: number} The buy and sell amounts to publish (in nominal)
+   * @param {Asset} buyAsset The asset to buy
+   * @param {Asset} sellAsset The asset to sell
+   * @return {Trade} trade amounts and metadata to be published
    */
-  public async calculateAmountsToPublish(
+  public async prepareTradesToPublishForAsset(
     buyAsset: Asset,
     sellAsset: Asset
-  ): Promise<{ buyNominalAmount: Big; sellNominalAmount: Big }> {
+  ): Promise<Trade> {
     const sufficientFunds = await this.balances.isSufficientFunds(sellAsset);
     if (!sufficientFunds) {
       throw new Error(
-        `Insufficient funding of asset ${sellAsset} to publish amounts`
+        `Insufficient funding of asset ${sellAsset} to publish trades`
       );
     }
 
@@ -86,56 +87,78 @@ export default class TestnetMarketMaker implements TradeEvaluationService {
       .mul(1 + this.rateSpread / 100);
 
     return {
-      buyNominalAmount: buyAmount,
-      sellNominalAmount: sellBalance.div(this.publishFraction)
+      protocol: "rfc003",
+      timestamp: new Date(),
+      buy: {
+        asset: buyAsset,
+        ledger: forAsset(buyAsset),
+        quantity: buyAmount
+      },
+      sell: {
+        asset: sellAsset,
+        ledger: forAsset(sellAsset),
+        quantity: sellBalance.div(this.publishFraction)
+      }
     };
   }
 
   /** Returns whether the proposed rate is above the acceptable rate
    *
-   * @param {TradeAmounts} tradeAmounts The proposed quantities for the trade
+   * @param {Trade} tradeAmounts The proposed quantities for the trade
    * @return {boolean} True if the trade should proceed (rate and amounts are acceptable), False otherwise
    */
-  public async isTradeAcceptable({
-    sellAsset,
-    sellNominalAmount,
-    buyAsset,
-    buyNominalAmount
-  }: TradeAmounts) {
-    const buyBalance: Big = await this.balances.getBalance(buyAsset);
-    const sellBalance: Big = await this.balances.getBalance(sellAsset);
+  public async isTradeAcceptable({ buy, sell }: Trade) {
+    const buyBalance: Big = await this.balances.getBalance(buy.asset);
+    const sellBalance: Big = await this.balances.getBalance(sell.asset);
 
     const maxSellAmount = sellBalance.div(this.maxFraction);
 
-    if (sellNominalAmount.gt(maxSellAmount)) {
+    if (sell.quantity.gt(maxSellAmount)) {
       return false;
     }
 
     const sufficientFunds = await this.balances.isSufficientFunds(
-      sellAsset,
-      sellNominalAmount
+      sell.asset,
+      sell.quantity
     );
     if (!sufficientFunds) {
       logger.error(
-        `Insufficient funds, asset ${sellAsset} balance is ${this.balances.getBalance(
-          sellAsset
-        )} but trade requires ${sellNominalAmount}`
+        `Insufficient funds, asset ${
+          sell.asset
+        } balance is ${this.balances.getBalance(
+          sell.asset
+        )} but trade requires ${sell.quantity}`
       );
       return false;
     }
 
-    const lowFunds = await this.balances.isLowBalance(sellAsset);
+    const lowFunds = await this.balances.isLowBalance(sell.asset);
     if (lowFunds) {
       logger.warn(
-        `Funds low on asset ${sellAsset}, only has ${this.balances.getOriginalBalance(
-          sellAsset
+        `Funds low on asset ${
+          sell.asset
+        }, only has ${this.balances.getOriginalBalance(
+          sell.asset
         )} of balance left`
       );
     }
 
     const currentBuyRate = buyBalance.div(sellBalance);
-    const tradeBuyRate = buyNominalAmount.div(sellNominalAmount);
+    const tradeBuyRate = buy.quantity.div(sell.quantity);
 
     return tradeBuyRate >= currentBuyRate;
+  }
+
+  public async prepareTradesToPublish(): Promise<Trade[]> {
+    const trades = new Array<Trade>();
+
+    trades.push(
+      await this.prepareTradesToPublishForAsset(Asset.Bitcoin, Asset.Ether)
+    );
+    trades.push(
+      await this.prepareTradesToPublishForAsset(Asset.Ether, Asset.Bitcoin)
+    );
+
+    return trades;
   }
 }

@@ -32,7 +32,7 @@ function extractEntityAndAction(json: any, actionName: string) {
 
 describe("Action selector tests: ", () => {
   const tomlConfig: TomlConfig = {
-    comitNodeUrl: "http://localhost:8000",
+    cndUrl: "http://localhost:8000",
     seedWords:
       "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
     rates: {

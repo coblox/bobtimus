@@ -43,7 +43,9 @@ export interface EthereumConfig {
 }
 
 export interface TomlConfig {
-  comitNodeUrl: string;
+  cndUrl: string;
+  cndListenAddress?: string;
+  apiPort?: number;
   seedWords: string;
   rates: {
     static?: ConfigRates;
@@ -75,7 +77,8 @@ export class Config {
     return new Config(parsedConfig as TomlConfig);
   }
 
-  public comitNodeUrl: string;
+  public cndUrl: string;
+  public apiPort?: number;
   public staticRates?: ConfigRates;
   public testnetMarketMaker?: TestnetMarketMakerConfig;
   public seed: Buffer;
@@ -83,6 +86,7 @@ export class Config {
   public ethereumConfig?: EthereumConfig;
   public maxRetries: number;
   public lowBalanceThresholdPercentage: number;
+  public cndListenAddress?: string;
 
   constructor(tomlConfig: TomlConfig) {
     this.maxRetries = tomlConfig.maxRetries ? tomlConfig.maxRetries : 10;
@@ -116,14 +120,16 @@ export class Config {
       ? rates.marketMaker.testnet
       : undefined;
 
-    this.comitNodeUrl = throwIfAbsent(tomlConfig, "comitNodeUrl");
+    this.cndUrl = throwIfAbsent(tomlConfig, "cndUrl");
+    this.cndListenAddress = tomlConfig.cndListenAddress;
+    this.apiPort = tomlConfig.apiPort;
     this.seed = mnemonicToSeedSync(throwIfAbsent(tomlConfig, "seedWords"));
   }
 
   public prependUrlIfNeeded(path: string): uri.URI {
     const uriPath = new URI(path);
     return uriPath.is("relative")
-      ? new URI(this.comitNodeUrl).segment(path)
+      ? new URI(this.cndUrl).segment(path)
       : uriPath;
   }
 

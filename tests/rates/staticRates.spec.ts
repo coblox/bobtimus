@@ -1,6 +1,9 @@
 import Big from "big.js";
+import { List } from "underscore";
 import Asset from "../../src/asset";
+import Ledger from "../../src/ledger";
 import StaticRates from "../../src/rates/staticRates";
+import { Trade } from "../../src/rates/tradeService";
 
 describe("Rate tests", () => {
   it("Should consider the rate profitable when the proposed rate is less than the configured rate", async () => {
@@ -9,20 +12,22 @@ describe("Rate tests", () => {
       bitcoin: { ether: 0.01 }
     };
 
-    const rates = new StaticRates(config);
-
-    const buyAsset = Asset.Bitcoin;
-    const buyNominalAmount = new Big(0.1);
-    const sellAsset = Asset.Ether;
-    const sellNominalAmount = new Big(0.0009);
-
-    const tradeAmounts = {
-      buyAsset,
-      buyNominalAmount,
-      sellAsset,
-      sellNominalAmount
+    const trade = {
+      timestamp: new Date(),
+      buy: {
+        ledger: Ledger.Bitcoin,
+        asset: Asset.Bitcoin,
+        quantity: new Big(0.1)
+      },
+      sell: {
+        ledger: Ledger.Ethereum,
+        asset: Asset.Ether,
+        quantity: new Big(0.0009)
+      }
     };
-    expect(await rates.isTradeAcceptable(tradeAmounts)).toBeTruthy();
+
+    const rates = new StaticRates(config);
+    expect(await rates.isTradeAcceptable(trade)).toBeTruthy();
   });
 
   it("Should consider the rate NOT profitable when the proposed rate is greater than the configured rate", async () => {
@@ -31,19 +36,63 @@ describe("Rate tests", () => {
       bitcoin: { ether: 0.01 }
     };
 
-    const rates = new StaticRates(config);
-
-    const buyAsset = Asset.Bitcoin;
-    const buyNominalAmount = new Big(0.1);
-    const sellAsset = Asset.Ether;
-    const sellNominalAmount = new Big(0.0011);
-
-    const tradeAmounts = {
-      buyAsset,
-      buyNominalAmount,
-      sellAsset,
-      sellNominalAmount
+    const trade = {
+      timestamp: new Date(),
+      buy: {
+        ledger: Ledger.Bitcoin,
+        asset: Asset.Bitcoin,
+        quantity: new Big(0.1)
+      },
+      sell: {
+        ledger: Ledger.Ethereum,
+        asset: Asset.Ether,
+        quantity: new Big(0.0011)
+      }
     };
-    expect(await rates.isTradeAcceptable(tradeAmounts)).toBeFalsy();
+
+    const rates = new StaticRates(config);
+    expect(await rates.isTradeAcceptable(trade)).toBeFalsy();
+  });
+
+  it("Should return the amounts for configured rates", async () => {
+    const trades: List<Trade> = [
+      {
+        timestamp: new Date(),
+        buy: {
+          ledger: Ledger.Bitcoin,
+          asset: Asset.Bitcoin,
+          quantity: new Big(1)
+        },
+        sell: {
+          ledger: Ledger.Ethereum,
+          asset: Asset.Ether,
+          quantity: new Big(100)
+        }
+      },
+      {
+        timestamp: new Date(),
+        buy: {
+          ledger: Ledger.Ethereum,
+          asset: Asset.Ether,
+          quantity: new Big(1)
+        },
+        sell: {
+          ledger: Ledger.Bitcoin,
+          asset: Asset.Bitcoin,
+          quantity: new Big(0.01)
+        }
+      }
+    ];
+
+    const config = {
+      ether: { bitcoin: 0.01 },
+      bitcoin: { ether: 100 }
+    };
+
+    const rates = new StaticRates(config);
+    const amounts = await rates.prepareTradesToPublish();
+
+    expect(amounts[0].buy).toEqual(trades[0].buy);
+    expect(amounts[1].sell).toEqual(trades[1].sell);
   });
 });

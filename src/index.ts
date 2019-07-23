@@ -1,3 +1,4 @@
+import express = require("express");
 import { configure, getLogger } from "log4js";
 import { ActionExecutor } from "./actionExecutor";
 import { ActionSelector } from "./actionSelector";
@@ -8,13 +9,16 @@ import { Config } from "./config";
 import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import { DefaultFieldDataSource } from "./fieldDataSource";
 import { LedgerExecutor } from "./ledgerExecutor";
-import { createTradeEvaluationService } from "./rates/tradeEvaluationService";
+import { createTradeEvaluationService } from "./rates/tradeService";
+import { getAmountsToPublishRoute } from "./routes/tradesToPublish";
 import { InternalBitcoinWallet } from "./wallets/bitcoin";
 import { Web3EthereumWallet } from "./wallets/ethereum";
 
 const logger = getLogger();
 const pollIntervalMillis = 10000;
 configure("./logconfig.json");
+
+const api = express();
 
 const initBitcoin = async (config: Config) => {
   if (!config.bitcoinConfig) {
@@ -88,7 +92,7 @@ const config = Config.fromFile("./config.toml");
   } = await initBitcoin(config);
   const ethereumParams = await initEthereum(config);
 
-  const tradeEvaluationService = await createTradeEvaluationService({
+  const tradeService = await createTradeEvaluationService({
     config,
     ethereumWallet: ethereumParams.ethereumWallet,
     bitcoinWallet
@@ -104,12 +108,35 @@ const config = Config.fromFile("./config.toml");
   const comitNode = new ComitNode(config);
   const datastore = new DefaultFieldDataSource(ledgerExecutorParams);
   const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
-  const actionSelector = new ActionSelector(config, tradeEvaluationService);
+  const actionSelector = new ActionSelector(config, tradeService);
 
   const actionExecutor = new ActionExecutor(
     comitNode,
     datastore,
     ledgerExecutor
+  );
+
+  const comitNodeMetadata = await comitNode.getMetadata();
+  if (!comitNodeMetadata) {
+    throw new Error("Could not retrieve metadata from comit-node");
+  }
+
+  if (!config.bitcoinConfig) {
+    throw new Error("Bitcoin not initialized correctly");
+  }
+  if (!ethereumParams.ethereumWallet) {
+    throw new Error("Ethereum not initialized correctly");
+  }
+
+  api.get(
+    "/trades",
+    getAmountsToPublishRoute(
+      tradeService,
+      config.bitcoinConfig,
+      ethereumParams.ethereumWallet,
+      comitNodeMetadata.id,
+      config.cndListenAddress
+    )
   );
 
   const shoot = async () => {
@@ -150,10 +177,23 @@ const config = Config.fromFile("./config.toml");
     );
   }, pollIntervalMillis);
 
-  if (bitcoinWallet) {
-    await bitcoinWallet.refreshUtxo();
-    setInterval(() => {
-      bitcoinWallet.refreshUtxo();
-    }, 60000);
+  try {
+    if (bitcoinWallet) {
+      await bitcoinWallet.refreshUtxo();
+      setInterval(() => {
+        bitcoinWallet.refreshUtxo();
+      }, 60000);
+    }
+  } catch (e) {
+    logger.error("Failed to refresh UTXO:", e.message);
+    console.log(e.message);
+  }
+
+  if (config.apiPort) {
+    api.listen(config.apiPort, () =>
+      console.log(`API exposed at port ${config.apiPort}`)
+    );
+  } else {
+    console.warn("API port not configured - not exposing API");
   }
 })();

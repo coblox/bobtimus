@@ -85,6 +85,10 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
   }
 
   public async findHdOutputs(extendedPublicKeys: string[]): Promise<Utxo[]> {
+    logger.debug(
+      "Starting `scantxoutset` which is a long blocking non-cached call"
+    );
+
     const scanobjects = extendedPublicKeys.map(exPubKey => {
       logger.info(`Send ${exPubKey} to bitcoind for scanning`);
       return {
@@ -93,9 +97,6 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
       };
     });
 
-    logger.debug(
-      "Starting `scantxoutset` which is a long blocking non-cached call"
-    );
     const result = await this.bitcoinClient.command(
       "scantxoutset",
       "start",

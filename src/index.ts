@@ -187,7 +187,9 @@ const config = Config.fromFile("./config.toml");
   }, pollIntervalMillis);
 
   if (bitcoinWallet) {
-    await refreshUtxos(bitcoinWallet);
+    setTimeout(async () => {
+      await refreshUtxos(bitcoinWallet);
+    }, 10);
     setInterval(async () => {
       await refreshUtxos(bitcoinWallet);
     }, 60000);

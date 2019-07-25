@@ -20,6 +20,15 @@ configure("./logconfig.json");
 
 const api = express();
 
+const refreshUtxos = async (bitcoinWallet: InternalBitcoinWallet) => {
+  try {
+    await bitcoinWallet.refreshUtxo();
+  } catch (e) {
+    logger.error("Failed to refresh UTXO:", e.message);
+    console.log(e.message);
+  }
+};
+
 const initBitcoin = async (config: Config) => {
   if (!config.bitcoinConfig) {
     return {
@@ -177,16 +186,12 @@ const config = Config.fromFile("./config.toml");
     );
   }, pollIntervalMillis);
 
-  try {
-    if (bitcoinWallet) {
-      await bitcoinWallet.refreshUtxo();
-      setInterval(() => {
-        bitcoinWallet.refreshUtxo();
-      }, 60000);
-    }
-  } catch (e) {
-    logger.error("Failed to refresh UTXO:", e.message);
-    console.log(e.message);
+  if (bitcoinWallet) {
+    refreshUtxos(bitcoinWallet);
+
+    setInterval(async () => {
+      await refreshUtxos(bitcoinWallet);
+    }, 60000);
   }
 
   if (config.apiPort) {

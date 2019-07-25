@@ -67,7 +67,7 @@ describe("Ethereum Wallet", () => {
 
       expect(balanceAfter).toEqual(expectedBalance);
     }),
-    20000
+    50000
   );
 
   test(

@@ -2695,7 +2695,7 @@ get-func-name@^2.0.0:
   resolved "https://registry.yarnpkg.com/get-func-name/-/get-func-name-2.0.0.tgz#ead774abee72e20409433a066366023dd6887a41"
   integrity sha1-6td0q+5y4gQJQzoGY2YCPdaIekE=
 
-get-port@^4.1.0:
+get-port@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/get-port/-/get-port-4.2.0.tgz#e37368b1e863b7629c43c5a323625f95cf24b119"
   integrity sha512-/b3jarXkH8KJoOMQc3uVGHASwGLPq3gSFJ7tgJm2diza+bydJPTGOibin2steecKeOylE8oY2JERlVWkAJO6yw==
@@ -4559,7 +4559,7 @@ nock@^10.0.6:
     qs "^6.5.1"
     semver "^5.5.0"
 
-node-duration@^1.0.2:
+node-duration@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/node-duration/-/node-duration-1.0.4.tgz#3e94ecc0e473691c89c4560074503362071cecac"
   integrity sha512-eUXYNSY7DL53vqfTosggWkvyIW3bhAcqBDIlolgNYlZhianXTrCL50rlUJWD1eRqkIxMppXTfiFbp+9SjpPrgA==
@@ -6269,16 +6269,16 @@ test-exclude@^5.2.3:
     read-pkg-up "^4.0.0"
     require-main-filename "^2.0.0"
 
-testcontainers@^1.1.18:
-  version "1.1.19"
-  resolved "https://registry.yarnpkg.com/testcontainers/-/testcontainers-1.1.19.tgz#0062682548b99c2ea93af07c71a86264510870e9"
-  integrity sha512-Aa/X92Gv0EVNRuYzxkK3AEc5hnMAgiTBhB/MpouuFTjc1Dh675Xw4KQtysy5+5S85NnQjC8RlNwshqaWC6/ikA==
+testcontainers@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/testcontainers/-/testcontainers-1.2.0.tgz#016f1c7463c2ae6007cde18702f8cb5a208951b9"
+  integrity sha512-Nc1/TRJKTv37Keol524KUx1KpYb3xm0xxPmMHzd8iHOfrq5r1aHdBNozF14NiEifBRYaFvRxUJi+/9vGgmNQRA==
   dependencies:
     byline "^5.0.0"
     debug "^4.1.1"
     dockerode "^2.5.8"
-    get-port "^4.1.0"
-    node-duration "^1.0.2"
+    get-port "^4.2.0"
+    node-duration "^1.0.4"
     stream-to-array "^2.3.0"
     tar-fs "^2.0.0"
 

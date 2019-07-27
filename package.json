@@ -28,6 +28,7 @@
   "dependencies": {
     "@badrap/result": "^0.2.4",
     "@iarna/toml": "^2.2.3",
+    "@types/web3": "^1.0.19",
     "big.js": "^5.2.2",
     "bip39": "^3.0.2",
     "bitcoin-core": "^2.0.0",

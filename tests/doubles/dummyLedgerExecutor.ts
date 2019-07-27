@@ -1,4 +1,4 @@
-import { TransactionReceipt } from "web3-core/types";
+import { TransactionReceipt } from "web3/types";
 import { ILedgerExecutor } from "../../src/ledgerExecutor";
 
 export default class DummyLedgerExecutor implements ILedgerExecutor {
@@ -30,8 +30,8 @@ export const dummyTransactionReceipt: TransactionReceipt = {
   blockNumber: 1,
   from: "",
   to: "",
+  contractAddress: "",
   cumulativeGasUsed: 1,
   gasUsed: 1,
-  logs: [],
-  logsBloom: ""
+  logs: []
 };

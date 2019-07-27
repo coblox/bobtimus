@@ -1,5 +1,5 @@
 import Big from "big.js";
-import { TransactionReceipt } from "web3-core";
+import { TransactionReceipt } from "web3/types";
 import {
   DeployContractParams,
   EthereumWallet,

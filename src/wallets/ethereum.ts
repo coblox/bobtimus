@@ -5,7 +5,7 @@ import EthereumTx from "ethereumjs-tx";
 import { privateToAddress } from "ethereumjs-util";
 import { getLogger } from "log4js";
 import Web3 from "web3";
-import { TransactionReceipt } from "web3-core";
+import { TransactionReceipt } from "web3/types";
 import Asset, { toNominalUnit } from "../asset";
 import { EthereumConfig } from "../config";
 
@@ -95,9 +95,6 @@ export class Web3EthereumWallet implements EthereumWallet {
     this.chainId = chainId;
     this.account = "0x" + privateToAddress(privateKey).toString("hex");
     this.privateKey = privateKey;
-
-    // Why? Because: https://github.com/ethereum/web3.js/issues/2822
-    this.web3.eth.transactionConfirmationBlocks = 1;
   }
 
   public async sendTransactionTo(

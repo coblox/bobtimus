@@ -1,7 +1,7 @@
 import { Network, Transaction } from "bitcoinjs-lib";
 import BN = require("bn.js");
 import { getLogger } from "log4js";
-import { TransactionReceipt } from "web3-core/types";
+import { TransactionReceipt } from "web3/types";
 import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import {
   BitcoinBlockchain,

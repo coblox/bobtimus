@@ -1,7 +1,6 @@
 import BN from "bn.js";
 import { privateToAddress } from "ethereumjs-util";
 import Web3 from "web3";
-import { AbiItem, toWei } from "web3-utils";
 import { Web3EthereumWallet } from "../../src/wallets/ethereum";
 import parityTestContainer from "../containers/parityTestContainer";
 import containerTest from "../containerTest";
@@ -94,7 +93,7 @@ describe("Ethereum Wallet", () => {
       // See https://github.com/paritytech/parity-ethereum/issues/10672 for details
       await sleep(10000);
 
-      const contract = new web3.eth.Contract(GreeterABI as AbiItem[]);
+      const contract = new web3.eth.Contract(GreeterABI);
       const methodCall = contract.methods.greet("Thomas").encodeABI();
 
       // need to trim `0x` from generated data
@@ -110,6 +109,7 @@ describe("Ethereum Wallet", () => {
 
       expect(receipt.logs).toHaveLength(1);
 
+      // @ts-ignore
       const data = receipt.logs[0].data;
       const logData = Buffer.from(data.substring(2), "hex").toString("utf8");
 
@@ -131,7 +131,7 @@ describe("Ethereum Wallet", () => {
 
       const amountFounded = await fundAddressOfPrivateKey(web3, privateKey);
       const balance = await wallet.getNominalBalance();
-      const balanceAfter = toWei(balance.toFixed(10));
+      const balanceAfter = web3.utils.toWei(balance.toFixed(10));
       expect(balanceAfter.toString()).toEqual(amountFounded.toString());
     }),
     20000

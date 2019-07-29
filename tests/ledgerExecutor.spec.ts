@@ -1,5 +1,5 @@
 import BN from "bn.js";
-import { TransactionReceipt } from "web3-core";
+import { TransactionReceipt } from "web3/types";
 import { EthereumGasPriceService } from "../src/ethereum/ethereumGasPriceService";
 import { LedgerExecutor } from "../src/ledgerExecutor";
 import EthereumWalletStub from "./doubles/ethereumWalletStub";

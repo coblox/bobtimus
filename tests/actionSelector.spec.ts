@@ -2,6 +2,7 @@ import BN = require("bn.js");
 import { Entity } from "../gen/siren";
 import { ActionSelector } from "../src/actionSelector";
 import { Config, TomlConfig } from "../src/config";
+import Ledger from "../src/ledger";
 import StaticRates, { ConfigRates } from "../src/rates/staticRates";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
 import swapsErc20AcceptDeclineStub from "./stubs/bitcoinEther/swapsWithErc20AcceptDecline.siren.json";
@@ -70,7 +71,10 @@ describe("Action selector tests: ", () => {
   const rates = new StaticRates(tomlConfig.rates.static as ConfigRates);
 
   it("Should emit accept only", async done => {
-    const actionSelector = new ActionSelector(config, rates);
+    const actionSelector = new ActionSelector(
+      config.getSupportedLedgers(),
+      rates
+    );
     const { entity, action } = extractEntityAndAction(
       swapsAcceptDeclineStub,
       "accept"
@@ -87,7 +91,10 @@ describe("Action selector tests: ", () => {
       bitcoin: { ether: 1 } // This one is tested
     });
 
-    const actionSelector = new ActionSelector(config, rates);
+    const actionSelector = new ActionSelector(
+      config.getSupportedLedgers(),
+      rates
+    );
     const { entity, action } = extractEntityAndAction(
       swapsAcceptDeclineStub,
       "decline"
@@ -99,7 +106,10 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit decline because of unsupported trading pair", async done => {
-    const actionSelector = new ActionSelector(config, rates);
+    const actionSelector = new ActionSelector(
+      config.getSupportedLedgers(),
+      rates
+    );
     const { entity, action } = extractEntityAndAction(
       swapsErc20AcceptDeclineStub,
       "decline"
@@ -111,8 +121,7 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit decline because of unexpected pair", async done => {
-    const actionSelector = new ActionSelector(config, rates);
-    config.bitcoinConfig = undefined;
+    const actionSelector = new ActionSelector([Ledger.Ethereum], rates);
     const { entity, action } = extractEntityAndAction(
       swapsAcceptDeclineStub,
       "decline"
@@ -124,7 +133,10 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit redeem action", async done => {
-    const actionSelector = new ActionSelector(config, rates);
+    const actionSelector = new ActionSelector(
+      config.getSupportedLedgers(),
+      rates
+    );
     const { entity, action } = extractEntityAndAction(
       swapsRedeemBitcoinEther,
       "redeem"
@@ -136,7 +148,10 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit fund action", async done => {
-    const actionSelector = new ActionSelector(config, rates);
+    const actionSelector = new ActionSelector(
+      config.getSupportedLedgers(),
+      rates
+    );
     const { entity, action } = extractEntityAndAction(
       swapsFundEtherBitcoinStub,
       "fund"
@@ -148,7 +163,10 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should not emit fund action twice", async done => {
-    const actionSelector = new ActionSelector(config, rates);
+    const actionSelector = new ActionSelector(
+      config.getSupportedLedgers(),
+      rates
+    );
     const { entity, action } = extractEntityAndAction(
       swapsFundEtherBitcoinStub,
       "fund"
@@ -163,7 +181,10 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit refund action", async done => {
-    const actionSelector = new ActionSelector(config, rates);
+    const actionSelector = new ActionSelector(
+      config.getSupportedLedgers(),
+      rates
+    );
     const { entity, action } = extractEntityAndAction(
       swapsRefundStub,
       "refund"
@@ -175,7 +196,10 @@ describe("Action selector tests: ", () => {
   });
 
   it("Should emit refund first then redeem action", async done => {
-    const actionSelector = new ActionSelector(config, rates);
+    const actionSelector = new ActionSelector(
+      config.getSupportedLedgers(),
+      rates
+    );
 
     {
       const { entity, action } = extractEntityAndAction(

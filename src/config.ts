@@ -127,24 +127,33 @@ export class Config {
     this.seed = mnemonicToSeedSync(throwIfAbsent(tomlConfig, "seedWords"));
   }
 
-  public isSupportedAndConfigured(ledger: Ledger): boolean {
-    let isValid;
-    switch (ledger) {
-      case Ledger.Bitcoin:
-        isValid = typeof this.bitcoinConfig === "object";
-        break;
-      case Ledger.Ethereum:
-        isValid = typeof this.ethereumConfig === "object";
-        break;
-      default:
-        isValid = false;
+  public getSupportedLedgers(): Ledger[] {
+    const supportedLedgers = [];
+    for (const ledger of Object.values(Ledger)) {
+      switch (ledger) {
+        case Ledger.Bitcoin:
+          if (typeof this.bitcoinConfig === "object") {
+            supportedLedgers.push(Ledger.Bitcoin);
+          } else {
+            logger.warn(`Invalid configuration for ledger ${ledger}`);
+          }
+          break;
+        case Ledger.Ethereum:
+          if (typeof this.ethereumConfig === "object") {
+            supportedLedgers.push(Ledger.Ethereum);
+          } else {
+            logger.warn(`Invalid configuration for ledger ${ledger}`);
+          }
+          break;
+        default:
+          logger.error(
+            `Internal error: enum ledger variant ${ledger} is considered in switch statement.`
+          );
+      }
     }
 
-    if (!isValid) {
-      logger.warn(`Invalid configuration for ledger ${ledger}`);
-    }
-
-    return isValid;
+    logger.debug("Supported ledgers:", supportedLedgers);
+    return supportedLedgers;
   }
 }
 

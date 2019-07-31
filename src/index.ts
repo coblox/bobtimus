@@ -117,7 +117,10 @@ const config = Config.fromFile("./config.toml");
   const comitNode = new ComitNode(config.cndUrl);
   const datastore = new DefaultFieldDataSource(ledgerExecutorParams);
   const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
-  const actionSelector = new ActionSelector(config, tradeService);
+  const actionSelector = new ActionSelector(
+    config.getSupportedLedgers(),
+    tradeService
+  );
 
   const actionExecutor = new ActionExecutor(
     comitNode,

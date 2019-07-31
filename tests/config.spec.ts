@@ -3,6 +3,7 @@ import { mnemonicToSeedSync } from "bip39";
 import * as fs from "fs";
 import tmp from "tmp";
 import { BitcoinConfig, Config, EthereumConfig } from "../src/config";
+import Ledger from "../src/ledger";
 
 /// Copies the file to not modify a file tracked by git when running the test
 /// Uses a dedicated folder to make the cleanup easier
@@ -166,6 +167,19 @@ describe("Config tests", () => {
       expect(configFn).toThrowError(
         /specify either cookie file or username\/password/
       );
+    });
+
+    it("should return all the ledgers", () => {
+      const config = Config.fromFile("./tests/configs/staticRates.toml");
+      expect(config.getSupportedLedgers()).toContain(Ledger.Ethereum);
+      expect(config.getSupportedLedgers()).toContain(Ledger.Bitcoin);
+    });
+
+    it("should only return Bitcoin ledger as Ethereum is not configured", () => {
+      const config = Config.fromFile("./tests/configs/staticRates.toml");
+      config.ethereumConfig = undefined;
+      expect(config.getSupportedLedgers()).not.toContain(Ledger.Ethereum);
+      expect(config.getSupportedLedgers()).toContain(Ledger.Bitcoin);
     });
   });
 });

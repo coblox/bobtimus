@@ -3,7 +3,6 @@ import { getLogger } from "log4js";
 import request from "request-promise-native";
 import URI from "urijs";
 import { Action, Entity } from "../gen/siren";
-import { Config } from "./config";
 
 const logger = getLogger();
 
@@ -70,16 +69,22 @@ export type LedgerAction =
     };
 
 export class ComitNode {
-  private config: Config;
+  private readonly cndUrl: uri.URI;
 
-  constructor(config: Config) {
-    this.config = config;
+  constructor(cndUrl: uri.URI) {
+    this.cndUrl = cndUrl;
+  }
+
+  public prependUrlIfNeeded(path: string): uri.URI {
+    const uriPath = new URI(path);
+    const cndUrl = this.cndUrl.clone();
+    return uriPath.is("relative") ? cndUrl.segment(path) : uriPath;
   }
 
   public getSwaps(): Promise<Entity[]> {
     const options = {
       method: "GET",
-      url: this.config.prependUrlIfNeeded("/swaps").toString(),
+      url: this.prependUrlIfNeeded("/swaps").toString(),
       json: true
     };
 
@@ -89,7 +94,7 @@ export class ComitNode {
   public getMetadata(): Promise<ComitMetadata> {
     const options = {
       method: "GET",
-      url: this.config.prependUrlIfNeeded("/").toString(),
+      url: this.prependUrlIfNeeded("/").toString(),
       json: true
     };
 
@@ -101,8 +106,7 @@ export class ComitNode {
     if (method === "GET") {
       options = {
         method,
-        uri: this.config
-          .prependUrlIfNeeded(url)
+        uri: this.prependUrlIfNeeded(url)
           .query(URI.buildQuery(data))
           .toString(),
         json: true
@@ -110,7 +114,7 @@ export class ComitNode {
     } else {
       options = {
         method,
-        uri: this.config.prependUrlIfNeeded(url).toString(),
+        uri: this.prependUrlIfNeeded(url).toString(),
         body: data,
         json: true
       };

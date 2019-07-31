@@ -2,8 +2,8 @@ import TOML from "@iarna/toml";
 import { mnemonicToSeedSync } from "bip39";
 import * as fs from "fs";
 import tmp from "tmp";
-import URI from "urijs";
 import { BitcoinConfig, Config, EthereumConfig } from "../src/config";
+import Ledger from "../src/ledger";
 
 /// Copies the file to not modify a file tracked by git when running the test
 /// Uses a dedicated folder to make the cleanup easier
@@ -29,25 +29,6 @@ function cleanUpFiles(dir: string) {
 }
 
 describe("Config tests", () => {
-  it("should parse the config and being able to prepend with configured uri", () => {
-    const config = Config.fromFile("./tests/configs/staticRates.toml");
-
-    const uriString = "http://localhost:8000/swaps/rfc003";
-    const uriWithPath: uri.URI = new URI(uriString);
-
-    expect(config.prependUrlIfNeeded("/swaps/rfc003").toString()).toEqual(
-      uriWithPath.toString()
-    );
-
-    expect(config.prependUrlIfNeeded("swaps/rfc003").toString()).toEqual(
-      uriWithPath.toString()
-    );
-
-    expect(config.prependUrlIfNeeded(uriString).toString()).toEqual(
-      uriWithPath.toString()
-    );
-  });
-
   it("should write seed words in the config file if they are not present, keeping same parameters", () => {
     const { dir, filename } = copyConfigFile(
       "./tests/configs/noSeedWords.toml"
@@ -186,6 +167,19 @@ describe("Config tests", () => {
       expect(configFn).toThrowError(
         /specify either cookie file or username\/password/
       );
+    });
+
+    it("should return all the ledgers", () => {
+      const config = Config.fromFile("./tests/configs/staticRates.toml");
+      expect(config.getSupportedLedgers()).toContain(Ledger.Ethereum);
+      expect(config.getSupportedLedgers()).toContain(Ledger.Bitcoin);
+    });
+
+    it("should only return Bitcoin ledger as Ethereum is not configured", () => {
+      const config = Config.fromFile("./tests/configs/staticRates.toml");
+      config.ethereumConfig = undefined;
+      expect(config.getSupportedLedgers()).not.toContain(Ledger.Ethereum);
+      expect(config.getSupportedLedgers()).toContain(Ledger.Bitcoin);
     });
   });
 });

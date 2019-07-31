@@ -102,7 +102,9 @@ const config = Config.fromFile("./config.toml");
   const ethereumParams = await initEthereum(config);
 
   const tradeService = await createTradeEvaluationService({
-    config,
+    testnetMarketMaker: config.testnetMarketMaker,
+    staticRates: config.staticRates,
+    lowBalanceThresholdPercentage: config.lowBalanceThresholdPercentage,
     ethereumWallet: ethereumParams.ethereumWallet,
     bitcoinWallet
   });
@@ -114,10 +116,13 @@ const config = Config.fromFile("./config.toml");
     ...ethereumParams
   };
 
-  const comitNode = new ComitNode(config);
+  const comitNode = new ComitNode(config.cndUrl);
   const datastore = new DefaultFieldDataSource(ledgerExecutorParams);
   const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
-  const actionSelector = new ActionSelector(config, tradeService);
+  const actionSelector = new ActionSelector(
+    config.getSupportedLedgers(),
+    tradeService
+  );
 
   const actionExecutor = new ActionExecutor(
     comitNode,

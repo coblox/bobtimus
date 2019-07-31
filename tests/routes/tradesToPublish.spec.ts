@@ -1,7 +1,6 @@
 import Big from "big.js";
 import Asset from "../../src/asset";
 import { ComitMetadata } from "../../src/comitNode";
-import { BitcoinConfig, Config } from "../../src/config";
 import Ledger from "../../src/ledger";
 import { Trade, TradeService } from "../../src/rates/tradeService";
 import {
@@ -44,13 +43,17 @@ const ethBtcTrade: Trade = {
   }
 };
 
-function getBitcoinConfig(): BitcoinConfig {
-  const config = Config.fromFile("./tests/configs/testnetMarketMaker.toml");
-  if (!config.bitcoinConfig) {
-    throw new Error("Could not load bitcoin config");
+const bitcoinConfig = {
+  network: "regtest",
+  fee: { defaultFee: 10, strategy: "hourFee" },
+  coreRpc: {
+    host: "127.0.0.1",
+    port: 18443,
+    auth: {
+      cookieFile: "/home/bitcoin/.bitcoin/regtest/.cookie"
+    }
   }
-  return config.bitcoinConfig;
-}
+};
 
 const ethereumWalletMock = new EthereumWalletStub({
   nominalBalance: new Big(1000),
@@ -178,7 +181,7 @@ describe("TradesToPublish tests ", () => {
 
     const apiCall = getAmountsToPublishRoute(
       mockMarketMaker,
-      getBitcoinConfig(),
+      bitcoinConfig,
       ethereumWalletMock,
       comitMetadata.id,
       addressHint

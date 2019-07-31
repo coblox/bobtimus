@@ -1,13 +1,14 @@
 import Big from "big.js";
 import { getLogger } from "log4js";
 import Asset from "../asset";
-import { Config } from "../config";
 import Ledger from "../ledger";
 import { BitcoinWallet } from "../wallets/bitcoin";
 import { EthereumWallet } from "../wallets/ethereum";
 import Balances from "./balances";
-import StaticRates from "./staticRates";
-import TestnetMarketMaker from "./testnetMarketMaker";
+import StaticRates, { ConfigRates } from "./staticRates";
+import TestnetMarketMaker, {
+  TestnetMarketMakerConfig
+} from "./testnetMarketMaker";
 
 const logger = getLogger();
 
@@ -30,18 +31,22 @@ export interface TradeService {
 }
 
 export interface InitialiseRateParameters {
-  config: Config;
+  testnetMarketMaker?: TestnetMarketMakerConfig;
+  staticRates?: ConfigRates;
+  lowBalanceThresholdPercentage?: number;
   ethereumWallet?: EthereumWallet;
   bitcoinWallet?: BitcoinWallet;
 }
 
 export async function createTradeEvaluationService({
-  config,
+  testnetMarketMaker,
+  staticRates,
+  lowBalanceThresholdPercentage,
   ethereumWallet,
   bitcoinWallet
 }: InitialiseRateParameters) {
-  const testnetMarketMakerConfig = config.testnetMarketMaker;
-  const staticRatesConfig = config.staticRates;
+  const testnetMarketMakerConfig = testnetMarketMaker;
+  const staticRatesConfig = staticRates;
 
   if (testnetMarketMakerConfig && staticRatesConfig) {
     throw new Error("Multiple rate strategies provided.");
@@ -50,6 +55,12 @@ export async function createTradeEvaluationService({
   if (staticRatesConfig) {
     return new StaticRates(staticRatesConfig);
   } else if (testnetMarketMakerConfig) {
+    if (!lowBalanceThresholdPercentage) {
+      throw new Error(
+        "lowBalanceThresholdPercentage is needed for testnet Market Maker rate strategy"
+      );
+    }
+
     const bitcoinBalanceLookup = async () => {
       try {
         if (bitcoinWallet) {
@@ -80,7 +91,7 @@ export async function createTradeEvaluationService({
 
     const balances = await Balances.create(
       balanceLookups,
-      config.lowBalanceThresholdPercentage
+      lowBalanceThresholdPercentage
     );
 
     return new TestnetMarketMaker(testnetMarketMakerConfig, balances);

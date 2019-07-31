@@ -3,8 +3,7 @@ import { getLogger } from "log4js";
 import { Action, Entity } from "../gen/siren";
 import { toAsset, toNominalUnit } from "./asset";
 import { Swap } from "./comitNode";
-import { Config } from "./config";
-import { toLedger } from "./ledger";
+import Ledger, { toLedger } from "./ledger";
 import { Trade, TradeService } from "./rates/tradeService";
 
 const logger = getLogger();
@@ -12,14 +11,14 @@ const logger = getLogger();
 Big.DP = 30;
 
 export class ActionSelector {
-  private config: Config;
+  private readonly supportedLedgers: Ledger[];
   private selectedActions: Action[];
   private rates: TradeService;
 
-  constructor(config: Config, rates: TradeService) {
-    this.config = config;
-    this.selectedActions = [];
+  constructor(supportedLedgers: Ledger[], rates: TradeService) {
+    this.supportedLedgers = supportedLedgers;
     this.rates = rates;
+    this.selectedActions = [];
   }
 
   public selectActions(entity: Entity) {
@@ -89,8 +88,8 @@ export class ActionSelector {
     }
 
     if (
-      !this.config.isSupportedAndConfigured(alphaLedger) ||
-      !this.config.isSupportedAndConfigured(betaLedger)
+      !this.supportedLedgers.includes(alphaLedger) ||
+      !this.supportedLedgers.includes(betaLedger)
     ) {
       return Promise.resolve(false);
     }

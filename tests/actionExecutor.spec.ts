@@ -2,11 +2,11 @@ import { Result } from "@badrap/result/dist";
 import { networks } from "bitcoinjs-lib";
 import BN = require("bn.js");
 import nock from "nock";
+import URI from "urijs";
 import { Action, Field } from "../gen/siren";
 import { ActionExecutor } from "../src/actionExecutor";
 import { Satoshis } from "../src/bitcoin/blockchain";
 import { ComitNode, Swap } from "../src/comitNode";
-import { Config } from "../src/config";
 import { FieldDataSource } from "../src/fieldDataSource";
 import DummyDatastore from "./doubles/dummyDatastore";
 import DummyLedgerExecutor, {
@@ -27,43 +27,8 @@ import redeemEther from "./stubs/redeemEther.json";
 import refundBitcoin from "./stubs/refundBitcoin.json";
 import refundEther from "./stubs/refundEther.json";
 
-const config = new Config({
-  cndUrl: "http://localhost:8000",
-  seedWords:
-    "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
-  rates: {
-    static: {
-      ether: { bitcoin: 0.0105 },
-      bitcoin: { ether: 105.26 }
-    }
-  },
-  ledgers: {
-    bitcoin: {
-      coreRpc: {
-        host: "127.0.0.1",
-        port: 18443,
-        auth: {
-          username: "bitcoin",
-          password: "password"
-        }
-      },
-      network: "regtest",
-      fee: {
-        defaultFee: 10,
-        strategy: "hourFee"
-      }
-    },
-    ethereum: {
-      web3Endpoint: "http://localhost:8545",
-      fee: {
-        defaultFee: new BN(10),
-        strategy: "average"
-      }
-    }
-  }
-});
-
-const comitNode = new ComitNode(config);
+const cndUrl = new URI("http://localhost:8000");
+const comitNode = new ComitNode(cndUrl);
 
 describe("Action executor tests: ", () => {
   it("should post accept action and get stubbed response", async done => {

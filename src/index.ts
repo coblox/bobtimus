@@ -114,7 +114,7 @@ const config = Config.fromFile("./config.toml");
     ...ethereumParams
   };
 
-  const comitNode = new ComitNode(config);
+  const comitNode = new ComitNode(config.cndUrl);
   const datastore = new DefaultFieldDataSource(ledgerExecutorParams);
   const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
   const actionSelector = new ActionSelector(config, tradeService);

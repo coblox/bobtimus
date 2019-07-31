@@ -63,7 +63,7 @@ const config = new Config({
   }
 });
 
-const comitNode = new ComitNode(config);
+const comitNode = new ComitNode(config.cndUrl);
 
 describe("Action executor tests: ", () => {
   it("should post accept action and get stubbed response", async done => {

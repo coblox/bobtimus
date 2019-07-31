@@ -3,7 +3,6 @@ import { generateMnemonic, mnemonicToSeedSync } from "bip39";
 import BN = require("bn.js");
 import * as fs from "fs";
 import { getLogger } from "log4js";
-import URI from "urijs";
 import Ledger from "./ledger";
 import { ConfigRates } from "./rates/staticRates";
 import { TestnetMarketMakerConfig } from "./rates/testnetMarketMaker";
@@ -124,13 +123,6 @@ export class Config {
     this.cndListenAddress = tomlConfig.cndListenAddress;
     this.apiPort = tomlConfig.apiPort;
     this.seed = mnemonicToSeedSync(throwIfAbsent(tomlConfig, "seedWords"));
-  }
-
-  public prependUrlIfNeeded(path: string): uri.URI {
-    const uriPath = new URI(path);
-    return uriPath.is("relative")
-      ? new URI(this.cndUrl).segment(path)
-      : uriPath;
   }
 
   public isSupportedAndConfigured(ledger: Ledger): boolean {

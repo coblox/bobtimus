@@ -2,7 +2,6 @@ import TOML from "@iarna/toml";
 import { mnemonicToSeedSync } from "bip39";
 import * as fs from "fs";
 import tmp from "tmp";
-import URI from "urijs";
 import { BitcoinConfig, Config, EthereumConfig } from "../src/config";
 
 /// Copies the file to not modify a file tracked by git when running the test
@@ -29,25 +28,6 @@ function cleanUpFiles(dir: string) {
 }
 
 describe("Config tests", () => {
-  it("should parse the config and being able to prepend with configured uri", () => {
-    const config = Config.fromFile("./tests/configs/staticRates.toml");
-
-    const uriString = "http://localhost:8000/swaps/rfc003";
-    const uriWithPath: uri.URI = new URI(uriString);
-
-    expect(config.prependUrlIfNeeded("/swaps/rfc003").toString()).toEqual(
-      uriWithPath.toString()
-    );
-
-    expect(config.prependUrlIfNeeded("swaps/rfc003").toString()).toEqual(
-      uriWithPath.toString()
-    );
-
-    expect(config.prependUrlIfNeeded(uriString).toString()).toEqual(
-      uriWithPath.toString()
-    );
-  });
-
   it("should write seed words in the config file if they are not present, keeping same parameters", () => {
     const { dir, filename } = copyConfigFile(
       "./tests/configs/noSeedWords.toml"

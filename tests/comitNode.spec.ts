@@ -1,4 +1,5 @@
 import nock from "nock";
+import URI from "urijs";
 import { ComitNode, hexToBuffer } from "../src/comitNode";
 import { Config } from "../src/config";
 
@@ -47,12 +48,31 @@ describe("Comit Node library tests", () => {
     const config = Config.fromFile("./tests/configs/staticRates.toml");
 
     const { scope, id } = mockComitMetadata(config.cndUrl);
-    const comitNode = new ComitNode(config);
+    const comitNode = new ComitNode(config.cndUrl);
 
     const metadata = await comitNode.getMetadata();
     expect(metadata.id).toEqual(id);
     expect(scope.isDone()).toBeTruthy();
 
     done();
+  });
+
+  it("should parse the config and being able to prepend with configured uri", () => {
+    const comitNode = new ComitNode("http://localhost:8000");
+
+    const uriString = "http://localhost:8000/swaps/rfc003";
+    const uriWithPath: uri.URI = new URI(uriString);
+
+    expect(comitNode.prependUrlIfNeeded("/swaps/rfc003").toString()).toEqual(
+      uriWithPath.toString()
+    );
+
+    expect(comitNode.prependUrlIfNeeded("swaps/rfc003").toString()).toEqual(
+      uriWithPath.toString()
+    );
+
+    expect(comitNode.prependUrlIfNeeded(uriString).toString()).toEqual(
+      uriWithPath.toString()
+    );
   });
 });

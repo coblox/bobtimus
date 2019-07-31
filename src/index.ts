@@ -102,7 +102,9 @@ const config = Config.fromFile("./config.toml");
   const ethereumParams = await initEthereum(config);
 
   const tradeService = await createTradeEvaluationService({
-    config,
+    testnetMarketMaker: config.testnetMarketMaker,
+    staticRates: config.staticRates,
+    lowBalanceThresholdPercentage: config.lowBalanceThresholdPercentage,
     ethereumWallet: ethereumParams.ethereumWallet,
     bitcoinWallet
   });

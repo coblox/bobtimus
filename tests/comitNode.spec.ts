@@ -1,7 +1,6 @@
 import nock from "nock";
 import URI from "urijs";
 import { ComitNode, hexToBuffer } from "../src/comitNode";
-import { Config } from "../src/config";
 
 describe("Comit Node library tests", () => {
   it("should remove `0x` prefix and decode the hex string to a buffer", () => {
@@ -45,10 +44,10 @@ describe("Comit Node library tests", () => {
   }
 
   it("should get cnd id", async done => {
-    const config = Config.fromFile("./tests/configs/staticRates.toml");
+    const cndUrl = new URI("http://localhost:8000");
 
-    const { scope, id } = mockComitMetadata(config.cndUrl.href());
-    const comitNode = new ComitNode(config.cndUrl);
+    const { scope, id } = mockComitMetadata(cndUrl.href());
+    const comitNode = new ComitNode(cndUrl);
 
     const metadata = await comitNode.getMetadata();
     expect(metadata.id).toEqual(id);

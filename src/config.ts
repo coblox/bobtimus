@@ -3,6 +3,7 @@ import { generateMnemonic, mnemonicToSeedSync } from "bip39";
 import BN = require("bn.js");
 import * as fs from "fs";
 import { getLogger } from "log4js";
+import URI from "urijs";
 import Ledger from "./ledger";
 import { ConfigRates } from "./rates/staticRates";
 import { TestnetMarketMakerConfig } from "./rates/testnetMarketMaker";
@@ -76,7 +77,7 @@ export class Config {
     return new Config(parsedConfig as TomlConfig);
   }
 
-  public cndUrl: string;
+  public cndUrl: uri.URI;
   public apiPort?: number;
   public staticRates?: ConfigRates;
   public testnetMarketMaker?: TestnetMarketMakerConfig;
@@ -119,7 +120,8 @@ export class Config {
       ? rates.marketMaker.testnet
       : undefined;
 
-    this.cndUrl = throwIfAbsent(tomlConfig, "cndUrl");
+    const cndUrl = throwIfAbsent(tomlConfig, "cndUrl");
+    this.cndUrl = new URI(cndUrl);
     this.cndListenAddress = tomlConfig.cndListenAddress;
     this.apiPort = tomlConfig.apiPort;
     this.seed = mnemonicToSeedSync(throwIfAbsent(tomlConfig, "seedWords"));

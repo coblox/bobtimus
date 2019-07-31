@@ -69,17 +69,16 @@ export type LedgerAction =
     };
 
 export class ComitNode {
-  private readonly cndUrl: string;
+  private readonly cndUrl: uri.URI;
 
-  constructor(cndUrl: string) {
+  constructor(cndUrl: uri.URI) {
     this.cndUrl = cndUrl;
   }
 
   public prependUrlIfNeeded(path: string): uri.URI {
     const uriPath = new URI(path);
-    return uriPath.is("relative")
-      ? new URI(this.cndUrl).segment(path)
-      : uriPath;
+    const cndUrl = this.cndUrl.clone();
+    return uriPath.is("relative") ? cndUrl.segment(path) : uriPath;
   }
 
   public getSwaps(): Promise<Entity[]> {

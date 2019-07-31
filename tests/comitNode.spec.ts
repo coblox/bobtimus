@@ -47,7 +47,7 @@ describe("Comit Node library tests", () => {
   it("should get cnd id", async done => {
     const config = Config.fromFile("./tests/configs/staticRates.toml");
 
-    const { scope, id } = mockComitMetadata(config.cndUrl);
+    const { scope, id } = mockComitMetadata(config.cndUrl.href());
     const comitNode = new ComitNode(config.cndUrl);
 
     const metadata = await comitNode.getMetadata();
@@ -58,7 +58,7 @@ describe("Comit Node library tests", () => {
   });
 
   it("should parse the config and being able to prepend with configured uri", () => {
-    const comitNode = new ComitNode("http://localhost:8000");
+    const comitNode = new ComitNode(new URI("http://localhost:8000"));
 
     const uriString = "http://localhost:8000/swaps/rfc003";
     const uriWithPath: uri.URI = new URI(uriString);

@@ -53,6 +53,7 @@ export class ActionExecutor {
     if (result.isOk) {
       this.executedActions.push(action);
     } else if (maxRetries <= 0) {
+      logger.debug("Result error:", result);
       result = Result.err(new Error("Maximum number of retries reached"));
     } else {
       // It failed, try again in x milliseconds

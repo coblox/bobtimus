@@ -1,15 +1,16 @@
+import { Result } from "@badrap/result/dist";
 import { Network, Transaction } from "bitcoinjs-lib";
 import BN = require("bn.js");
 import { getLogger } from "log4js";
-import { TransactionReceipt } from "web3/types";
 import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import {
   BitcoinBlockchain,
   networkFromString,
   Satoshis
 } from "./bitcoin/blockchain";
-import { hexToBuffer } from "./comitNode";
+import { hexToBN, hexToBuffer, LedgerAction } from "./comitNode";
 import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
+import sleep from "./sleep";
 import { BitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
 
@@ -38,29 +39,7 @@ export interface LedgerExecutorParams {
   ethereumFeeService?: EthereumGasPriceService;
 }
 
-export interface ILedgerExecutor {
-  bitcoinPayToAddress: (
-    address: string,
-    amount: Satoshis,
-    network: Network
-  ) => Promise<string>;
-  bitcoinBroadcastTransaction: (
-    transaction: Transaction,
-    network: string
-  ) => Promise<string>;
-  ethereumDeployContract: (
-    params: EthereumSharedTransactionParams & EthereumDeployContractParams
-  ) => Promise<TransactionReceipt>;
-  ethereumSendTransactionTo: (
-    params: EthereumSharedTransactionParams & EthereumSendTransactionToParams
-  ) => Promise<TransactionReceipt>;
-
-  bitcoinGetBlockTime(network: string): Promise<number>;
-  ethereumGetTimestamp(network: string): Promise<number>;
-}
-
-// TODO: consider testing this
-export class LedgerExecutor implements ILedgerExecutor {
+export class LedgerExecutor {
   private readonly bitcoinBlockchain?: BitcoinBlockchain;
   private readonly bitcoinWallet?: BitcoinWallet;
   private readonly ethereumWallet?: EthereumWallet;
@@ -79,6 +58,73 @@ export class LedgerExecutor implements ILedgerExecutor {
     this.ethereumWallet = ethereumWallet;
     this.bitcoinFeeService = bitcoinFeeService;
     this.ethereumFeeService = ethereumFeeService;
+  }
+
+  public async execute(action: LedgerAction) {
+    logger.trace(`Execute Ledger Action: ${JSON.stringify(action)}`);
+    try {
+      const network = action.payload.network;
+      switch (action.type) {
+        case "bitcoin-send-amount-to-address": {
+          const satoshis = new Satoshis(action.payload.amount);
+          const result = await this.bitcoinPayToAddress(
+            action.payload.to,
+            satoshis,
+            networkFromString(action.payload.network)
+          );
+          return Result.ok(result);
+        }
+        case "bitcoin-broadcast-signed-transaction": {
+          const minMedianBlockTime = action.payload.min_median_block_time;
+          if (minMedianBlockTime) {
+            await sleepTillBlockchainTimeReached(minMedianBlockTime, () =>
+              this.bitcoinGetBlockTime(network)
+            );
+          }
+
+          const transaction = Transaction.fromHex(action.payload.hex);
+          const result = await this.bitcoinBroadcastTransaction(
+            transaction,
+            network
+          );
+          return Result.ok(result);
+        }
+        case "ethereum-deploy-contract": {
+          const params = {
+            value: new BN(action.payload.amount),
+            gasLimit: hexToBN(action.payload.gas_limit),
+            data: hexToBuffer(action.payload.data),
+            network: action.payload.network
+          };
+          const result = await this.ethereumDeployContract(params);
+          return Result.ok(result);
+        }
+        case "ethereum-call-contract": {
+          const minBlockTimestamp = action.payload.min_block_timestamp;
+          if (minBlockTimestamp) {
+            await sleepTillBlockchainTimeReached(minBlockTimestamp, () =>
+              this.ethereumGetTimestamp(network)
+            );
+          }
+
+          const params = {
+            gasLimit: hexToBN(action.payload.gas_limit),
+            to: action.payload.contract_address,
+            network: action.payload.network,
+            data: action.payload.data
+          };
+          const result = await this.ethereumSendTransactionTo(params);
+          return Result.ok(result);
+        }
+        default: {
+          return Result.err(
+            new Error(`Action type ${action} is not supported`)
+          );
+        }
+      }
+    } catch (err) {
+      return Result.err(err);
+    }
   }
 
   public async bitcoinPayToAddress(
@@ -225,4 +271,27 @@ export class LedgerExecutor implements ILedgerExecutor {
       ethereumFeeService
     };
   }
+}
+
+async function sleepTillBlockchainTimeReached(
+  targetTime: number,
+  getCurrentBlockTime: () => Promise<number>
+) {
+  let currentBlockTime = await getCurrentBlockTime();
+  let diff = targetTime - currentBlockTime;
+
+  if (diff > 0) {
+    logger.info(
+      `Initializing refund, waiting for block time to pass ${targetTime}`
+    );
+
+    while (diff > 0) {
+      await sleep(1000);
+
+      currentBlockTime = await getCurrentBlockTime();
+      diff = targetTime - currentBlockTime;
+    }
+  }
+
+  logger.info(`Block time has passed ${targetTime}, executing refund`);
 }

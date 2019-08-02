@@ -138,7 +138,7 @@ const config = Config.fromFile(CONFIG_PATH);
   const actionExecutor = new ActionExecutor(
     comitNode,
     datastore.getData,
-    ledgerExecutor
+    ledgerExecutor.execute
   );
 
   const comitNodeMetadata = await comitNode.getMetadata();

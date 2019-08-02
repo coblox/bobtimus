@@ -1,29 +1,20 @@
 import { Result } from "@badrap/result/dist";
-import { networks } from "bitcoinjs-lib";
-import BN = require("bn.js");
 import nock from "nock";
 import URI from "urijs";
 import { Action, Field } from "../gen/siren";
 import { ActionExecutor } from "../src/actionExecutor";
-import { Satoshis } from "../src/bitcoin/blockchain";
 import { ComitNode, Swap } from "../src/comitNode";
-import DummyLedgerExecutor, {
-  dummyTransactionReceipt
-} from "./doubles/dummyLedgerExecutor";
 import acceptedStub from "./stubs/accepted.json";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
 import swapsFundBitcoinEtherStub from "./stubs/bitcoinEther/swapsWithFund.siren.json";
 import swapsRedeemBitcoinEther from "./stubs/bitcoinEther/swapsWithRedeem.siren.json";
-import swapsRefundEther from "./stubs/bitcoinEther/swapsWithRefund.siren.json";
 import swapsFundEtherBitcoinStub from "./stubs/etherBitcoin/swapsWithFund.siren.json";
 import swapsRedeemEtherBitcoin from "./stubs/etherBitcoin/swapsWithRedeem.siren.json";
-import swapsRefundBitcoin from "./stubs/etherBitcoin/swapsWithRefund.siren.json";
 import fundBitcoin from "./stubs/fundBitcoin.json";
 import fundEther from "./stubs/fundEther.json";
 import redeemBitcoin from "./stubs/redeemBitcoin.json";
 import redeemEther from "./stubs/redeemEther.json";
-import refundBitcoin from "./stubs/refundBitcoin.json";
-import refundEther from "./stubs/refundEther.json";
+import dummyTransactionReceipt from "./stubs/transactionReceipt.json";
 
 const cndUrl = new URI("http://localhost:8000");
 const comitNode = new ComitNode(cndUrl);
@@ -49,7 +40,7 @@ describe("Action executor tests: ", () => {
     const actionExecutor = new ActionExecutor(
       comitNode,
       getData,
-      new DummyLedgerExecutor()
+      throwIfCalled
     );
     const swap = swapsAcceptDeclineStub.entities[0] as Swap;
     const acceptAction = swap.actions.find(
@@ -77,7 +68,7 @@ describe("Action executor tests: ", () => {
     const actionExecutor = new ActionExecutor(
       comitNode,
       getData,
-      new DummyLedgerExecutor()
+      throwIfCalled
     );
     const swap = swapsAcceptDeclineStub.entities[0] as Swap;
     const acceptAction = swap.actions.find(
@@ -111,7 +102,7 @@ describe("Action executor tests: ", () => {
     const actionExecutor = new ActionExecutor(
       comitNode,
       getData,
-      new DummyLedgerExecutor()
+      throwIfCalled
     );
     const swap = swapsAcceptDeclineStub.entities[0] as Swap;
     const acceptAction = swap.actions.find(
@@ -143,7 +134,7 @@ describe("Action executor tests: ", () => {
     const actionExecutor = new ActionExecutor(
       comitNode,
       getData,
-      new DummyLedgerExecutor()
+      throwIfCalled
     );
     const swap = swapsAcceptDeclineStub.entities[0] as Swap;
     const acceptAction = swap.actions.find(
@@ -173,15 +164,13 @@ describe("Ledger action execution tests:", () => {
       .reply(200, fundEther);
 
     const mockEthereumDeployContract = jest.fn(() => {
-      return Promise.resolve(dummyTransactionReceipt);
+      return Promise.resolve(Result.ok(dummyTransactionReceipt));
     });
 
-    const ledgerExecutor = new DummyLedgerExecutor();
-    ledgerExecutor.ethereumDeployContract = mockEthereumDeployContract;
     const actionExecutor = new ActionExecutor(
       comitNode,
       throwIfCalled,
-      ledgerExecutor
+      mockEthereumDeployContract
     );
     const swap = swapsFundBitcoinEtherStub.entities[0] as Swap;
 
@@ -197,20 +186,15 @@ describe("Ledger action execution tests:", () => {
     // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
     const argumentPassed = mockEthereumDeployContract.mock.calls[0][0];
 
-    expect(argumentPassed).toHaveProperty(
-      "value",
-      new BN("111111111111111111111")
-    );
-    expect(argumentPassed).toHaveProperty(
-      "data",
-      Buffer.from("6100dcff", "hex")
-    );
-    expect(argumentPassed).toHaveProperty("gasLimit");
-    // @ts-ignore: gasLimit exists as tested above
-    expect(argumentPassed.gasLimit.toString()).toEqual(
-      new BN(122000).toString()
-    );
-    expect(argumentPassed).toHaveProperty("network", "regtest");
+    expect(argumentPassed).toEqual({
+      payload: {
+        amount: "111111111111111111111",
+        data: "0x6100dcff",
+        gas_limit: "0x1dc90",
+        network: "regtest"
+      },
+      type: "ethereum-deploy-contract"
+    });
 
     done();
   });
@@ -227,15 +211,13 @@ describe("Ledger action execution tests:", () => {
       "001122334455667788990011223344556677889900112233445566778899aabb";
 
     const mockBitcoinPayToAddress = jest.fn(() => {
-      return Promise.resolve(txId);
+      return Promise.resolve(Result.ok(txId));
     });
 
-    const ledgerExecutor = new DummyLedgerExecutor();
-    ledgerExecutor.bitcoinPayToAddress = mockBitcoinPayToAddress;
     const actionExecutor = new ActionExecutor(
       comitNode,
       throwIfCalled,
-      ledgerExecutor
+      mockBitcoinPayToAddress
     );
     const swap = swapsFundEtherBitcoinStub.entities[0] as Swap;
 
@@ -246,19 +228,18 @@ describe("Ledger action execution tests:", () => {
     expect(actionResponse).toStrictEqual(Result.ok(txId));
 
     expect(mockBitcoinPayToAddress.mock.calls.length).toBe(1);
-    expect(mockBitcoinPayToAddress.mock.calls[0].length).toBe(3);
+    expect(mockBitcoinPayToAddress.mock.calls[0].length).toBe(1);
     // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
-    const addressPassed = mockBitcoinPayToAddress.mock.calls[0][0];
-    // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
-    const satPassed = mockBitcoinPayToAddress.mock.calls[0][1];
-    // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
-    const networkPassed = mockBitcoinPayToAddress.mock.calls[0][2];
+    const ledgerActionPassed = mockBitcoinPayToAddress.mock.calls[0][0];
 
-    expect(addressPassed).toEqual(
-      "bcrt1q4vmcukhvmd2lajgk9az24s3fndm4swrkl633lq"
-    );
-    expect(satPassed).toEqual(new Satoshis("100000000"));
-    expect(networkPassed).toEqual(networks.regtest);
+    expect(ledgerActionPassed).toEqual({
+      payload: {
+        amount: "100000000",
+        network: "regtest",
+        to: "bcrt1q4vmcukhvmd2lajgk9az24s3fndm4swrkl633lq"
+      },
+      type: "bitcoin-send-amount-to-address"
+    });
 
     done();
   });
@@ -280,14 +261,16 @@ describe("Ledger action execution tests:", () => {
 
     const mockBitcoinBroadcastTransaction = jest.fn();
     mockBitcoinBroadcastTransaction.mockReturnValueOnce(
-      "aabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeff1122"
+      Promise.resolve(
+        Result.ok(
+          "aabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeffaabbccddeeff1122"
+        )
+      )
     );
-    const ledgerExecutor = new DummyLedgerExecutor();
-    ledgerExecutor.bitcoinBroadcastTransaction = mockBitcoinBroadcastTransaction;
     const actionExecutor = new ActionExecutor(
       comitNode,
       mockGetData,
-      ledgerExecutor
+      mockBitcoinBroadcastTransaction
     );
     const swap = swapsRedeemBitcoinEther.entities[0] as Swap;
 
@@ -313,16 +296,14 @@ describe("Ledger action execution tests:", () => {
       .get("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/redeem")
       .reply(200, redeemEther);
 
-    const ledgerExecutor = new DummyLedgerExecutor();
     const mockEthereumSendTransactionTo = jest.fn();
     mockEthereumSendTransactionTo.mockReturnValueOnce(
-      Promise.resolve(dummyTransactionReceipt)
+      Promise.resolve(Result.ok(dummyTransactionReceipt))
     );
-    ledgerExecutor.ethereumSendTransactionTo = mockEthereumSendTransactionTo;
     const actionExecutor = new ActionExecutor(
       comitNode,
       throwIfCalled,
-      ledgerExecutor
+      mockEthereumSendTransactionTo
     );
     const swap = swapsRedeemEtherBitcoin.entities[0] as Swap;
 
@@ -335,14 +316,17 @@ describe("Ledger action execution tests:", () => {
 
     expect(mockEthereumSendTransactionTo.mock.calls[0].length).toBe(1);
     // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
-    const argPassed = mockEthereumSendTransactionTo.mock.calls[0][0];
-    expect(argPassed.value).toBeUndefined();
-    expect(argPassed.gasLimit.toString("hex")).toEqual("186a0");
-    expect(argPassed.network).toEqual("regtest");
-    expect(argPassed.to).toEqual("0x1189128ff5573f6282dbbf1557ed839dab277aeb");
-    expect(argPassed.data).toEqual(
-      "0x00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"
-    );
+    const ledgerActionPassed = mockEthereumSendTransactionTo.mock.calls[0][0];
+    expect(ledgerActionPassed).toEqual({
+      payload: {
+        contract_address: "0x1189128ff5573f6282dbbf1557ed839dab277aeb",
+        data:
+          "0x00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+        gas_limit: "0x186a0",
+        network: "regtest"
+      },
+      type: "ethereum-call-contract"
+    });
 
     done();
   });
@@ -358,22 +342,15 @@ describe("Ledger action execution tests:", () => {
       .get("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/redeem")
       .reply(200, redeemEther);
 
-    const ledgerExecutor = new DummyLedgerExecutor();
-
-    const mockEthereumSendTransactionTo = jest.fn();
-    mockEthereumSendTransactionTo.mockReturnValueOnce(
-      Promise.resolve(dummyTransactionReceipt)
-    );
-    ledgerExecutor.ethereumSendTransactionTo = mockEthereumSendTransactionTo;
-
-    ledgerExecutor.ethereumDeployContract = jest.fn(() => {
-      return Promise.resolve(dummyTransactionReceipt);
-    });
+    const mockEthereumSendTransactionAndDeploy = jest.fn();
+    mockEthereumSendTransactionAndDeploy
+      .mockReturnValueOnce(Promise.resolve(Result.ok(dummyTransactionReceipt)))
+      .mockReturnValueOnce(Promise.resolve(Result.ok(dummyTransactionReceipt)));
 
     const actionExecutor = new ActionExecutor(
       comitNode,
       throwIfCalled,
-      ledgerExecutor
+      mockEthereumSendTransactionAndDeploy
     );
     const fundSwap = swapsFundBitcoinEtherStub.entities[0] as Swap;
 
@@ -391,100 +368,6 @@ describe("Ledger action execution tests:", () => {
 
     expect(actionResult1).toBeDefined();
     expect(actionResult2).toBeDefined();
-
-    done();
-  });
-
-  it("execute refund action on Bitcoin", async done => {
-    nock("http://localhost:8000")
-      .get("/swaps/rfc003/")
-      .reply(200, swapsRefundBitcoin);
-    nock("http://localhost:8000")
-      .get(
-        "/swaps/rfc003/022b4e38-61fd-431a-af44-6240c7ac44d7/refund?address=bcrt1qs2aderg3whgu0m8uadn6dwxjf7j3wx97kk2qqtrum89pmfcxknhsf89pj0&fee_per_byte=180"
-      )
-      .reply(200, refundBitcoin);
-
-    const mockGetData = jest.fn();
-    mockGetData
-      .mockReturnValueOnce(
-        "bcrt1qs2aderg3whgu0m8uadn6dwxjf7j3wx97kk2qqtrum89pmfcxknhsf89pj0"
-      )
-      .mockReturnValueOnce(180);
-
-    const ledgerExecutor = new DummyLedgerExecutor();
-
-    const mockBitcoinGetBlockTime = jest.fn();
-    mockBitcoinGetBlockTime.mockReturnValueOnce(Promise.resolve(1557504725));
-    ledgerExecutor.bitcoinGetBlockTime = mockBitcoinGetBlockTime;
-
-    const mockBitcoinBroadcastTransaction = jest.fn();
-    mockBitcoinBroadcastTransaction.mockReturnValueOnce(
-      "bitcoinrefundtransactionresponse"
-    );
-    ledgerExecutor.bitcoinBroadcastTransaction = mockBitcoinBroadcastTransaction;
-
-    const actionExecutor = new ActionExecutor(
-      comitNode,
-      mockGetData,
-      ledgerExecutor
-    );
-    const swap = swapsRefundBitcoin.entities[0] as Swap;
-
-    const refundAction = swap.actions.find(
-      action => action.name === "refund"
-    ) as Action;
-    const actionResponse = await actionExecutor.execute(refundAction, 0);
-
-    expect(actionResponse).toStrictEqual(
-      Result.ok("bitcoinrefundtransactionresponse")
-    );
-
-    done();
-  });
-
-  it("execute refund action on Ethereum ", async done => {
-    nock("http://localhost:8000")
-      .get("/swaps/rfc003/")
-      .reply(200, swapsRefundEther);
-    nock("http://localhost:8000")
-      .get("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/refund")
-      .reply(200, refundEther);
-
-    const ledgerExecutor = new DummyLedgerExecutor();
-
-    const mockEthereumGetTimestamp = jest.fn();
-    mockEthereumGetTimestamp.mockReturnValueOnce(Promise.resolve(1557504725));
-    ledgerExecutor.ethereumGetTimestamp = mockEthereumGetTimestamp;
-
-    const mockEthereumSendTransactionTo = jest.fn();
-    mockEthereumSendTransactionTo.mockReturnValueOnce(
-      Promise.resolve(dummyTransactionReceipt)
-    );
-    ledgerExecutor.ethereumSendTransactionTo = mockEthereumSendTransactionTo;
-
-    const actionExecutor = new ActionExecutor(
-      comitNode,
-      throwIfCalled,
-      ledgerExecutor
-    );
-    const swap = swapsRefundEther.entities[0] as Swap;
-
-    const refundAction = swap.actions.find(
-      action => action.name === "refund"
-    ) as Action;
-    const actionResponse = await actionExecutor.execute(refundAction, 0);
-
-    expect(actionResponse).toStrictEqual(Result.ok(dummyTransactionReceipt));
-
-    expect(mockEthereumSendTransactionTo.mock.calls[0].length).toBe(1);
-    // @ts-ignore: TS expects calls[0] to be of length 0 for some reason
-    const argPassed = mockEthereumSendTransactionTo.mock.calls[0][0];
-    expect(argPassed.value).toBeUndefined();
-    expect(argPassed.gasLimit.toString("hex")).toEqual("186a0");
-    expect(argPassed.network).toEqual("regtest");
-    expect(argPassed.to).toEqual("0xa2f623a7aec2f71c17687ee234e3fd816b0fb917");
-    expect(argPassed.data).toEqual("0x");
 
     done();
   });

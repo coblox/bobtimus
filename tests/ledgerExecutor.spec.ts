@@ -79,4 +79,6 @@ describe("LedgerExecutor", () => {
       `[Error: Incompatible Ethereum network. Received: 'ropsten'(chainId: 3), but wallet chainID is 17]`
     );
   });
+
+  // TODO: Add test for refunds on both Bitcoin and Ethereum
 });

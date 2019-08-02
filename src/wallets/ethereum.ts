@@ -8,6 +8,7 @@ import Web3 from "web3";
 import { TransactionReceipt } from "web3/types";
 import Asset, { toNominalUnit } from "../asset";
 import { EthereumConfig } from "../config";
+import Erc20ABI from "../ethereum/Erc20ABI.json";
 import Ledger from "../ledger";
 
 const logger = getLogger();
@@ -139,8 +140,8 @@ export class Web3EthereumWallet implements EthereumWallet {
 
     if (asset === Asset.ether) {
       return this.getEtherBalance();
-    } else if (asset.contract && asset.decimal) {
-      return this.getErc20Balance(asset.contract, asset.decimal);
+    } else if (asset.contract) {
+      return this.getErc20Balance(asset.contract);
     } else {
       return Promise.reject(
         `Asset ${asset} is not supported by the Ethereum wallet`
@@ -157,11 +158,16 @@ export class Web3EthereumWallet implements EthereumWallet {
     return ether;
   }
 
-  private async getErc20Balance(
-    contract: string,
-    decimal: number
-  ): Promise<Big> {
-    throw new Error(`Not yet implemented. ${contract} ${decimal}`);
+  private async getErc20Balance(contractAddress: string): Promise<Big> {
+    const contract = new this.web3.eth.Contract(Erc20ABI, contractAddress);
+    const address = this.getAddress();
+
+    const balance = await contract.methods.balanceOf(address).call();
+    const decimalsStr = await contract.methods.decimals().call();
+    const decimals = parseInt(decimalsStr, 10);
+
+    const result = new Big(balance).div(new Big(10).pow(decimals));
+    return Promise.resolve(result);
   }
 
   private async paramsToTransaction({

@@ -1,12 +1,13 @@
+import Big from "big.js";
 import BN from "bn.js";
 import { privateToAddress } from "ethereumjs-util";
 import Web3 from "web3";
 import Asset from "../../src/asset";
+import Erc20ABI from "../../src/ethereum/Erc20ABI.json";
 import Ledger from "../../src/ledger";
 import { Web3EthereumWallet } from "../../src/wallets/ethereum";
 import parityTestContainer from "../containers/parityTestContainer";
 import containerTest from "../containerTest";
-import Erc20ABI from "../Erc20ABI.json";
 import EthereumHarness from "../ethereumHarness";
 import GreeterABI from "../GreeterABI.json";
 import sleep from "../sleep";
@@ -154,7 +155,7 @@ describe("Ethereum Wallet", () => {
         )
       );
       const wallet = await Web3EthereumWallet.newInstance(web3, privateKey);
-      const address = await wallet.getAddress();
+      const address = wallet.getAddress();
 
       await fundAddressOfPrivateKey(web3, privateKey);
 
@@ -193,8 +194,7 @@ describe("Ethereum Wallet", () => {
       const tokenAsset = new Asset(
         "testToken",
         Ledger.Ethereum,
-        contractAddress,
-        18
+        contractAddress
       );
       const actualBalance = await wallet.getBalance(tokenAsset);
 

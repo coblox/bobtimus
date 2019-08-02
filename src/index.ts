@@ -10,7 +10,7 @@ import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import { DefaultFieldDataSource } from "./fieldDataSource";
 import { LedgerExecutor } from "./ledgerExecutor";
 import { createTradeEvaluationService } from "./rates/tradeService";
-import { getAmountsToPublishRoute } from "./routes/tradesToPublish";
+import { getOffersToPublishRoute } from "./routes/offersToPublish";
 import Tokens from "./tokens";
 import { InternalBitcoinWallet } from "./wallets/bitcoin";
 import { Web3EthereumWallet } from "./wallets/ethereum";
@@ -155,7 +155,7 @@ const config = Config.fromFile(CONFIG_PATH);
 
   api.get(
     "/trades",
-    getAmountsToPublishRoute(
+    getOffersToPublishRoute(
       tradeService,
       config.bitcoinConfig,
       ethereumParams.ethereumWallet,

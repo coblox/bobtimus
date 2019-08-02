@@ -3,7 +3,7 @@ import { List } from "underscore";
 import Asset from "../../src/asset";
 import Ledger from "../../src/ledger";
 import StaticRates from "../../src/rates/staticRates";
-import { Trade } from "../../src/rates/tradeService";
+import { Offer } from "../../src/rates/tradeService";
 
 describe("Rate tests", () => {
   it("Should consider the rate profitable when the proposed rate is less than the configured rate", async () => {
@@ -28,7 +28,7 @@ describe("Rate tests", () => {
     };
 
     const rates = new StaticRates(config);
-    expect(await rates.isTradeAcceptable(trade)).toBeTruthy();
+    expect(await rates.isOfferAcceptable(trade)).toBeTruthy();
   });
 
   it("Should consider the rate NOT profitable when the proposed rate is greater than the configured rate", async () => {
@@ -53,11 +53,11 @@ describe("Rate tests", () => {
     };
 
     const rates = new StaticRates(config);
-    expect(await rates.isTradeAcceptable(trade)).toBeFalsy();
+    expect(await rates.isOfferAcceptable(trade)).toBeFalsy();
   });
 
   it("Should return the amounts for configured rates", async () => {
-    const trades: List<Trade> = [
+    const trades: List<Offer> = [
       {
         timestamp: new Date(),
         protocol: "rfc003",
@@ -94,7 +94,7 @@ describe("Rate tests", () => {
     };
 
     const rates = new StaticRates(config);
-    const amounts = await rates.prepareTradesToPublish();
+    const amounts = await rates.prepareOffersToPublish();
 
     expect(amounts[0].buy).toEqual(trades[0].buy);
     expect(amounts[1].sell).toEqual(trades[1].sell);

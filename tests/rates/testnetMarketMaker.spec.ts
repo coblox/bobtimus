@@ -4,7 +4,7 @@ import Asset from "../../src/asset";
 import Ledger from "../../src/ledger";
 import Balances, { BalanceLookups } from "../../src/rates/balances";
 import TestnetMarketMaker from "../../src/rates/testnetMarketMaker";
-import { Trade } from "../../src/rates/tradeService";
+import { Offer } from "../../src/rates/tradeService";
 
 async function createMockBalances(
   bitcoinBalance: number,
@@ -36,7 +36,7 @@ describe("Test the TestnetMarketMaker module", () => {
   });
 
   it("Returns the amounts to publish for buy and sell assets based on the balances, the configured published fraction and the rate spread", async () => {
-    const trade: Trade = {
+    const offer: Offer = {
       timestamp: new Date(),
       protocol: "rfc003",
       buy: {
@@ -56,14 +56,14 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const trades = await marketMaker.prepareTradesToPublishForAsset(
+    const offers = await marketMaker.prepareOffersToPublishForAsset(
       buyAsset,
       sellAsset
     );
-    expect(trades).toBeDefined();
+    expect(offers).toBeDefined();
 
-    expect(trades.buy).toEqual(trade.buy); // Based on the publish fraction
-    expect(trades.sell).toEqual(trade.sell);
+    expect(offers.buy).toEqual(offer.buy); // Based on the publish fraction
+    expect(offers.sell).toEqual(offer.sell);
   });
 
   it("Throws an error if the sell balance is zero when asking for trades to publish", async () => {
@@ -72,7 +72,7 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 0)
     );
     await expect(
-      marketMaker.prepareTradesToPublishForAsset(Asset.bitcoin, Asset.ether)
+      marketMaker.prepareOffersToPublishForAsset(Asset.bitcoin, Asset.ether)
     ).rejects.toThrowError(
       "Insufficient funding of asset ether to publish trades"
     );
@@ -84,7 +84,7 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 0)
     );
 
-    const trade: Trade = {
+    const offer: Offer = {
       timestamp: new Date(),
       protocol: "rfc003",
       buy: {
@@ -99,7 +99,7 @@ describe("Test the TestnetMarketMaker module", () => {
       }
     };
 
-    await expect(marketMaker.isTradeAcceptable(trade)).resolves.toBeFalsy();
+    await expect(marketMaker.isOfferAcceptable(offer)).resolves.toBeFalsy();
   });
 
   it("accepts a trade that uses the publish trades", async () => {
@@ -107,13 +107,13 @@ describe("Test the TestnetMarketMaker module", () => {
       { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
       await createMockBalances(100, 1000)
     );
-    const trades = await marketMaker.prepareTradesToPublishForAsset(
+    const offers = await marketMaker.prepareOffersToPublishForAsset(
       buyAsset,
       sellAsset
     );
-    expect(trades).toBeDefined();
+    expect(offers).toBeDefined();
 
-    await expect(marketMaker.isTradeAcceptable(trades)).resolves.toBeTruthy();
+    await expect(marketMaker.isOfferAcceptable(offers)).resolves.toBeTruthy();
   });
 
   it("accepts a trade that is more profitable than the acceptable rate", async () => {
@@ -122,14 +122,14 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const trades = await marketMaker.prepareTradesToPublishForAsset(
+    const offers = await marketMaker.prepareOffersToPublishForAsset(
       buyAsset,
       sellAsset
     );
-    expect(trades).toBeDefined();
-    trades.buy.quantity = trades.buy.quantity.add(1);
+    expect(offers).toBeDefined();
+    offers.buy.quantity = offers.buy.quantity.add(1);
 
-    await expect(marketMaker.isTradeAcceptable(trades)).resolves.toBeTruthy();
+    await expect(marketMaker.isOfferAcceptable(offers)).resolves.toBeTruthy();
   });
 
   it("accepts a trade that uses max fraction", async () => {
@@ -138,7 +138,7 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const trade: Trade = {
+    const trade: Offer = {
       timestamp: new Date(),
       protocol: "rfc003",
       buy: {
@@ -153,7 +153,7 @@ describe("Test the TestnetMarketMaker module", () => {
       }
     };
 
-    await expect(marketMaker.isTradeAcceptable(trade)).resolves.toBeTruthy();
+    await expect(marketMaker.isOfferAcceptable(trade)).resolves.toBeTruthy();
   });
 
   it("declines a trade whose rate is below the acceptable rate", async () => {
@@ -162,7 +162,7 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const trade: Trade = {
+    const trade: Offer = {
       timestamp: new Date(),
       protocol: "rfc003",
       buy: {
@@ -177,7 +177,7 @@ describe("Test the TestnetMarketMaker module", () => {
       }
     };
 
-    await expect(marketMaker.isTradeAcceptable(trade)).resolves.toBeFalsy();
+    await expect(marketMaker.isOfferAcceptable(trade)).resolves.toBeFalsy();
   });
 
   it("declines a trade that sells above the max fraction", async () => {
@@ -186,7 +186,7 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const trade: Trade = {
+    const trade: Offer = {
       timestamp: new Date(),
       protocol: "rfc003",
       buy: {
@@ -201,11 +201,11 @@ describe("Test the TestnetMarketMaker module", () => {
       }
     };
 
-    await expect(marketMaker.isTradeAcceptable(trade)).resolves.toBeFalsy();
+    await expect(marketMaker.isOfferAcceptable(trade)).resolves.toBeFalsy();
   });
 
   it("Should return the trades according to the balance", async () => {
-    const expected: List<Trade> = [
+    const expected: List<Offer> = [
       {
         timestamp: new Date(),
         protocol: "rfc003",
@@ -241,7 +241,7 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const trades = await marketMaker.prepareTradesToPublish();
+    const trades = await marketMaker.prepareOffersToPublish();
 
     expect(trades[0].buy).toEqual(expected[0].buy);
     expect(trades[1].sell).toEqual(expected[1].sell);

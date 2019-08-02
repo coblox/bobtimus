@@ -4,7 +4,7 @@ import { Action, Entity } from "../gen/siren";
 import Asset, { toAsset, toNominalUnit } from "./asset";
 import { Swap } from "./comitNode";
 import Ledger, { toLedger } from "./ledger";
-import { Trade, TradeService } from "./rates/tradeService";
+import { Offer, TradeService } from "./rates/tradeService";
 
 const logger = getLogger();
 
@@ -135,7 +135,7 @@ export class ActionSelector {
     }
 
     // Bob always buys Alpha
-    const trade: Trade = {
+    const offer: Offer = {
       timestamp: new Date(),
       buy: {
         asset: alphaAsset,
@@ -149,7 +149,7 @@ export class ActionSelector {
       },
       protocol
     };
-    return this.rates.isTradeAcceptable(trade);
+    return this.rates.isOfferAcceptable(offer);
   }
 
   private wasReturned(action: Action) {

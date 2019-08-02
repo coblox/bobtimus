@@ -4,7 +4,7 @@ import { Action, Entity } from "../gen/siren";
 import Asset, { toAsset, toNominalUnit } from "./asset";
 import { Swap } from "./comitNode";
 import Ledger, { toLedger } from "./ledger";
-import { Offer, TradeService } from "./rates/tradeService";
+import { Offer } from "./rates/tradeService";
 
 const logger = getLogger();
 
@@ -19,15 +19,15 @@ export class ActionSelector {
   private readonly supportedLedgers: Ledger[];
   private readonly createAssetFromTokens: CreateAssetFromTokens;
   private selectedActions: Action[];
-  private rates: TradeService;
+  private readonly isOfferAcceptable: (offer: Offer) => Promise<boolean>;
 
   constructor(
     supportedLedgers: Ledger[],
-    rates: TradeService,
+    isOfferAcceptable: (offer: Offer) => Promise<boolean>,
     createAssetFromTokens?: CreateAssetFromTokens
   ) {
     this.supportedLedgers = supportedLedgers;
-    this.rates = rates;
+    this.isOfferAcceptable = isOfferAcceptable;
     this.selectedActions = [];
     if (createAssetFromTokens) {
       this.createAssetFromTokens = createAssetFromTokens;
@@ -149,7 +149,7 @@ export class ActionSelector {
       },
       protocol
     };
-    return this.rates.isOfferAcceptable(offer);
+    return this.isOfferAcceptable(offer);
   }
 
   private wasReturned(action: Action) {

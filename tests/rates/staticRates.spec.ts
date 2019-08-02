@@ -128,7 +128,7 @@ describe("Rate tests", () => {
     };
 
     const rates = new StaticRates(config);
-    expect(await rates.isTradeAcceptable(trade)).toBeTruthy();
+    expect(await rates.isOfferAcceptable(trade)).toBeTruthy();
   });
 
   it("Should consider the rate NOT profitable when the proposed rate is greater than the configured rate and one asset is ERC20", async () => {
@@ -153,7 +153,7 @@ describe("Rate tests", () => {
     };
 
     const rates = new StaticRates(config);
-    expect(await rates.isTradeAcceptable(trade)).toBeFalsy();
+    expect(await rates.isOfferAcceptable(trade)).toBeFalsy();
   });
 
   it("Should not consider the rate profitable when one asset is not configured", async () => {
@@ -184,6 +184,6 @@ describe("Rate tests", () => {
     };
 
     const rates = new StaticRates(config);
-    expect(await rates.isTradeAcceptable(trade)).toBeFalsy();
+    expect(await rates.isOfferAcceptable(trade)).toBeFalsy();
   });
 });

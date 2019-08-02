@@ -131,7 +131,7 @@ const config = Config.fromFile(CONFIG_PATH);
   }
   const actionSelector = new ActionSelector(
     config.getSupportedLedgers(),
-    tradeService,
+    tradeService.isOfferAcceptable,
     createAssetFromTokens
   );
 

@@ -3,7 +3,6 @@ import { Entity } from "../gen/siren";
 import { ActionSelector } from "../src/actionSelector";
 import Asset from "../src/asset";
 import Ledger from "../src/ledger";
-import StaticRates from "../src/rates/staticRates";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
 import swapsDogecoinAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithDogecoinAcceptDecline.siren.json";
 import swapsErc20AcceptDeclineStub from "./stubs/bitcoinEther/swapsWithErc20AcceptDecline.siren.json";
@@ -37,16 +36,26 @@ function extractEntityAndAction(json: any, actionName: string) {
   return { entity, action };
 }
 
+function isAlwaysAcceptable() {
+  return Promise.resolve(true);
+}
+
+function isNeverAcceptable() {
+  return Promise.resolve(false);
+}
+
+function mustNotBeCalled(): Promise<boolean> {
+  throw new Error("mustNotBeCalled is not supposed to be called");
+}
+
 const supportedLedgers = [Ledger.Ethereum, Ledger.Bitcoin];
 
 describe("Action selector tests for Ethereum/Bitcoin: ", () => {
-  const rates = new StaticRates({
-    ether: { bitcoin: 0.0105 },
-    bitcoin: { ether: 105.26 }
-  });
-
   it("Should emit accept only", async done => {
-    const actionSelector = new ActionSelector(supportedLedgers, rates);
+    const actionSelector = new ActionSelector(
+      supportedLedgers,
+      isAlwaysAcceptable
+    );
     const { entity, action } = extractEntityAndAction(
       swapsAcceptDeclineStub,
       "accept"
@@ -57,13 +66,11 @@ describe("Action selector tests for Ethereum/Bitcoin: ", () => {
     done();
   });
 
-  it("Should emit decline because of wrong rate", async done => {
-    const rates = new StaticRates({
-      ether: { bitcoin: 1 },
-      bitcoin: { ether: 1 } // This one is tested
-    });
-
-    const actionSelector = new ActionSelector(supportedLedgers, rates);
+  it("Should emit decline because the offer is not considered acceptable", async done => {
+    const actionSelector = new ActionSelector(
+      supportedLedgers,
+      isNeverAcceptable
+    );
     const { entity, action } = extractEntityAndAction(
       swapsAcceptDeclineStub,
       "decline"
@@ -75,7 +82,10 @@ describe("Action selector tests for Ethereum/Bitcoin: ", () => {
   });
 
   it("Should emit decline because of unsupported trading pair", async done => {
-    const actionSelector = new ActionSelector(supportedLedgers, rates);
+    const actionSelector = new ActionSelector(
+      supportedLedgers,
+      mustNotBeCalled
+    );
     const { entity, action } = extractEntityAndAction(
       swapsDogecoinAcceptDeclineStub,
       "decline"
@@ -87,7 +97,10 @@ describe("Action selector tests for Ethereum/Bitcoin: ", () => {
   });
 
   it("Should emit decline because of unexpected pair", async done => {
-    const actionSelector = new ActionSelector([Ledger.Ethereum], rates);
+    const actionSelector = new ActionSelector(
+      [Ledger.Ethereum],
+      mustNotBeCalled
+    );
     const { entity, action } = extractEntityAndAction(
       swapsAcceptDeclineStub,
       "decline"
@@ -99,7 +112,10 @@ describe("Action selector tests for Ethereum/Bitcoin: ", () => {
   });
 
   it("Should emit redeem action", async done => {
-    const actionSelector = new ActionSelector(supportedLedgers, rates);
+    const actionSelector = new ActionSelector(
+      supportedLedgers,
+      mustNotBeCalled
+    );
     const { entity, action } = extractEntityAndAction(
       swapsRedeemBitcoinEther,
       "redeem"
@@ -111,7 +127,10 @@ describe("Action selector tests for Ethereum/Bitcoin: ", () => {
   });
 
   it("Should emit fund action", async done => {
-    const actionSelector = new ActionSelector(supportedLedgers, rates);
+    const actionSelector = new ActionSelector(
+      supportedLedgers,
+      mustNotBeCalled
+    );
     const { entity, action } = extractEntityAndAction(
       swapsFundEtherBitcoinStub,
       "fund"
@@ -123,7 +142,10 @@ describe("Action selector tests for Ethereum/Bitcoin: ", () => {
   });
 
   it("Should not emit fund action twice", async done => {
-    const actionSelector = new ActionSelector(supportedLedgers, rates);
+    const actionSelector = new ActionSelector(
+      supportedLedgers,
+      mustNotBeCalled
+    );
     const { entity, action } = extractEntityAndAction(
       swapsFundEtherBitcoinStub,
       "fund"
@@ -138,7 +160,10 @@ describe("Action selector tests for Ethereum/Bitcoin: ", () => {
   });
 
   it("Should emit refund action", async done => {
-    const actionSelector = new ActionSelector(supportedLedgers, rates);
+    const actionSelector = new ActionSelector(
+      supportedLedgers,
+      mustNotBeCalled
+    );
     const { entity, action } = extractEntityAndAction(
       swapsRefundStub,
       "refund"
@@ -150,7 +175,10 @@ describe("Action selector tests for Ethereum/Bitcoin: ", () => {
   });
 
   it("Should emit refund first then redeem action", async done => {
-    const actionSelector = new ActionSelector(supportedLedgers, rates);
+    const actionSelector = new ActionSelector(
+      supportedLedgers,
+      mustNotBeCalled
+    );
 
     {
       const { entity, action } = extractEntityAndAction(
@@ -179,11 +207,6 @@ describe("Action selector tests for Ethereum/Bitcoin: ", () => {
 });
 
 describe("Action selector test for ERC20", () => {
-  const rates = new StaticRates({
-    PAY: { bitcoin: 0.0105 },
-    bitcoin: { PAY: 105.26 }
-  });
-
   it("Should emit accept only", async done => {
     const createAssetFromTokens = () => {
       return new Asset(
@@ -196,7 +219,7 @@ describe("Action selector test for ERC20", () => {
 
     const actionSelector = new ActionSelector(
       supportedLedgers,
-      rates,
+      isAlwaysAcceptable,
       createAssetFromTokens
     );
     const { entity, action } = extractEntityAndAction(

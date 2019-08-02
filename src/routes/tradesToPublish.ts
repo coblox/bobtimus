@@ -44,18 +44,24 @@ export function getAmountsToPublishRoute(
   peerId: string,
   addressHint?: string
 ) {
-  // @ts-ignore
-  return async (req: Request, res: Response) => {
+  return async (_: Request, res: Response) => {
+    const errorHandling = (response: Response, message: string) => {
+      logger.error(`Error when requesting trades to publish: ${message}`);
+      response.status(500);
+      response.send({ error: message });
+    };
+
+    if (!bitcoinConfig) {
+      errorHandling(res, "Bitcoin not configured correctly.");
+      return;
+    }
+    if (!ethereumWallet) {
+      errorHandling(res, "Ethereum not configured correctly");
+      return;
+    }
+
     try {
-      if (!bitcoinConfig) {
-        throw new Error("Bitcoin not configured correctly.");
-      }
-      if (!ethereumWallet) {
-        throw new Error("Ethereum not configured correctly");
-      }
-
       const trades = await tradeService.prepareTradesToPublish();
-
       const publishTradesResponse: ToPublish = {
         peerId,
         addressHint,
@@ -89,9 +95,7 @@ export function getAmountsToPublishRoute(
 
       res.send(publishTradesResponse);
     } catch (e) {
-      logger.error(`Error when requesting trades to publish: ${e.message}`);
-      res.status(500);
-      res.send({ error: e.message });
+      errorHandling(res, e.message);
     }
   };
 }

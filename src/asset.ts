@@ -13,9 +13,16 @@ class Asset {
   public contract?: string;
   public decimal?: number;
 
-  public constructor(name: string, ledger: Ledger) {
+  public constructor(
+    name: string,
+    ledger: Ledger,
+    contract?: string,
+    decimal?: number
+  ) {
     this.name = name;
     this.ledger = ledger;
+    this.contract = contract;
+    this.decimal = decimal;
   }
 }
 

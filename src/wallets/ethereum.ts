@@ -8,6 +8,7 @@ import Web3 from "web3";
 import { TransactionReceipt } from "web3/types";
 import Asset, { toNominalUnit } from "../asset";
 import { EthereumConfig } from "../config";
+import Ledger from "../ledger";
 
 const logger = getLogger();
 
@@ -44,7 +45,7 @@ export interface EthereumWallet {
 
   getChainId(): number;
 
-  getNominalBalance(): Promise<Big>;
+  getBalance(asset: Asset): Promise<Big>;
 
   getLatestBlockTimestamp(): Promise<number>;
 }
@@ -129,13 +130,38 @@ export class Web3EthereumWallet implements EthereumWallet {
     return this.chainId;
   }
 
-  public async getNominalBalance() {
+  public async getBalance(asset: Asset) {
+    if (asset.ledger !== Ledger.Ethereum) {
+      return Promise.reject(
+        `Only Ethereum assets are supported by the Ethereum wallet: ${asset}`
+      );
+    }
+
+    if (asset === Asset.ether) {
+      return this.getEtherBalance();
+    } else if (asset.contract && asset.decimal) {
+      return this.getErc20Balance(asset.contract, asset.decimal);
+    } else {
+      return Promise.reject(
+        `Asset ${asset} is not supported by the Ethereum wallet`
+      );
+    }
+  }
+
+  private async getEtherBalance() {
     const wei = await this.web3.eth.getBalance(this.account);
     const ether = toNominalUnit(Asset.ether, new Big(wei));
     if (!ether) {
       throw new Error(`Failed to convert balance '${wei}' to a number`);
     }
     return ether;
+  }
+
+  private async getErc20Balance(
+    contract: string,
+    decimal: number
+  ): Promise<Big> {
+    throw new Error(`Not yet implemented. ${contract} ${decimal}`);
   }
 
   private async paramsToTransaction({

@@ -73,10 +73,10 @@ export async function createTradeEvaluationService({
       return Promise.resolve(new Big(0));
     };
 
-    const ethereumBalanceLookup = async () => {
+    const etherBalanceLookup = async () => {
       if (ethereumWallet) {
         try {
-          return ethereumWallet.getNominalBalance();
+          return ethereumWallet.getBalance(Asset.ether);
         } catch (e) {
           logger.error("Ethereum balance not found", e);
         }
@@ -86,7 +86,7 @@ export async function createTradeEvaluationService({
 
     const balanceLookups = {
       bitcoin: bitcoinBalanceLookup,
-      ether: ethereumBalanceLookup
+      ether: etherBalanceLookup
     };
 
     const balances = await Balances.create(

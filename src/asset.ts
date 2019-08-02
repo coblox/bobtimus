@@ -10,6 +10,8 @@ class Asset {
 
   public ledger: Ledger;
   public name: string;
+  public contract?: string;
+  public decimal?: number;
 
   public constructor(name: string, ledger: Ledger) {
     this.name = name;

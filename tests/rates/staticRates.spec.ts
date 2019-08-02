@@ -16,14 +16,15 @@ describe("Rate tests", () => {
       timestamp: new Date(),
       buy: {
         ledger: Ledger.Bitcoin,
-        asset: Asset.Bitcoin,
+        asset: Asset.bitcoin,
         quantity: new Big(0.1)
       },
       sell: {
         ledger: Ledger.Ethereum,
-        asset: Asset.Ether,
+        asset: Asset.ether,
         quantity: new Big(0.0009)
-      }
+      },
+      protocol: "rfc003"
     };
 
     const rates = new StaticRates(config);
@@ -40,14 +41,15 @@ describe("Rate tests", () => {
       timestamp: new Date(),
       buy: {
         ledger: Ledger.Bitcoin,
-        asset: Asset.Bitcoin,
+        asset: Asset.bitcoin,
         quantity: new Big(0.1)
       },
       sell: {
         ledger: Ledger.Ethereum,
-        asset: Asset.Ether,
+        asset: Asset.ether,
         quantity: new Big(0.0011)
-      }
+      },
+      protocol: "rfc003"
     };
 
     const rates = new StaticRates(config);
@@ -58,27 +60,29 @@ describe("Rate tests", () => {
     const trades: List<Trade> = [
       {
         timestamp: new Date(),
+        protocol: "rfc003",
         buy: {
           ledger: Ledger.Bitcoin,
-          asset: Asset.Bitcoin,
+          asset: Asset.bitcoin,
           quantity: new Big(1)
         },
         sell: {
           ledger: Ledger.Ethereum,
-          asset: Asset.Ether,
+          asset: Asset.ether,
           quantity: new Big(100)
         }
       },
       {
         timestamp: new Date(),
+        protocol: "rfc003",
         buy: {
           ledger: Ledger.Ethereum,
-          asset: Asset.Ether,
+          asset: Asset.ether,
           quantity: new Big(1)
         },
         sell: {
           ledger: Ledger.Bitcoin,
-          asset: Asset.Bitcoin,
+          asset: Asset.bitcoin,
           quantity: new Big(0.01)
         }
       }

@@ -10,6 +10,33 @@ const logger = getLogger();
 
 const previousTradesLookup: Map<string, Trade> = new Map<string, Trade>();
 
+export interface LedgerToPublish {
+  name: string;
+  network: string;
+}
+
+export interface RateToPublish {
+  buy: {
+    asset: string;
+    ledger: string;
+    quantity: string;
+  };
+  protocol: string;
+  sell: {
+    asset: string;
+    ledger: string;
+    quantity: string;
+  };
+  timestamp: string;
+}
+
+export interface ToPublish {
+  peerId: string;
+  addressHint: string | undefined;
+  ledgers: LedgerToPublish[];
+  rates: RateToPublish[];
+}
+
 export function getAmountsToPublishRoute(
   tradeService: TradeService,
   bitcoinConfig: BitcoinConfig,
@@ -17,19 +44,25 @@ export function getAmountsToPublishRoute(
   peerId: string,
   addressHint?: string
 ) {
-  // @ts-ignore
-  return async (req: Request, res: Response) => {
+  return async (_: Request, res: Response) => {
+    const errorHandling = (response: Response, message: string) => {
+      logger.error(`Error when requesting trades to publish: ${message}`);
+      response.status(500);
+      response.send({ error: message });
+    };
+
+    if (!bitcoinConfig) {
+      errorHandling(res, "Bitcoin not configured correctly.");
+      return;
+    }
+    if (!ethereumWallet) {
+      errorHandling(res, "Ethereum not configured correctly");
+      return;
+    }
+
     try {
-      if (!bitcoinConfig) {
-        throw new Error("Bitcoin not configured correctly.");
-      }
-      if (!ethereumWallet) {
-        throw new Error("Ethereum not configured correctly");
-      }
-
       const trades = await tradeService.prepareTradesToPublish();
-
-      const publishTradesResponse = {
+      const publishTradesResponse: ToPublish = {
         peerId,
         addressHint,
         ledgers: [
@@ -48,12 +81,12 @@ export function getAmountsToPublishRoute(
             protocol: trade.protocol,
             buy: {
               ledger: trade.buy.ledger,
-              asset: trade.buy.asset,
+              asset: trade.buy.asset.name,
               quantity: trade.buy.quantity.toString()
             },
             sell: {
               ledger: trade.sell.ledger,
-              asset: trade.sell.asset,
+              asset: trade.sell.asset.name,
               quantity: trade.sell.quantity.toString()
             }
           };
@@ -62,9 +95,7 @@ export function getAmountsToPublishRoute(
 
       res.send(publishTradesResponse);
     } catch (e) {
-      logger.error(`Error when requesting trades to publish: ${e.message}`);
-      res.status(500);
-      res.send({ error: e.message });
+      errorHandling(res, e.message);
     }
   };
 }

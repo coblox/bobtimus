@@ -6,9 +6,13 @@ import { Trade, TradeService } from "./tradeService";
 
 const logger = getLogger();
 
-export type ConfigRates = {
-  [buyAsset in Asset]: { [sellAsset in Asset]?: number };
-};
+interface SubRate {
+  [sellAsset: string]: number;
+}
+
+export interface ConfigRates {
+  [buyAsset: string]: SubRate;
+}
 
 export default class StaticRates implements TradeService {
   private readonly configRates: ConfigRates;
@@ -17,7 +21,7 @@ export default class StaticRates implements TradeService {
   }
 
   public isTradeAcceptable({ buy, sell }: Trade) {
-    const rate = this.configRates[buy.asset][sell.asset];
+    const rate = this.configRates[buy.asset.name][sell.asset.name];
 
     if (!rate) {
       logger.warn(
@@ -45,12 +49,12 @@ export default class StaticRates implements TradeService {
         timestamp: new Date(),
         buy: {
           ledger: Ledger.Bitcoin,
-          asset: Asset.Bitcoin,
+          asset: Asset.bitcoin,
           quantity: new Big(1)
         },
         sell: {
           ledger: Ledger.Ethereum,
-          asset: Asset.Ether,
+          asset: Asset.ether,
           quantity: new Big(BTC_ETH)
         }
       },
@@ -59,12 +63,12 @@ export default class StaticRates implements TradeService {
         timestamp: new Date(),
         buy: {
           ledger: Ledger.Ethereum,
-          asset: Asset.Ether,
+          asset: Asset.ether,
           quantity: new Big(1)
         },
         sell: {
           ledger: Ledger.Bitcoin,
-          asset: Asset.Bitcoin,
+          asset: Asset.bitcoin,
           quantity: new Big(ETH_BTC)
         }
       }

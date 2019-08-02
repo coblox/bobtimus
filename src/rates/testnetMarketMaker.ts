@@ -1,7 +1,6 @@
 import Big from "big.js";
 import { getLogger } from "log4js";
 import Asset from "../asset";
-import { forAsset } from "../ledger";
 import Balances from "./balances";
 import { Trade, TradeService } from "./tradeService";
 
@@ -75,7 +74,7 @@ export default class TestnetMarketMaker implements TradeService {
     const sufficientFunds = await this.balances.isSufficientFunds(sellAsset);
     if (!sufficientFunds) {
       throw new Error(
-        `Insufficient funding of asset ${sellAsset} to publish trades`
+        `Insufficient funding of asset ${sellAsset.name} to publish trades`
       );
     }
 
@@ -91,12 +90,12 @@ export default class TestnetMarketMaker implements TradeService {
       timestamp: new Date(),
       buy: {
         asset: buyAsset,
-        ledger: forAsset(buyAsset),
+        ledger: buyAsset.ledger,
         quantity: buyAmount
       },
       sell: {
         asset: sellAsset,
-        ledger: forAsset(sellAsset),
+        ledger: sellAsset.ledger,
         quantity: sellBalance.div(this.publishFraction)
       }
     };
@@ -153,10 +152,10 @@ export default class TestnetMarketMaker implements TradeService {
     const trades = new Array<Trade>();
 
     trades.push(
-      await this.prepareTradesToPublishForAsset(Asset.Bitcoin, Asset.Ether)
+      await this.prepareTradesToPublishForAsset(Asset.bitcoin, Asset.ether)
     );
     trades.push(
-      await this.prepareTradesToPublishForAsset(Asset.Ether, Asset.Bitcoin)
+      await this.prepareTradesToPublishForAsset(Asset.ether, Asset.bitcoin)
     );
 
     return trades;

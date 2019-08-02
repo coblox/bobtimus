@@ -18,8 +18,8 @@ async function createMockBalances(
 }
 
 describe("Test the TestnetMarketMaker module", () => {
-  const buyAsset = Asset.Bitcoin;
-  const sellAsset = Asset.Ether;
+  const buyAsset = Asset.bitcoin;
+  const sellAsset = Asset.ether;
 
   it("Throws when creating the Market Maker if maxFraction is greater than the publishFraction", async () => {
     const balances = await createMockBalances(1, 1);
@@ -38,14 +38,15 @@ describe("Test the TestnetMarketMaker module", () => {
   it("Returns the amounts to publish for buy and sell assets based on the balances, the configured published fraction and the rate spread", async () => {
     const trade: Trade = {
       timestamp: new Date(),
+      protocol: "rfc003",
       buy: {
         ledger: Ledger.Bitcoin,
-        asset: Asset.Bitcoin,
+        asset: Asset.bitcoin,
         quantity: new Big(0.525)
       },
       sell: {
         ledger: Ledger.Ethereum,
-        asset: Asset.Ether,
+        asset: Asset.ether,
         quantity: new Big(5)
       }
     };
@@ -71,7 +72,7 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 0)
     );
     await expect(
-      marketMaker.prepareTradesToPublishForAsset(Asset.Bitcoin, Asset.Ether)
+      marketMaker.prepareTradesToPublishForAsset(Asset.bitcoin, Asset.ether)
     ).rejects.toThrowError(
       "Insufficient funding of asset ether to publish trades"
     );
@@ -83,16 +84,17 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 0)
     );
 
-    const trade = {
+    const trade: Trade = {
       timestamp: new Date(),
+      protocol: "rfc003",
       buy: {
         ledger: Ledger.Bitcoin,
-        asset: Asset.Bitcoin,
+        asset: Asset.bitcoin,
         quantity: new Big(0.1)
       },
       sell: {
         ledger: Ledger.Ethereum,
-        asset: Asset.Ether,
+        asset: Asset.ether,
         quantity: new Big(1)
       }
     };
@@ -136,16 +138,17 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const trade = {
+    const trade: Trade = {
       timestamp: new Date(),
+      protocol: "rfc003",
       buy: {
         ledger: Ledger.Bitcoin,
-        asset: Asset.Bitcoin,
+        asset: Asset.bitcoin,
         quantity: new Big(1)
       },
       sell: {
         ledger: Ledger.Ethereum,
-        asset: Asset.Ether,
+        asset: Asset.ether,
         quantity: new Big(10)
       }
     };
@@ -159,16 +162,17 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const trade = {
+    const trade: Trade = {
       timestamp: new Date(),
+      protocol: "rfc003",
       buy: {
         ledger: Ledger.Bitcoin,
-        asset: Asset.Bitcoin,
+        asset: Asset.bitcoin,
         quantity: new Big(0.1)
       },
       sell: {
         ledger: Ledger.Ethereum,
-        asset: Asset.Ether,
+        asset: Asset.ether,
         quantity: new Big(1.1)
       }
     };
@@ -182,16 +186,17 @@ describe("Test the TestnetMarketMaker module", () => {
       await createMockBalances(100, 1000)
     );
 
-    const trade = {
+    const trade: Trade = {
       timestamp: new Date(),
+      protocol: "rfc003",
       buy: {
         ledger: Ledger.Bitcoin,
-        asset: Asset.Bitcoin,
+        asset: Asset.bitcoin,
         quantity: new Big(10)
       },
       sell: {
         ledger: Ledger.Ethereum,
-        asset: Asset.Ether,
+        asset: Asset.ether,
         quantity: new Big(11) // 10 is the max fraction: 1000/100
       }
     };
@@ -203,27 +208,29 @@ describe("Test the TestnetMarketMaker module", () => {
     const expected: List<Trade> = [
       {
         timestamp: new Date(),
+        protocol: "rfc003",
         buy: {
           ledger: Ledger.Bitcoin,
-          asset: Asset.Bitcoin,
+          asset: Asset.bitcoin,
           quantity: new Big(0.525)
         },
         sell: {
           ledger: Ledger.Ethereum,
-          asset: Asset.Ether,
+          asset: Asset.ether,
           quantity: new Big(5)
         }
       },
       {
         timestamp: new Date(),
+        protocol: "rfc003",
         buy: {
           ledger: Ledger.Ethereum,
-          asset: Asset.Ether,
+          asset: Asset.ether,
           quantity: new Big(5.25)
         },
         sell: {
           ledger: Ledger.Bitcoin,
-          asset: Asset.Bitcoin,
+          asset: Asset.bitcoin,
           quantity: new Big(0.5)
         }
       }

@@ -131,7 +131,7 @@ export class Web3EthereumWallet implements EthereumWallet {
 
   public async getNominalBalance() {
     const wei = await this.web3.eth.getBalance(this.account);
-    const ether = toNominalUnit(Asset.Ether, new Big(wei));
+    const ether = toNominalUnit(Asset.ether, new Big(wei));
     if (!ether) {
       throw new Error(`Failed to convert balance '${wei}' to a number`);
     }

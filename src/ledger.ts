@@ -1,5 +1,4 @@
 import { getLogger } from "log4js";
-import Asset from "./asset";
 
 const logger = getLogger();
 
@@ -17,17 +16,6 @@ export function toLedger(ledger: string) {
     default:
       logger.error(`Ledger not supported: ${ledger}`);
       return undefined;
-  }
-}
-
-export function forAsset(asset: Asset) {
-  switch (asset) {
-    case Asset.Bitcoin:
-      return Ledger.Bitcoin;
-    case Asset.Ether:
-      return Ledger.Ethereum;
-    default:
-      throw new Error(`No ledger configured for asset ${asset}`);
   }
 }
 

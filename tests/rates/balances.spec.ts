@@ -25,14 +25,14 @@ describe("Balances tests", () => {
       lowFundsThresholdPercentage
     );
 
-    expect(await balances.getBalance(Asset.Bitcoin)).toEqual(new Big(1));
-    expect(await balances.getBalance(Asset.Ether)).toEqual(new Big(2));
+    expect(await balances.getBalance(Asset.bitcoin)).toEqual(new Big(1));
+    expect(await balances.getBalance(Asset.ether)).toEqual(new Big(2));
 
     bitcoinBalance = 0;
     etherBalance = 0;
 
-    expect(await balances.getBalance(Asset.Bitcoin)).toEqual(new Big(0));
-    expect(await balances.getBalance(Asset.Ether)).toEqual(new Big(0));
+    expect(await balances.getBalance(Asset.bitcoin)).toEqual(new Big(0));
+    expect(await balances.getBalance(Asset.ether)).toEqual(new Big(0));
   });
 
   it("Should return the original balance after the balance changed", async () => {
@@ -47,18 +47,18 @@ describe("Balances tests", () => {
       lowFundsThresholdPercentage
     );
 
-    expect(await balances.getOriginalBalance(Asset.Bitcoin)).toEqual(
+    expect(await balances.getOriginalBalance(Asset.bitcoin)).toEqual(
       new Big(1)
     );
-    expect(await balances.getOriginalBalance(Asset.Ether)).toEqual(new Big(2));
+    expect(await balances.getOriginalBalance(Asset.ether)).toEqual(new Big(2));
 
     bitcoinBalance = 0;
     etherBalance = 0;
 
-    expect(await balances.getOriginalBalance(Asset.Bitcoin)).toEqual(
+    expect(await balances.getOriginalBalance(Asset.bitcoin)).toEqual(
       new Big(1)
     );
-    expect(await balances.getOriginalBalance(Asset.Ether)).toEqual(new Big(2));
+    expect(await balances.getOriginalBalance(Asset.ether)).toEqual(new Big(2));
   });
 
   it("Should return insufficient funds if funds are 0", async () => {
@@ -70,7 +70,7 @@ describe("Balances tests", () => {
       lowFundsThresholdPercentage
     );
 
-    expect(await balances.isSufficientFunds(Asset.Bitcoin)).toBeFalsy();
+    expect(await balances.isSufficientFunds(Asset.bitcoin)).toBeFalsy();
   });
 
   it("Should return insufficient funds if balance minus trade amount is equal or below 0", async () => {
@@ -83,7 +83,7 @@ describe("Balances tests", () => {
     );
 
     expect(
-      await balances.isSufficientFunds(Asset.Bitcoin, new Big(1.0001))
+      await balances.isSufficientFunds(Asset.bitcoin, new Big(1.0001))
     ).toBeFalsy();
   });
 
@@ -99,10 +99,10 @@ describe("Balances tests", () => {
     );
 
     bitcoinBalance = 1;
-    expect(await balances.isLowBalance(Asset.Bitcoin)).toBeTruthy();
+    expect(await balances.isLowBalance(Asset.bitcoin)).toBeTruthy();
 
     bitcoinBalance = 2;
-    expect(await balances.isLowBalance(Asset.Bitcoin)).toBeTruthy();
+    expect(await balances.isLowBalance(Asset.bitcoin)).toBeTruthy();
   });
 
   it("Should not return low funds if balance is over the threshold", async () => {
@@ -117,6 +117,6 @@ describe("Balances tests", () => {
     );
     bitcoinBalance = 2.1;
 
-    expect(await balances.isLowBalance(Asset.Bitcoin)).toBeFalsy();
+    expect(await balances.isLowBalance(Asset.bitcoin)).toBeFalsy();
   });
 });

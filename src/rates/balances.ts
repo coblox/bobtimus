@@ -1,7 +1,9 @@
 import Big from "big.js";
-import Asset from "../asset";
+import Asset, { toAsset } from "../asset";
 
-export type BalanceLookups = { [asset in Asset]: () => Promise<Big> };
+export interface BalanceLookups {
+  [asset: string]: () => Promise<Big>;
+}
 
 export default class Balances {
   public static async create(
@@ -11,8 +13,12 @@ export default class Balances {
     const balances = new Balances(lowFundsThresholdPercentage);
 
     for (const [key, value] of Object.entries(balanceLookups)) {
-      balances.balanceLookup.set(key as Asset, value);
-      balances.originalBalance.set(key as Asset, await value());
+      const asset = toAsset(key);
+      if (!asset) {
+        throw new Error(`Asset ${key} not supported`);
+      }
+      balances.balanceLookup.set(asset, value);
+      balances.originalBalance.set(asset, await value());
     }
 
     return balances;
@@ -39,7 +45,7 @@ export default class Balances {
     }
 
     return Promise.reject(
-      `Balance for asset ${asset} not initialized correctly`
+      `Balance for asset ${asset.name} not initialized correctly`
     );
   }
 

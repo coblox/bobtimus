@@ -5,7 +5,8 @@ import Ledger from "../../src/ledger";
 import { Trade, TradeService } from "../../src/rates/tradeService";
 import {
   findLatestTradeTimestamp,
-  getAmountsToPublishRoute
+  getAmountsToPublishRoute,
+  ToPublish
 } from "../../src/routes/tradesToPublish";
 import EthereumWalletStub from "../doubles/ethereumWalletStub";
 
@@ -18,12 +19,12 @@ const btcEthTrade: Trade = {
   protocol: "rfc003",
   buy: {
     ledger: Ledger.Bitcoin,
-    asset: Asset.Bitcoin,
+    asset: Asset.bitcoin,
     quantity: new Big(1)
   },
   sell: {
     ledger: Ledger.Ethereum,
-    asset: Asset.Ether,
+    asset: Asset.ether,
     quantity: new Big(100)
   }
 };
@@ -33,12 +34,12 @@ const ethBtcTrade: Trade = {
   protocol: "rfc003",
   buy: {
     ledger: Ledger.Ethereum,
-    asset: Asset.Ether,
+    asset: Asset.ether,
     quantity: new Big(80)
   },
   sell: {
     ledger: Ledger.Bitcoin,
-    asset: Asset.Bitcoin,
+    asset: Asset.bitcoin,
     quantity: new Big(1)
   }
 };
@@ -114,7 +115,7 @@ describe("TradesToPublish tests ", () => {
 
       sell: {
         ledger: Ledger.Ethereum,
-        asset: Asset.Ether,
+        asset: Asset.ether,
         quantity: new Big(110)
       }
     };
@@ -136,7 +137,7 @@ describe("TradesToPublish tests ", () => {
       timestamp: past,
       sell: {
         ledger: Ledger.Ethereum,
-        asset: Asset.Ether,
+        asset: Asset.ether,
         quantity: new Big(110)
       }
     };
@@ -198,7 +199,7 @@ describe("TradesToPublish tests ", () => {
       }
     };
 
-    const expected = {
+    const expected: ToPublish = {
       peerId: "somePeerId",
       addressHint: "/ip4/127.0.0.1/tcp/8011",
       ledgers: [

@@ -139,7 +139,7 @@ export class InternalBitcoinWallet implements BitcoinWallet {
       new Big(0)
     );
 
-    const bitcoinBalance = toNominalUnit(Asset.Bitcoin, satBalance);
+    const bitcoinBalance = toNominalUnit(Asset.bitcoin, satBalance);
     if (!bitcoinBalance) {
       throw new Error("Internal Error: Bitcoin is not supported?");
     }

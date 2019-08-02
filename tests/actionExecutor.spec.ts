@@ -7,8 +7,6 @@ import { Action, Field } from "../gen/siren";
 import { ActionExecutor } from "../src/actionExecutor";
 import { Satoshis } from "../src/bitcoin/blockchain";
 import { ComitNode, Swap } from "../src/comitNode";
-import { FieldDataSource } from "../src/fieldDataSource";
-import DummyDatastore from "./doubles/dummyDatastore";
 import DummyLedgerExecutor, {
   dummyTransactionReceipt
 } from "./doubles/dummyLedgerExecutor";
@@ -30,6 +28,10 @@ import refundEther from "./stubs/refundEther.json";
 const cndUrl = new URI("http://localhost:8000");
 const comitNode = new ComitNode(cndUrl);
 
+const throwIfCalled = () => {
+  throw new Error(`Should not be called`);
+};
+
 describe("Action executor tests: ", () => {
   it("should post accept action and get stubbed response", async done => {
     nock("http://localhost:8000")
@@ -39,16 +41,14 @@ describe("Action executor tests: ", () => {
       .post("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/accept")
       .reply(200, acceptedStub);
 
-    const datastore: FieldDataSource = {
-      getData: (field: Field) => {
-        expect(field).toHaveProperty("name", "beta_ledger_refund_identity");
-        expect(field).toHaveProperty("class", ["address", "ethereum"]);
-        return "0xcb777414c38e426c7038a7c4908751f5e864f7ad";
-      }
+    const getData = (field: Field) => {
+      expect(field).toHaveProperty("name", "beta_ledger_refund_identity");
+      expect(field).toHaveProperty("class", ["address", "ethereum"]);
+      return "0xcb777414c38e426c7038a7c4908751f5e864f7ad";
     };
-    const actionTriggerer = new ActionExecutor(
+    const actionExecutor = new ActionExecutor(
       comitNode,
-      datastore,
+      getData,
       new DummyLedgerExecutor()
     );
     const swap = swapsAcceptDeclineStub.entities[0] as Swap;
@@ -56,7 +56,7 @@ describe("Action executor tests: ", () => {
       action => action.name === "accept"
     ) as Action;
 
-    const actionResponse = await actionTriggerer.execute(acceptAction, 0);
+    const actionResponse = await actionExecutor.execute(acceptAction, 0);
 
     expect(actionResponse).toStrictEqual(Result.ok(acceptedStub));
 
@@ -74,12 +74,9 @@ describe("Action executor tests: ", () => {
     const getData = jest.fn();
     getData.mockReturnValueOnce("0xcb777414c38e426c7038a7c4908751f5e864f7ad");
 
-    const datastore: FieldDataSource = {
-      getData
-    };
     const actionExecutor = new ActionExecutor(
       comitNode,
-      datastore,
+      getData,
       new DummyLedgerExecutor()
     );
     const swap = swapsAcceptDeclineStub.entities[0] as Swap;
@@ -111,12 +108,9 @@ describe("Action executor tests: ", () => {
     const getData = jest.fn();
     getData.mockReturnValueOnce("0xcb777414c38e426c7038a7c4908751f5e864f7ad");
 
-    const datastore: FieldDataSource = {
-      getData
-    };
     const actionExecutor = new ActionExecutor(
       comitNode,
-      datastore,
+      getData,
       new DummyLedgerExecutor()
     );
     const swap = swapsAcceptDeclineStub.entities[0] as Swap;
@@ -148,9 +142,7 @@ describe("Action executor tests: ", () => {
     const getData = jest.fn();
     const actionExecutor = new ActionExecutor(
       comitNode,
-      {
-        getData
-      },
+      getData,
       new DummyLedgerExecutor()
     );
     const swap = swapsAcceptDeclineStub.entities[0] as Swap;
@@ -188,7 +180,7 @@ describe("Ledger action execution tests:", () => {
     ledgerExecutor.ethereumDeployContract = mockEthereumDeployContract;
     const actionExecutor = new ActionExecutor(
       comitNode,
-      new DummyDatastore(),
+      throwIfCalled,
       ledgerExecutor
     );
     const swap = swapsFundBitcoinEtherStub.entities[0] as Swap;
@@ -242,7 +234,7 @@ describe("Ledger action execution tests:", () => {
     ledgerExecutor.bitcoinPayToAddress = mockBitcoinPayToAddress;
     const actionExecutor = new ActionExecutor(
       comitNode,
-      new DummyDatastore(),
+      throwIfCalled,
       ledgerExecutor
     );
     const swap = swapsFundEtherBitcoinStub.entities[0] as Swap;
@@ -285,8 +277,6 @@ describe("Ledger action execution tests:", () => {
     mockGetData
       .mockReturnValueOnce("bcrt1q6rhpng9evdsfnn833a4f4vej0asu6dk5srld6x")
       .mockReturnValueOnce(180);
-    const datastore = new DummyDatastore();
-    datastore.getData = mockGetData;
 
     const mockBitcoinBroadcastTransaction = jest.fn();
     mockBitcoinBroadcastTransaction.mockReturnValueOnce(
@@ -296,7 +286,7 @@ describe("Ledger action execution tests:", () => {
     ledgerExecutor.bitcoinBroadcastTransaction = mockBitcoinBroadcastTransaction;
     const actionExecutor = new ActionExecutor(
       comitNode,
-      datastore,
+      mockGetData,
       ledgerExecutor
     );
     const swap = swapsRedeemBitcoinEther.entities[0] as Swap;
@@ -323,7 +313,6 @@ describe("Ledger action execution tests:", () => {
       .get("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/redeem")
       .reply(200, redeemEther);
 
-    const datastore = new DummyDatastore();
     const ledgerExecutor = new DummyLedgerExecutor();
     const mockEthereumSendTransactionTo = jest.fn();
     mockEthereumSendTransactionTo.mockReturnValueOnce(
@@ -332,7 +321,7 @@ describe("Ledger action execution tests:", () => {
     ledgerExecutor.ethereumSendTransactionTo = mockEthereumSendTransactionTo;
     const actionExecutor = new ActionExecutor(
       comitNode,
-      datastore,
+      throwIfCalled,
       ledgerExecutor
     );
     const swap = swapsRedeemEtherBitcoin.entities[0] as Swap;
@@ -383,7 +372,7 @@ describe("Ledger action execution tests:", () => {
 
     const actionExecutor = new ActionExecutor(
       comitNode,
-      new DummyDatastore(),
+      throwIfCalled,
       ledgerExecutor
     );
     const fundSwap = swapsFundBitcoinEtherStub.entities[0] as Swap;
@@ -422,8 +411,6 @@ describe("Ledger action execution tests:", () => {
         "bcrt1qs2aderg3whgu0m8uadn6dwxjf7j3wx97kk2qqtrum89pmfcxknhsf89pj0"
       )
       .mockReturnValueOnce(180);
-    const datastore = new DummyDatastore();
-    datastore.getData = mockGetData;
 
     const ledgerExecutor = new DummyLedgerExecutor();
 
@@ -439,7 +426,7 @@ describe("Ledger action execution tests:", () => {
 
     const actionExecutor = new ActionExecutor(
       comitNode,
-      datastore,
+      mockGetData,
       ledgerExecutor
     );
     const swap = swapsRefundBitcoin.entities[0] as Swap;
@@ -464,7 +451,6 @@ describe("Ledger action execution tests:", () => {
       .get("/swaps/rfc003/399e8ff5-9729-479e-aad8-49b03f8fc5d5/refund")
       .reply(200, refundEther);
 
-    const datastore = new DummyDatastore();
     const ledgerExecutor = new DummyLedgerExecutor();
 
     const mockEthereumGetTimestamp = jest.fn();
@@ -479,7 +465,7 @@ describe("Ledger action execution tests:", () => {
 
     const actionExecutor = new ActionExecutor(
       comitNode,
-      datastore,
+      throwIfCalled,
       ledgerExecutor
     );
     const swap = swapsRefundEther.entities[0] as Swap;

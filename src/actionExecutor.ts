@@ -2,26 +2,25 @@ import { Result } from "@badrap/result/dist";
 import { Transaction } from "bitcoinjs-lib";
 import BN from "bn.js";
 import { getLogger } from "log4js";
-import { Action } from "../gen/siren";
+import { Action, Field } from "../gen/siren";
 import { networkFromString, Satoshis } from "./bitcoin/blockchain";
 import { ComitNode, hexToBN, hexToBuffer, LedgerAction } from "./comitNode";
-import { FieldDataSource } from "./fieldDataSource";
 import { ILedgerExecutor } from "./ledgerExecutor";
 
 const logger = getLogger();
 
 export class ActionExecutor {
-  private datastore: FieldDataSource;
+  private readonly getData: (field: Field) => any;
   private comitClient: ComitNode;
   private ledgerExecutor: ILedgerExecutor;
   private executedActions: Action[];
 
   constructor(
     comitClient: ComitNode,
-    datastore: FieldDataSource,
+    getData: (field: Field) => any,
     ledgerExecutor: ILedgerExecutor
   ) {
-    this.datastore = datastore;
+    this.getData = getData;
     this.comitClient = comitClient;
     this.ledgerExecutor = ledgerExecutor;
     this.executedActions = [];
@@ -68,7 +67,7 @@ export class ActionExecutor {
     const data: any = {};
 
     for (const field of action.fields || []) {
-      const value = await this.datastore.getData(field);
+      const value = await this.getData(field);
       if (value) {
         data[field.name] = value;
       }

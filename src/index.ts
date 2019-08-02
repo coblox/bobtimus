@@ -137,7 +137,7 @@ const config = Config.fromFile(CONFIG_PATH);
 
   const actionExecutor = new ActionExecutor(
     comitNode,
-    datastore,
+    datastore.getData,
     ledgerExecutor
   );
 

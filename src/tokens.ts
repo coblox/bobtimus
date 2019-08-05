@@ -14,6 +14,9 @@ export interface TokensConfig {
 
 export default class Tokens {
   // @ts-ignore
+  public static fromFile(tomlFilePath: string): Tokens {
+    throw new Error("Not implemented");
+  }
   private readonly ethereumTokens?: TokenConfigByString;
 
   public constructor(tokensConfig: TokensConfig) {

@@ -60,4 +60,13 @@ describe("Test Tokens", () => {
     );
     expect(payAsset).toBeUndefined();
   });
+
+  it("With a Tokens instance created from a file, create an Asset with pre-configured symbol when a configured contract address is passed", () => {
+    const tokens = Tokens.fromFile("./tests/configs/tokens.toml");
+    const payAsset = tokens.createAsset(
+      Ledger.Ethereum,
+      "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
+    ) as Asset;
+    expect(payAsset.name).toEqual("PAY");
+  });
 });

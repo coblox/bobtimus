@@ -6,12 +6,15 @@ import Ledger from "./ledger";
 
 const logger = getLogger();
 
-interface TokenConfigByString {
-  [symbol: string]: string; // Value is the contract address
+interface TokenConfig {
+  [symbol: string]: {
+    contract: string;
+    decimals: number;
+  };
 }
 
 export interface TokensConfig {
-  ethereum?: TokenConfigByString;
+  ethereum?: TokenConfig;
 }
 
 export default class Tokens {
@@ -22,7 +25,7 @@ export default class Tokens {
     return new Tokens(tokensConfig);
   }
 
-  private readonly ethereumTokens?: TokenConfigByString;
+  private readonly ethereumTokens?: TokenConfig;
 
   public constructor(tokensConfig: TokensConfig) {
     const ethereumConfig = tokensConfig.ethereum;
@@ -55,8 +58,8 @@ export default class Tokens {
 
     const ethereumTokens = this.ethereumTokens;
     let asset;
-    Object.values(ethereumTokens).forEach((address, index) => {
-      if (address === contractAddress) {
+    Object.values(ethereumTokens).forEach((contractDecimals, index) => {
+      if (contractDecimals.contract === contractAddress) {
         const symbol = Object.keys(ethereumTokens)[index];
         asset = new Asset(symbol, ledger, contractAddress);
         return;

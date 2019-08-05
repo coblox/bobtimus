@@ -1,3 +1,6 @@
+import Asset from "./asset";
+import Ledger from "./ledger";
+
 interface TokenConfigByString {
   [symbol: string]: string; // Value is the contract address
 }
@@ -23,5 +26,14 @@ export default class Tokens {
       });
       this.ethereumTokens = tokensConfig.ethereum;
     }
+  }
+
+  public createAsset(
+    // @ts-ignore
+    ledger: Ledger,
+    // @ts-ignore
+    contractAddress: string
+  ): Asset | undefined {
+    throw new Error("not implemented");
   }
 }

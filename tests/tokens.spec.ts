@@ -1,3 +1,4 @@
+import Ledger from "../src/ledger";
 import Tokens, { TokensConfig } from "../src/tokens";
 
 const tokensConfig: TokensConfig = {
@@ -30,5 +31,14 @@ describe("Test Tokens", () => {
     }).toThrowError(
       "Duplicate contract address detected in tokens configuration:"
     );
+  });
+
+  it("Create an Asset instance when passed a configured contract address", () => {
+    const tokens = new Tokens(tokensConfig);
+    const payAsset = tokens.createAsset(
+      Ledger.Ethereum,
+      "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
+    );
+    expect(payAsset).toBeDefined();
   });
 });

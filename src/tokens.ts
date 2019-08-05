@@ -11,6 +11,17 @@ export default class Tokens {
   private readonly ethereumTokens?: TokenConfigByString;
 
   public constructor(tokensConfig: TokensConfig) {
-    this.ethereumTokens = tokensConfig.ethereum;
+    const ethereumConfig = tokensConfig.ethereum;
+    if (ethereumConfig) {
+      Object.values(ethereumConfig).forEach((address, index) => {
+        const lastIndex = Object.values(ethereumConfig).lastIndexOf(address);
+        if (lastIndex !== index) {
+          throw new Error(
+            `Duplicate contract address detected in tokens configuration: ${address}`
+          );
+        }
+      });
+      this.ethereumTokens = tokensConfig.ethereum;
+    }
   }
 }

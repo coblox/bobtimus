@@ -28,7 +28,7 @@ describe("Test Tokens", () => {
         }
       });
     }).toThrowError(
-      "Duplicate contract address detected in tokens configuration."
+      "Duplicate contract address detected in tokens configuration:"
     );
   });
 });

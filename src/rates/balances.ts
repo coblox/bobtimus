@@ -1,5 +1,5 @@
 import Big from "big.js";
-import Asset, { toAsset } from "../asset";
+import Asset, { toAssetFromName } from "../asset";
 
 export interface BalanceLookups {
   [asset: string]: () => Promise<Big>;
@@ -13,7 +13,7 @@ export default class Balances {
     const balances = new Balances(lowFundsThresholdPercentage);
 
     for (const [key, value] of Object.entries(balanceLookups)) {
-      const asset = toAsset(key);
+      const asset = toAssetFromName(key);
       if (!asset) {
         throw new Error(`Asset ${key} not supported`);
       }

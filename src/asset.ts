@@ -18,9 +18,15 @@ class Asset {
     this.contract = contract;
   }
 }
+export function toAssetFromName(name: string): Asset | undefined {
+  return toAsset({ name });
+}
 
 export function toAsset(asset: any): Asset | undefined {
-  switch (asset) {
+  if (!asset.name) {
+    return undefined;
+  }
+  switch (asset.name) {
     case Asset.bitcoin.name:
       return Asset.bitcoin;
     case Asset.ether.name:

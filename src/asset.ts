@@ -13,10 +13,16 @@ class Asset {
   public contract?: string;
   public decimals?: number;
 
-  public constructor(name: string, ledger: Ledger, contract?: string) {
+  public constructor(
+    name: string,
+    ledger: Ledger,
+    contract?: string,
+    decimals?: number
+  ) {
     this.name = name;
     this.ledger = ledger;
     this.contract = contract;
+    this.decimals = decimals;
   }
 }
 export function toAssetFromName(name: string): Asset | undefined {

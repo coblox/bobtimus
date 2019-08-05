@@ -25,20 +25,32 @@ export default class Tokens {
     return new Tokens(tokensConfig);
   }
 
-  private readonly ethereumTokens?: TokenConfig;
+  private readonly ethereumTokens?: Map<string, Asset>;
 
   public constructor(tokensConfig: TokensConfig) {
     const ethereumConfig = tokensConfig.ethereum;
+
     if (ethereumConfig) {
-      Object.values(ethereumConfig).forEach((address, index) => {
-        const lastIndex = Object.values(ethereumConfig).lastIndexOf(address);
-        if (lastIndex !== index) {
+      const ethereumTokens = new Map();
+
+      Object.values(ethereumConfig).forEach((contractDecimals, index) => {
+        const contract = contractDecimals.contract;
+        const decimals = contractDecimals.decimals;
+        const symbol = Object.keys(ethereumConfig)[index];
+
+        if (ethereumTokens.has(contract)) {
           throw new Error(
-            `Duplicate contract address detected in tokens configuration: ${address}`
+            `Duplicate contract address detected in tokens configuration: ${contract}`
           );
         }
+
+        ethereumTokens.set(
+          contractDecimals.contract,
+          new Asset(symbol, Ledger.Ethereum, contract, decimals)
+        );
       });
-      this.ethereumTokens = tokensConfig.ethereum;
+
+      this.ethereumTokens = ethereumTokens;
     }
   }
 
@@ -56,19 +68,6 @@ export default class Tokens {
       return undefined;
     }
 
-    const ethereumTokens = this.ethereumTokens;
-    let asset;
-    Object.values(ethereumTokens).forEach((contractDecimals, index) => {
-      if (contractDecimals.contract === contractAddress) {
-        const symbol = Object.keys(ethereumTokens)[index];
-        asset = new Asset(symbol, ledger, contractAddress);
-        return;
-      }
-    });
-
-    if (!asset) {
-      logger.warn(`Token with address ${contractAddress} is not configured`);
-    }
-    return asset;
+    return this.ethereumTokens.get(contractAddress);
   }
 }

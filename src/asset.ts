@@ -19,7 +19,7 @@ class Asset {
   }
 }
 
-export function toAsset(asset: string): Asset | undefined {
+export function toAsset(asset: any): Asset | undefined {
   switch (asset) {
     case Asset.bitcoin.name:
       return Asset.bitcoin;

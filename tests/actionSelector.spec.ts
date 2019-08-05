@@ -3,6 +3,7 @@ import { ActionSelector } from "../src/actionSelector";
 import Ledger from "../src/ledger";
 import StaticRates from "../src/rates/staticRates";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
+import swapsDogecoinAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithDogecoinAcceptDecline.siren.json";
 import swapsErc20AcceptDeclineStub from "./stubs/bitcoinEther/swapsWithErc20AcceptDecline.siren.json";
 import swapsRedeemBitcoinEther from "./stubs/bitcoinEther/swapsWithRedeem.siren.json";
 import swapsFundEtherBitcoinStub from "./stubs/etherBitcoin/swapsWithFund.siren.json";
@@ -29,13 +30,13 @@ function extractEntityAndAction(json: any, actionName: string) {
   return { entity, action };
 }
 
-describe("Action selector tests: ", () => {
+const supportedLedgers = [Ledger.Ethereum, Ledger.Bitcoin];
+
+describe("Action selector tests for Ethereum/Bitcoin: ", () => {
   const rates = new StaticRates({
     ether: { bitcoin: 0.0105 },
     bitcoin: { ether: 105.26 }
   });
-
-  const supportedLedgers = [Ledger.Ethereum, Ledger.Bitcoin];
 
   it("Should emit accept only", async done => {
     const actionSelector = new ActionSelector(supportedLedgers, rates);
@@ -69,7 +70,7 @@ describe("Action selector tests: ", () => {
   it("Should emit decline because of unsupported trading pair", async done => {
     const actionSelector = new ActionSelector(supportedLedgers, rates);
     const { entity, action } = extractEntityAndAction(
-      swapsErc20AcceptDeclineStub,
+      swapsDogecoinAcceptDeclineStub,
       "decline"
     );
 
@@ -166,6 +167,25 @@ describe("Action selector tests: ", () => {
       expect(actionResponse).toStrictEqual(action);
     }
 
+    done();
+  });
+});
+
+describe("Action selector test for ERC20", () => {
+  const rates = new StaticRates({
+    PAY: { bitcoin: 0.0105 },
+    bitcoin: { PAY: 105.26 }
+  });
+
+  it("Should emit accept only", async done => {
+    const actionSelector = new ActionSelector(supportedLedgers, rates);
+    const { entity, action } = extractEntityAndAction(
+      swapsErc20AcceptDeclineStub,
+      "accept"
+    );
+
+    const actionResponse = await actionSelector.selectActions(entity);
+    expect(actionResponse).toStrictEqual(action);
     done();
   });
 });

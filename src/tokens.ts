@@ -1,3 +1,5 @@
+import TOML from "@iarna/toml";
+import * as fs from "fs";
 import { getLogger } from "log4js";
 import Asset from "./asset";
 import Ledger from "./ledger";
@@ -13,10 +15,13 @@ export interface TokensConfig {
 }
 
 export default class Tokens {
-  // @ts-ignore
   public static fromFile(tomlFilePath: string): Tokens {
-    throw new Error("Not implemented");
+    const tokensConfig: TokensConfig = TOML.parse(
+      fs.readFileSync(tomlFilePath, "utf8")
+    );
+    return new Tokens(tokensConfig);
   }
+
   private readonly ethereumTokens?: TokenConfigByString;
 
   public constructor(tokensConfig: TokensConfig) {

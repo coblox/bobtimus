@@ -10,10 +10,12 @@ class Asset {
 
   public ledger: Ledger;
   public name: string;
+  public contract?: string;
 
-  public constructor(name: string, ledger: Ledger) {
+  public constructor(name: string, ledger: Ledger, contract?: string) {
     this.name = name;
     this.ledger = ledger;
+    this.contract = contract;
   }
 }
 

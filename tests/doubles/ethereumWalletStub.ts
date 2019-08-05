@@ -53,7 +53,7 @@ export default class EthereumWalletStub implements EthereumWallet {
     return returnOrThrow(this, "address");
   }
 
-  public getNominalBalance(): Promise<Big> {
+  public getBalance(): Promise<Big> {
     return resolveOrReject(this, "nominalBalance");
   }
 

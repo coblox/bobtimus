@@ -29,11 +29,10 @@ export default class Tokens {
   }
 
   public createAsset(
-    // @ts-ignore
     ledger: Ledger,
     // @ts-ignore
     contractAddress: string
   ): Asset | undefined {
-    throw new Error("not implemented");
+    return new Asset("foo", ledger);
   }
 }

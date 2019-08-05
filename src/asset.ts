@@ -29,6 +29,7 @@ export function toAssetFromName(name: string): Asset | undefined {
   return toAsset({ name });
 }
 
+// TODO: See if the ledger argument can be avoided
 export function toAsset(
   asset: any,
   ledger?: Ledger,

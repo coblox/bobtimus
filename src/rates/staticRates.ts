@@ -6,12 +6,12 @@ import { Trade, TradeService } from "./tradeService";
 
 const logger = getLogger();
 
-interface SubRate {
-  [sellAsset: string]: number;
+interface ConfigRate {
+  [sellAsset: string]: number; // Value is a the rate
 }
 
 export interface ConfigRates {
-  [buyAsset: string]: SubRate;
+  [buyAsset: string]: ConfigRate;
 }
 
 export default class StaticRates implements TradeService {

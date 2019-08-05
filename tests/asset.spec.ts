@@ -1,4 +1,5 @@
-import Asset, { toAsset } from "../src/asset";
+import Big from "big.js";
+import Asset, { toAsset, toNominalUnit } from "../src/asset";
 import Ledger from "../src/ledger";
 
 describe("Test asset", () => {
@@ -31,5 +32,10 @@ describe("Test asset", () => {
       "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
     );
     expect(asset.ledger).toEqual(Ledger.Ethereum);
+  });
+
+  it("Convert satoshis to Bitcoin", () => {
+    const sats = new Big("100000000");
+    expect(toNominalUnit(Asset.bitcoin, sats)).toEqual(new Big(1));
   });
 });

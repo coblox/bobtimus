@@ -38,7 +38,7 @@ export class DefaultFieldDataSource implements FieldDataSource {
       field.class.includes("ethereum") &&
       field.class.includes("address")
     ) {
-      return await this.ethereumWallet.getAddress();
+      return this.ethereumWallet.getAddress();
     }
 
     if (
@@ -46,7 +46,7 @@ export class DefaultFieldDataSource implements FieldDataSource {
       field.class.includes("bitcoin") &&
       field.class.includes("address")
     ) {
-      return await this.bitcoinWallet.getNewAddress();
+      return this.bitcoinWallet.getNewAddress();
     }
 
     if (
@@ -54,7 +54,7 @@ export class DefaultFieldDataSource implements FieldDataSource {
       field.class.includes("bitcoin") &&
       field.class.includes("feePerByte")
     ) {
-      return await this.bitcoinFeeService.retrieveSatsPerByte();
+      return this.bitcoinFeeService.retrieveSatsPerByte();
     }
     logger.warn(`Could not find data for ${JSON.stringify(field)}`);
   }

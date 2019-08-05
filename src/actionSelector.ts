@@ -1,24 +1,39 @@
 import Big from "big.js";
 import { getLogger } from "log4js";
 import { Action, Entity } from "../gen/siren";
-import { toAsset, toNominalUnit } from "./asset";
+import Asset, { toAsset, toNominalUnit } from "./asset";
 import { Swap } from "./comitNode";
 import Ledger, { toLedger } from "./ledger";
 import { Trade, TradeService } from "./rates/tradeService";
 
 const logger = getLogger();
 
+type CreateAssetFromTokens = (
+  ledger: Ledger,
+  contractAddress: string
+) => Asset | undefined;
+
 Big.DP = 30;
 
 export class ActionSelector {
   private readonly supportedLedgers: Ledger[];
+  private readonly createAssetFromTokens: CreateAssetFromTokens;
   private selectedActions: Action[];
   private rates: TradeService;
 
-  constructor(supportedLedgers: Ledger[], rates: TradeService) {
+  constructor(
+    supportedLedgers: Ledger[],
+    rates: TradeService,
+    createAssetFromTokens?: CreateAssetFromTokens
+  ) {
     this.supportedLedgers = supportedLedgers;
     this.rates = rates;
     this.selectedActions = [];
+    if (createAssetFromTokens) {
+      this.createAssetFromTokens = createAssetFromTokens;
+    } else {
+      this.createAssetFromTokens = () => undefined;
+    }
   }
 
   public selectActions(entity: Entity) {
@@ -80,20 +95,31 @@ export class ActionSelector {
   private isAcceptable(swap: Swap): Promise<boolean> {
     const alphaLedger = toLedger(swap.properties.parameters.alpha_ledger.name);
     const betaLedger = toLedger(swap.properties.parameters.beta_ledger.name);
-    const alphaAsset = toAsset(swap.properties.parameters.alpha_asset);
-    const betaAsset = toAsset(swap.properties.parameters.beta_asset);
-    const protocol = swap.properties.protocol;
-
-    if (!alphaAsset || !betaAsset || !alphaLedger || !betaLedger) {
+    if (!alphaLedger || !betaLedger) {
+      logger.error("Ledger is not supported");
       return Promise.resolve(false);
     }
-
+    const alphaAsset = toAsset(
+      swap.properties.parameters.alpha_asset,
+      alphaLedger,
+      this.createAssetFromTokens
+    );
+    const betaAsset = toAsset(
+      swap.properties.parameters.beta_asset,
+      betaLedger,
+      this.createAssetFromTokens
+    );
+    if (!alphaAsset || !betaAsset) {
+      logger.error("Asset is not supported");
+      return Promise.resolve(false);
+    }
     if (
       !this.supportedLedgers.includes(alphaLedger) ||
       !this.supportedLedgers.includes(betaLedger)
     ) {
       return Promise.resolve(false);
     }
+    const protocol = swap.properties.protocol;
 
     const alphaNominalAmount = toNominalUnit(
       alphaAsset,
@@ -123,7 +149,6 @@ export class ActionSelector {
       },
       protocol
     };
-
     return this.rates.isTradeAcceptable(trade);
   }
 

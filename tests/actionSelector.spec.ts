@@ -1,5 +1,7 @@
+import { configure } from "log4js";
 import { Entity } from "../gen/siren";
 import { ActionSelector } from "../src/actionSelector";
+import Asset from "../src/asset";
 import Ledger from "../src/ledger";
 import StaticRates from "../src/rates/staticRates";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
@@ -9,6 +11,11 @@ import swapsRedeemBitcoinEther from "./stubs/bitcoinEther/swapsWithRedeem.siren.
 import swapsFundEtherBitcoinStub from "./stubs/etherBitcoin/swapsWithFund.siren.json";
 import swapsRedeemRefundStub from "./stubs/etherBitcoin/swapsWithRedeemRefund.siren.json";
 import swapsRefundStub from "./stubs/etherBitcoin/swapsWithRefund.siren.json";
+
+configure({
+  appenders: { out: { type: "stdout", layout: { type: "basic" } } },
+  categories: { default: { appenders: ["out"], level: "debug" } }
+});
 
 function extractEntityAndAction(json: any, actionName: string) {
   const entity = json.entities[0] as Entity | undefined;
@@ -178,7 +185,20 @@ describe("Action selector test for ERC20", () => {
   });
 
   it("Should emit accept only", async done => {
-    const actionSelector = new ActionSelector(supportedLedgers, rates);
+    const createAssetFromTokens = () => {
+      return new Asset(
+        "PAY",
+        Ledger.Ethereum,
+        "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+        18
+      );
+    };
+
+    const actionSelector = new ActionSelector(
+      supportedLedgers,
+      rates,
+      createAssetFromTokens
+    );
     const { entity, action } = extractEntityAndAction(
       swapsErc20AcceptDeclineStub,
       "accept"

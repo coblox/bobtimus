@@ -8,7 +8,9 @@ export interface TokensConfig {
 
 export default class Tokens {
   // @ts-ignore
+  private readonly ethereumTokens?: TokenConfigByString;
+
   public constructor(tokensConfig: TokensConfig) {
-    throw new Error("Not implemented");
+    this.ethereumTokens = tokensConfig.ethereum;
   }
 }

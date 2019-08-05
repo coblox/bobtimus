@@ -134,7 +134,7 @@ describe("Rate tests", () => {
   it("Should consider the rate NOT profitable when the proposed rate is greater than the configured rate and one asset is ERC20", async () => {
     const config = {
       PAY: { bitcoin: 0.001 },
-      bitcoin: { PAg: 0.01 }
+      bitcoin: { PAY: 0.01 }
     };
 
     const trade = {

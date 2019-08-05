@@ -52,4 +52,16 @@ describe("Test asset", () => {
 
     expect(toNominalUnit(payAsset, intQuantity)).toEqual(new Big(1));
   });
+
+  it("Convert Unit for ERC20 tokens", () => {
+    const payAsset = new Asset(
+      "PAY",
+      Ledger.Ethereum,
+      "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+      18
+    );
+    expect(toNominalUnit(payAsset, new Big("1000000000000000000"))).toEqual(
+      new Big(1)
+    );
+  });
 });

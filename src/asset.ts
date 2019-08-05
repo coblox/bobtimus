@@ -26,14 +26,22 @@ class Asset {
   }
 }
 export function toAssetFromName(name: string): Asset | undefined {
-  return toAsset({ name });
+  switch (name) {
+    case Asset.bitcoin.name:
+      return Asset.bitcoin;
+    case Asset.ether.name:
+      return Asset.ether;
+    default:
+      logger.error(`Asset not supported: ${name}`);
+      return undefined;
+  }
 }
 
 // TODO: See if the ledger argument can be avoided
 export function toAsset(
   asset: any,
-  ledger?: Ledger,
-  tokensCreateAsset?: (
+  ledger: Ledger,
+  createAssetFromTokens: (
     ledger: Ledger,
     contractAddress: string
   ) => Asset | undefined
@@ -47,8 +55,8 @@ export function toAsset(
     case Asset.ether.name:
       return Asset.ether;
     default:
-      if (tokensCreateAsset && ledger && asset.token_contract) {
-        return tokensCreateAsset(ledger, asset.token_contract);
+      if (createAssetFromTokens && ledger && asset.token_contract) {
+        return createAssetFromTokens(ledger, asset.token_contract);
       }
       logger.error(`Asset not supported: ${asset}`);
       return undefined;

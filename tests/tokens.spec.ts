@@ -51,4 +51,13 @@ describe("Test Tokens", () => {
     ) as Asset;
     expect(payAsset.name).toEqual("PAY");
   });
+
+  it("Returns undefined when an unknown contract address is passed", () => {
+    const tokens = new Tokens(tokensConfig);
+    const payAsset = tokens.createAsset(
+      Ledger.Ethereum,
+      "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2"
+    );
+    expect(payAsset).toBeUndefined();
+  });
 });

@@ -56,6 +56,7 @@ export function toAsset(
 
 export default Asset;
 
+// TODO: This should be a method
 export function toNominalUnit(asset: Asset, quantity: Big) {
   switch (asset) {
     case Asset.bitcoin: {
@@ -69,8 +70,16 @@ export function toNominalUnit(asset: Asset, quantity: Big) {
       return wei.div(weiInEther);
     }
     default: {
-      logger.error(`Unit conversion not supported for ${asset}`);
-      return undefined;
+      return toNominalUnitForToken(asset, quantity);
     }
   }
+}
+
+// TODO: This should be a method
+function toNominalUnitForToken(asset: Asset, quantity: Big) {
+  if (asset.decimals) {
+    return quantity.div(new Big(10).pow(asset.decimals));
+  }
+  logger.error("Unit conversion not supported for", asset);
+  return undefined;
 }

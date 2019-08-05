@@ -7,7 +7,7 @@ import { Trade, TradeService } from "./tradeService";
 const logger = getLogger();
 
 interface ConfigRate {
-  [sellAsset: string]: number; // Value is a the rate
+  [sellAsset: string]: number; // Value is the rate
 }
 
 export interface ConfigRates {

@@ -1,3 +1,4 @@
+import Asset from "../src/asset";
 import Ledger from "../src/ledger";
 import Tokens, { TokensConfig } from "../src/tokens";
 
@@ -40,5 +41,14 @@ describe("Test Tokens", () => {
       "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
     );
     expect(payAsset).toBeDefined();
+  });
+
+  it("Create an Asset with pre-configured symbol when a configured contract address is passed", () => {
+    const tokens = new Tokens(tokensConfig);
+    const payAsset = tokens.createAsset(
+      Ledger.Ethereum,
+      "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
+    ) as Asset;
+    expect(payAsset.name).toEqual("PAY");
   });
 });

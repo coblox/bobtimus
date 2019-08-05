@@ -95,12 +95,20 @@ describe("Ethereum Wallet", () => {
         gasLimit: new BN(1_000_000),
         data: greeterContractCode
       });
-      expect(deploymentReceipt.contractAddress).not.toBeUndefined();
+      expect(deploymentReceipt.contractAddress).toBeDefined();
 
-      // wait for parity to mine the transaction
-      // parity sometimes takes up to 4 seconds to actually mine the transaction even though it already returned the receipt. this is how we cater for that.
+      let latestBlock = await web3.eth.getBlock("latest");
+
+      // With Parity Instant Seal, the transaction may be in a pending block
+      // Waiting to ensure that the pending block is a confirmed block
       // See https://github.com/paritytech/parity-ethereum/issues/10672 for details
-      await sleep(10000);
+      while (latestBlock.number < deploymentReceipt.blockNumber) {
+        console.log(
+          `Current block is ${latestBlock.number} but deploy transaction is in block ${deploymentReceipt.blockNumber}, waiting!`
+        );
+        await sleep(500);
+        latestBlock = await web3.eth.getBlock("latest");
+      }
 
       const contract = new web3.eth.Contract(GreeterABI);
       const methodCall = contract.methods.greet("Thomas").encodeABI();
@@ -166,12 +174,20 @@ describe("Ethereum Wallet", () => {
         data: tokenContractCode
       });
       const contractAddress = deploymentReceipt.contractAddress;
-      expect(contractAddress).toBeDefined();;
+      expect(contractAddress).toBeDefined();
 
-      // wait for parity to mine the transaction
-      // parity sometimes takes up to 4 seconds to actually mine the transaction even though it already returned the receipt. this is how we cater for that.
+      let latestBlock = await web3.eth.getBlock("latest");
+
+      // With Parity Instant Seal, the transaction may be in a pending block
+      // Waiting to ensure that the pending block is a confirmed block
       // See https://github.com/paritytech/parity-ethereum/issues/10672 for details
-      await sleep(5000);
+      while (latestBlock.number < deploymentReceipt.blockNumber) {
+        console.log(
+          `Current block is ${latestBlock.number} but deploy transaction is in block ${deploymentReceipt.blockNumber}, waiting!`
+        );
+        await sleep(500);
+        latestBlock = await web3.eth.getBlock("latest");
+      }
 
       // Mint some tokens
       const contract = new web3.eth.Contract(Erc20ABI);

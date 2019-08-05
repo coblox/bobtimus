@@ -22,7 +22,14 @@ export function toAssetFromName(name: string): Asset | undefined {
   return toAsset({ name });
 }
 
-export function toAsset(asset: any): Asset | undefined {
+export function toAsset(
+  asset: any,
+  ledger?: Ledger,
+  tokensCreateAsset?: (
+    ledger: Ledger,
+    contractAddress: string
+  ) => Asset | undefined
+): Asset | undefined {
   if (!asset.name) {
     return undefined;
   }
@@ -32,6 +39,9 @@ export function toAsset(asset: any): Asset | undefined {
     case Asset.ether.name:
       return Asset.ether;
     default:
+      if (tokensCreateAsset && ledger && asset.token_contract) {
+        return tokensCreateAsset(ledger, asset.token_contract);
+      }
       logger.error(`Asset not supported: ${asset}`);
       return undefined;
   }

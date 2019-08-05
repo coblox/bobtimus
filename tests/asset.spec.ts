@@ -8,11 +8,24 @@ describe("Test asset", () => {
   });
 
   it("Return PAY asset when passed pay asset object", () => {
-    const asset = toAsset({
-      name: "PAY",
-      quantity: "1234",
-      address: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
-    }) as Asset;
+    const tokensCreateAsset = () => {
+      return new Asset(
+        "PAY",
+        Ledger.Ethereum,
+        "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
+      );
+    };
+
+    const asset = toAsset(
+      {
+        name: "PAY",
+        quantity: "1234",
+        token_contract: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
+      },
+      Ledger.Ethereum,
+      tokensCreateAsset
+    ) as Asset;
+
     expect(asset.name).toEqual("PAY");
     expect(asset.contract).toEqual(
       "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"

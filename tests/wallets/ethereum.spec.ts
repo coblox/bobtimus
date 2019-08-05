@@ -166,7 +166,7 @@ describe("Ethereum Wallet", () => {
         data: tokenContractCode
       });
       const contractAddress = deploymentReceipt.contractAddress;
-      expect(contractAddress).not.toBeUndefined();
+      expect(contractAddress).toBeDefined();;
 
       // wait for parity to mine the transaction
       // parity sometimes takes up to 4 seconds to actually mine the transaction even though it already returned the receipt. this is how we cater for that.

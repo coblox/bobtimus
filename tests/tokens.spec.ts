@@ -17,4 +17,18 @@ describe("Test Tokens", () => {
     const tokens = new Tokens(tokensConfig);
     expect(tokens).toBeDefined();
   });
+
+  it("Throws an error if the passed config has a dupe contract address", () => {
+    expect(() => {
+      // @ts-ignore
+      const tokens = new Tokens({
+        ethereum: {
+          PAY: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+          PAY2: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
+        }
+      });
+    }).toThrowError(
+      "Duplicate contract address detected in tokens configuration."
+    );
+  });
 });

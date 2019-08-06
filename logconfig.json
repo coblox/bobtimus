@@ -1,4 +1,4 @@
 {
   "level": "debug",
-  "transports": ["console", "stackdriver"]
+  "transports": ["console"]
 }

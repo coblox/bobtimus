@@ -1,7 +1,7 @@
 import Big from "big.js";
 import { getLogger } from "log4js";
 import { Action, Entity } from "../gen/siren";
-import Asset, { toAsset, toNominalUnit } from "./asset";
+import Asset from "./asset";
 import { Swap } from "./comitNode";
 import Ledger, { toLedger } from "./ledger";
 import { Offer } from "./rates/tradeService";
@@ -99,12 +99,12 @@ export class ActionSelector {
       logger.error("Ledger is not supported");
       return Promise.resolve(false);
     }
-    const alphaAsset = toAsset(
+    const alphaAsset = Asset.FromComitPayload(
       swap.properties.parameters.alpha_asset,
       alphaLedger,
       this.createAssetFromTokens
     );
-    const betaAsset = toAsset(
+    const betaAsset = Asset.FromComitPayload(
       swap.properties.parameters.beta_asset,
       betaLedger,
       this.createAssetFromTokens
@@ -121,12 +121,10 @@ export class ActionSelector {
     }
     const protocol = swap.properties.protocol;
 
-    const alphaNominalAmount = toNominalUnit(
-      alphaAsset,
+    const alphaNominalAmount = alphaAsset.toNominalUnit(
       new Big(swap.properties.parameters.alpha_asset.quantity)
     );
-    const betaNominalAmount = toNominalUnit(
-      betaAsset,
+    const betaNominalAmount = betaAsset.toNominalUnit(
       new Big(swap.properties.parameters.beta_asset.quantity)
     );
 

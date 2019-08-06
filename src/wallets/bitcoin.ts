@@ -11,7 +11,7 @@ import {
 import { ECPairInterface } from "bitcoinjs-lib/types/ecpair";
 import coinSelect from "coinselect";
 import { getLogger } from "log4js";
-import Asset, { toNominalUnit } from "../asset";
+import Asset from "../asset";
 import {
   BitcoinBlockchain,
   networkFromString,
@@ -138,7 +138,7 @@ export class InternalBitcoinWallet implements BitcoinWallet {
       new Big(0)
     );
 
-    const bitcoinBalance = toNominalUnit(Asset.bitcoin, satBalance);
+    const bitcoinBalance = Asset.bitcoin.toNominalUnit(satBalance);
     if (!bitcoinBalance) {
       throw new Error("Internal Error: Bitcoin is not supported?");
     }

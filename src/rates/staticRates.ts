@@ -25,7 +25,9 @@ export default class StaticRates implements TradeService {
 
     if (!rate) {
       logger.warn(
-        `Rate not configured for buy: ${buy.asset}, sell: ${sell.asset}`
+        `Rate not configured for buy and sell: `,
+        buy.asset,
+        sell.asset
       );
       return Promise.resolve(false);
     }

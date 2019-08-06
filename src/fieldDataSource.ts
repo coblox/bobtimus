@@ -32,7 +32,7 @@ export class DefaultFieldDataSource implements FieldDataSource {
   }
 
   public async getData(field: Field) {
-    logger.log("trace", `Trying to find data for ${JSON.stringify(field)}`);
+    logger.log("trace", `Trying to find data for field`, field);
     if (
       this.ethereumWallet &&
       field.class.includes("ethereum") &&
@@ -56,6 +56,6 @@ export class DefaultFieldDataSource implements FieldDataSource {
     ) {
       return this.bitcoinFeeService.retrieveSatsPerByte();
     }
-    logger.warn(`Could not find data for ${JSON.stringify(field)}`);
+    logger.warn(`Could not find data for field`, field);
   }
 }

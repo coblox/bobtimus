@@ -58,7 +58,7 @@ export function toAsset(
       if (createAssetFromTokens && ledger && asset.token_contract) {
         return createAssetFromTokens(ledger, asset.token_contract);
       }
-      logger.crit(`Asset not supported: ${asset}`);
+      logger.crit(`Asset not supported`, asset);
       return undefined;
   }
 }

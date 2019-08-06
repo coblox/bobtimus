@@ -122,11 +122,10 @@ export default class TestnetMarketMaker implements TradeService {
     );
     if (!sufficientFunds) {
       logger.crit(
-        `Insufficient funds, asset ${
+        `Insufficient funds for asset, current balance is ${this.balances.getBalance(
           sell.asset
-        } balance is ${this.balances.getBalance(
-          sell.asset
-        )} but trade requires ${sell.quantity}`
+        )} but trade requires ${sell.quantity}`,
+        sell.asset
       );
       return false;
     }
@@ -134,11 +133,10 @@ export default class TestnetMarketMaker implements TradeService {
     const lowFunds = await this.balances.isLowBalance(sell.asset);
     if (lowFunds) {
       logger.warn(
-        `Funds low on asset ${
+        `Funds low on asset only has ${this.balances.getOriginalBalance(
           sell.asset
-        }, only has ${this.balances.getOriginalBalance(
-          sell.asset
-        )} of balance left`
+        )} of balance left`,
+        sell.asset
       );
     }
 

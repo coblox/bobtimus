@@ -80,7 +80,7 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
 
   public async broadcastTransaction(transaction: Transaction): Promise<string> {
     const hex = transaction.toHex();
-    logger.info("Broadcasting transaction ", hex);
+    logger.info("Broadcasting transaction: %s", hex);
     return this.bitcoinClient.sendRawTransaction(hex);
   }
 
@@ -103,7 +103,7 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
       scanobjects
     );
     if (!result || !result.success || result.unspents === undefined) {
-      logger.crit(`Transaction scan failed: ${result}`);
+      logger.crit(`Transaction scan failed: `, result);
       throw new Error(`Transaction scan failed: ${result}`);
     }
     const promises = result.unspents.map(async (res: RpcUtxo) => {

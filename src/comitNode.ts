@@ -122,9 +122,8 @@ export class ComitNode {
 
     logger.log(
       "trace",
-      `Doing a ${options.method} request to ${
-        options.uri
-      } with body: ${JSON.stringify(options.body)}`
+      `Doing a ${options.method} request to ${options.uri}`,
+      options
     );
 
     return request(options);

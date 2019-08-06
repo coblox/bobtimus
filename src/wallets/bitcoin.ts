@@ -115,7 +115,8 @@ export class InternalBitcoinWallet implements BitcoinWallet {
     }).address;
     if (!address) {
       logger.crit(
-        `Address could not be derived for derivationType ${derivationType}.`
+        `Address could not be derived for derivationType`,
+        derivationType
       );
       throw new Error("issue deriving address");
     }

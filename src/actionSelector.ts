@@ -42,7 +42,7 @@ export class ActionSelector {
 
       return this.selectSwapAction(swap);
     }
-    logger.crit(`The given entity is not a swap; entity ${entity}`);
+    logger.crit(`The given entity is not a swap entity`, entity);
     return undefined;
   }
 
@@ -158,7 +158,7 @@ export class ActionSelector {
         loggedAction => loggedAction.href === action.href
       )
     ) {
-      logger.debug(`Cannot return action twice: ${JSON.stringify(action)}!`);
+      logger.debug(`Cannot return action twice`, action);
       return true;
     } else {
       return false;

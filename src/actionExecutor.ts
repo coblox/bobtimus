@@ -39,17 +39,14 @@ export class ActionExecutor {
     let result: Result<any, Error>;
 
     const triggerResult = await this.triggerRequestFromAction(action);
-    logger.log(
-      "trace",
-      `Response from action: ${JSON.stringify(triggerResult)}`
-    );
+    logger.log("trace", `Response from action`, triggerResult);
     result = triggerResult;
     // If the response has a type and payload then a ledger action is needed
     if (triggerResult.isOk) {
       const response = triggerResult.unwrap();
       if (response.type && response.payload) {
         result = await this.executeLedgerAction(response);
-        logger.debug(`executeLedgerAction response: ${JSON.stringify(result)}`);
+        logger.debug(`executeLedgerAction response`, result);
       }
     }
 
@@ -100,7 +97,7 @@ export class ActionExecutor {
         executedAction => executedAction.href === action.href
       )
     ) {
-      logger.debug(`Cannot execute action twice: ${JSON.stringify(action)}!`);
+      logger.debug(`Cannot execute action twice`, action);
       return true;
     } else {
       return false;
@@ -108,7 +105,7 @@ export class ActionExecutor {
   }
 
   private async executeLedgerAction(action: LedgerAction) {
-    logger.log("trace", `Execute Ledger Action: ${JSON.stringify(action)}`);
+    logger.log("trace", `Execute Ledger Action`, action);
     try {
       const network = action.payload.network;
       switch (action.type) {

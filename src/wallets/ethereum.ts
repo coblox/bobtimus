@@ -65,7 +65,7 @@ export class Web3EthereumWallet implements EthereumWallet {
       .privateKey;
 
     if (!privateKey) {
-      logger.error(
+      logger.crit(
         `Freshly derived HD key does not have the private key, parameters 
         [ethereumConfig: ${ethereumConfig}, seed: ${seed}, accountIndex: ${accountIndex}]`
       );

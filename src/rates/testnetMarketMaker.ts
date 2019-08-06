@@ -121,7 +121,7 @@ export default class TestnetMarketMaker implements TradeService {
       sell.quantity
     );
     if (!sufficientFunds) {
-      logger.error(
+      logger.crit(
         `Insufficient funds, asset ${
           sell.asset
         } balance is ${this.balances.getBalance(

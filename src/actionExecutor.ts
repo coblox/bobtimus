@@ -78,7 +78,7 @@ export class ActionExecutor {
     }
 
     if (action.method === "POST" && action.type !== "application/json") {
-      logger.error("Only 'application/json' action type is supported.");
+      logger.crit("Only 'application/json' action type is supported.");
       throw new Error("Only 'application/json' action type is supported.");
     }
     try {

@@ -146,7 +146,7 @@ export class Config {
           }
           break;
         default:
-          logger.error(
+          logger.crit(
             `Internal error: enum ledger variant ${ledger} is considered in switch statement.`
           );
       }
@@ -177,7 +177,7 @@ function throwIfAbsent<T, K extends keyof T>(obj: T, prop: K): T[K] {
   const child = obj[prop];
 
   if (!child) {
-    logger.error(`${prop} must be present in the config file`);
+    logger.crit(`${prop} must be present in the config file`);
     throw new Error(`${prop} must be present in the config file`);
   }
 

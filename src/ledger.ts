@@ -14,7 +14,7 @@ export function toLedger(ledger: string) {
     case Ledger.Ethereum:
       return Ledger.Ethereum;
     default:
-      logger.error(`Ledger not supported: ${ledger}`);
+      logger.crit(`Ledger not supported: ${ledger}`);
       return undefined;
   }
 }

@@ -80,8 +80,8 @@ export class ActionSelector {
   private isAcceptable(swap: Swap): Promise<boolean> {
     const alphaLedger = toLedger(swap.properties.parameters.alpha_ledger.name);
     const betaLedger = toLedger(swap.properties.parameters.beta_ledger.name);
-    const alphaAsset = toAsset(swap.properties.parameters.alpha_asset.name);
-    const betaAsset = toAsset(swap.properties.parameters.beta_asset.name);
+    const alphaAsset = toAsset(swap.properties.parameters.alpha_asset);
+    const betaAsset = toAsset(swap.properties.parameters.beta_asset);
     const protocol = swap.properties.protocol;
 
     if (!alphaAsset || !betaAsset || !alphaLedger || !betaLedger) {

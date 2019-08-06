@@ -43,8 +43,7 @@ export default class EthereumWalletStub implements EthereumWallet {
   }
 
   public deployContract(
-    // @ts-ignore
-    params: SharedTransactionParams & DeployContractParams
+    _: SharedTransactionParams & DeployContractParams
   ): Promise<TransactionReceipt> {
     return resolveOrReject(this, "deployContractReceipt");
   }
@@ -71,4 +70,32 @@ export default class EthereumWalletStub implements EthereumWallet {
   public getLatestBlockTimestamp(): Promise<number> {
     return resolveOrReject(this, "lastBlockTimestamp");
   }
+}
+
+export function deployContractThrows(
+  _: SharedTransactionParams & DeployContractParams
+): Promise<TransactionReceipt> {
+  throw new Error("Mock not configured to return receipt for deploy");
+}
+
+export function getAddressThrows(): string {
+  throw new Error("Mock not configured to return Ethereum address");
+}
+
+export function getBalanceThrows(): Promise<Big> {
+  throw new Error("Mock not configured to return Ethereum balance");
+}
+
+export function sendTransactionToThrows(
+  _: SharedTransactionParams & SendTransactionToParams
+): Promise<TransactionReceipt> {
+  throw new Error("Mock not configured to return receipt for send transaction");
+}
+
+export function getChainIdThrows(): number {
+  throw new Error("Mock not configured to return chain id");
+}
+
+export function getLatestBlockTimestampThrows(): Promise<number> {
+  throw new Error("Mock not configured to return latest block timestamp");
 }

@@ -2,17 +2,15 @@ import { Result } from "@badrap/result/dist";
 import { Network, Transaction } from "bitcoinjs-lib";
 import BN = require("bn.js");
 import { getLogger } from "log4js";
-import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
-import {
-  BitcoinBlockchain,
-  networkFromString,
-  Satoshis
-} from "./bitcoin/blockchain";
+import { TransactionReceipt } from "web3/types";
+import { networkFromString, Satoshis } from "./bitcoin/blockchain";
 import { hexToBN, hexToBuffer, LedgerAction } from "./comitNode";
-import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import sleep from "./sleep";
-import { BitcoinWallet } from "./wallets/bitcoin";
-import { EthereumWallet } from "./wallets/ethereum";
+import {
+  DeployContractParams,
+  SendTransactionToParams,
+  SharedTransactionParams
+} from "./wallets/ethereum";
 
 const logger = getLogger();
 
@@ -31,33 +29,40 @@ interface EthereumDeployContractParams {
   data: Buffer;
 }
 
-export interface LedgerExecutorParams {
-  bitcoinBlockchain?: BitcoinBlockchain;
-  bitcoinWallet?: BitcoinWallet;
-  ethereumWallet?: EthereumWallet;
-  bitcoinFeeService?: BitcoinFeeService;
-  ethereumFeeService?: EthereumGasPriceService;
+export interface EthereumLedgerExecutorParams {
+  getWalletChainId: () => number;
+  getLatestBlockTimestamp: () => Promise<number>;
+  deployContract: (
+    params: SharedTransactionParams & DeployContractParams
+  ) => Promise<TransactionReceipt>;
+  retrieveGasPrice: (strategyName?: string) => Promise<BN>;
+  sendTransactionTo: (
+    params: SharedTransactionParams & SendTransactionToParams
+  ) => Promise<TransactionReceipt>;
+}
+
+export interface BitcoinLedgerExecutorParams {
+  getBlockTime: () => Promise<number>;
+  getWalletNetwork: () => Network;
+  broadcastTransaction: (transaction: Transaction) => Promise<string>;
+  retrieveSatsPerByte: (strategyName?: string) => Promise<number>;
+  payToAddress: (
+    address: string,
+    amount: Satoshis,
+    feeSatPerByte: Satoshis
+  ) => Promise<string>;
 }
 
 export class LedgerExecutor {
-  private readonly bitcoinBlockchain?: BitcoinBlockchain;
-  private readonly bitcoinWallet?: BitcoinWallet;
-  private readonly ethereumWallet?: EthereumWallet;
-  private readonly bitcoinFeeService?: BitcoinFeeService;
-  private readonly ethereumFeeService?: EthereumGasPriceService;
+  private readonly bitcoin?: BitcoinLedgerExecutorParams;
+  private readonly ethereum?: EthereumLedgerExecutorParams;
 
-  constructor({
-    bitcoinWallet,
-    ethereumWallet,
-    bitcoinBlockchain,
-    bitcoinFeeService,
-    ethereumFeeService
-  }: LedgerExecutorParams) {
-    this.bitcoinBlockchain = bitcoinBlockchain;
-    this.bitcoinWallet = bitcoinWallet;
-    this.ethereumWallet = ethereumWallet;
-    this.bitcoinFeeService = bitcoinFeeService;
-    this.ethereumFeeService = ethereumFeeService;
+  constructor(
+    bitcoinParams?: BitcoinLedgerExecutorParams,
+    ethereumParams?: EthereumLedgerExecutorParams
+  ) {
+    this.bitcoin = bitcoinParams;
+    this.ethereum = ethereumParams;
   }
 
   public async execute(action: LedgerAction) {
@@ -132,52 +137,50 @@ export class LedgerExecutor {
     amount: Satoshis,
     network: Network
   ) {
-    const { bitcoinWallet, bitcoinFeeService } = this.validateBitcoinWallet(
+    const { payToAddress, retrieveSatsPerByte } = this.validateBitcoinWallet(
       network
     );
 
-    const satsPerByte: number = await bitcoinFeeService.retrieveSatsPerByte();
+    const satsPerByte: number = await retrieveSatsPerByte();
 
-    return bitcoinWallet.payToAddress(
-      address,
-      amount,
-      new Satoshis(satsPerByte)
-    );
+    return payToAddress(address, amount, new Satoshis(satsPerByte));
   }
 
   public bitcoinBroadcastTransaction(
     transaction: Transaction,
     network: string
   ) {
-    const bitcoinBlockchain = this.validateBitcoinWallet(
+    const broadcastTransaction = this.validateBitcoinWallet(
       networkFromString(network)
-    ).bitcoinBlockchain;
+    ).broadcastTransaction;
 
-    return bitcoinBlockchain.broadcastTransaction(transaction);
+    return broadcastTransaction(transaction);
   }
 
   public async bitcoinGetBlockTime(network: string): Promise<number> {
-    const bitcoinBlockchain = this.validateBitcoinWallet(
+    const { getBlockTime } = this.validateBitcoinWallet(
       networkFromString(network)
-    ).bitcoinBlockchain;
-    return bitcoinBlockchain.getBlockTime();
+    );
+    return getBlockTime();
   }
 
   public async ethereumGetTimestamp(network: string): Promise<number> {
-    const ethereumWallt = await this.validateEthereumWallet(network);
+    const { getLatestBlockTimestamp } = await this.validateEthereumWallet(
+      network
+    );
 
-    return ethereumWallt.ethereumWallet.getLatestBlockTimestamp();
+    return getLatestBlockTimestamp();
   }
 
   public async ethereumDeployContract(
     params: EthereumSharedTransactionParams & EthereumDeployContractParams
   ) {
     const {
-      ethereumWallet,
-      ethereumFeeService
+      retrieveGasPrice,
+      deployContract
     } = await this.validateEthereumWallet(params.network);
 
-    const gasPrice = await ethereumFeeService.retrieveGasPrice();
+    const gasPrice = await retrieveGasPrice();
 
     const parameters = { ...params, gasPrice };
     logger.info(
@@ -185,18 +188,18 @@ export class LedgerExecutor {
         parameters
       )}`
     );
-    return ethereumWallet.deployContract(parameters);
+    return deployContract(parameters);
   }
 
   public async ethereumSendTransactionTo(
     params: EthereumSharedTransactionParams & EthereumSendTransactionToParams
   ) {
     const {
-      ethereumWallet,
-      ethereumFeeService
+      retrieveGasPrice,
+      sendTransactionTo
     } = await this.validateEthereumWallet(params.network);
 
-    const gasPrice = await ethereumFeeService.retrieveGasPrice();
+    const gasPrice = await retrieveGasPrice();
 
     const parameters = {
       gasPrice,
@@ -208,41 +211,27 @@ export class LedgerExecutor {
     logger.info(
       `Invoking sendTransaction on Ethereum Wallet with ${parameters}`
     );
-    return ethereumWallet.sendTransactionTo(parameters);
+    return sendTransactionTo(parameters);
   }
 
   private validateBitcoinWallet(network: Network) {
-    if (!this.bitcoinWallet) {
-      throw new Error(`Bitcoin Wallet is not available.`);
-    }
-    if (!this.bitcoinFeeService) {
-      throw new Error(`Bitcoin Fee Service is not available.`);
-    }
-    if (this.bitcoinWallet.getNetwork() !== network) {
-      throw new Error(
-        `Incompatible Bitcoin network. Received: ${network}, but wallet is ${this.bitcoinWallet.getNetwork()}`
-      );
-    }
-    if (!this.bitcoinBlockchain) {
-      throw new Error(`Bitcoin Blockchain is not available.`);
+    if (!this.bitcoin) {
+      throw new Error(`Bitcoin is not available.`);
     }
 
-    return {
-      bitcoinWallet: this.bitcoinWallet,
-      bitcoinFeeService: this.bitcoinFeeService,
-      bitcoinBlockchain: this.bitcoinBlockchain
-    };
+    if (this.bitcoin.getWalletNetwork() !== network) {
+      throw new Error(
+        `Incompatible Bitcoin network. Received: ${network}, but wallet is ${this.bitcoin.getWalletNetwork()}`
+      );
+    }
+    return this.bitcoin;
   }
 
   private async validateEthereumWallet(network: string) {
-    const ethereumWallet = this.ethereumWallet;
-    const ethereumFeeService = this.ethereumFeeService;
+    const ethereum = this.ethereum;
 
-    if (!ethereumWallet) {
-      throw new Error(`Ethereum Wallet is not available.`);
-    }
-    if (!ethereumFeeService) {
-      throw new Error(`Ethereum Fee Service is not available.`);
+    if (!ethereum) {
+      throw new Error(`Ethereum is not available.`);
     }
 
     // To fix this awkward comparison, make the comit_node use chainId for Ethereum: https://github.com/comit-network/RFCs/issues/73
@@ -259,17 +248,14 @@ export class LedgerExecutor {
       );
     }
 
-    const connectedChainId = await ethereumWallet.getChainId();
+    const connectedChainId = await ethereum.getWalletChainId();
     if (connectedChainId !== mappedChainId) {
       throw new Error(
         `Incompatible Ethereum network. Received: '${network}'(chainId: ${mappedChainId}), but wallet chainID is ${connectedChainId}`
       );
     }
 
-    return {
-      ethereumWallet,
-      ethereumFeeService
-    };
+    return ethereum;
   }
 }
 

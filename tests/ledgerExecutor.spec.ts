@@ -1,8 +1,10 @@
 import BN from "bn.js";
 import { TransactionReceipt } from "web3/types";
-import { EthereumGasPriceService } from "../src/ethereum/ethereumGasPriceService";
 import { LedgerExecutor } from "../src/ledgerExecutor";
-import EthereumWalletStub from "./doubles/ethereumWalletStub";
+import {
+  getLatestBlockTimestampThrows,
+  sendTransactionToThrows
+} from "./doubles/ethereumWalletStub";
 
 function deployContractAction(network: string) {
   return {
@@ -14,14 +16,15 @@ function deployContractAction(network: string) {
 }
 
 function newLedgerExecutorWithEthereumWalletConnectedToChain(chainId: number) {
-  return new LedgerExecutor({
-    ethereumWallet: new EthereumWalletStub({
-      chainId,
-      deployContractReceipt: {
+  return new LedgerExecutor(undefined, {
+    getWalletChainId: () => chainId,
+    getLatestBlockTimestamp: getLatestBlockTimestampThrows,
+    deployContract: () =>
+      Promise.resolve({
         status: true
-      } as TransactionReceipt
-    }),
-    ethereumFeeService: EthereumGasPriceService.default()
+      } as TransactionReceipt),
+    retrieveGasPrice: () => Promise.resolve(new BN(10)),
+    sendTransactionTo: sendTransactionToThrows
   });
 }
 
@@ -80,5 +83,5 @@ describe("LedgerExecutor", () => {
     );
   });
 
-  // TODO: Add test for refunds on both Bitcoin and Ethereum
+  it("");
 });

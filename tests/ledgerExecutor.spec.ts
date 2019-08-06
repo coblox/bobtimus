@@ -1,7 +1,9 @@
 import BN from "bn.js";
 import { TransactionReceipt } from "web3/types";
+import { LedgerAction } from "../src/comitNode";
 import { LedgerExecutor } from "../src/ledgerExecutor";
 import {
+  deployContractThrows,
   getLatestBlockTimestampThrows,
   sendTransactionToThrows
 } from "./doubles/ethereumWalletStub";
@@ -81,5 +83,44 @@ describe("LedgerExecutor", () => {
     ).rejects.toMatchInlineSnapshot(
       `[Error: Incompatible Ethereum network. Received: 'ropsten'(chainId: 3), but wallet chainID is 17]`
     );
+  });
+
+  it("Given past median timestamp, execute Ethereum refund action", async () => {
+    const sendTransactionTo = jest.fn();
+    sendTransactionTo.mockReturnValueOnce(
+      Promise.resolve({
+        status: true
+      } as TransactionReceipt)
+    );
+
+    const executor = new LedgerExecutor(undefined, {
+      getWalletChainId: () => 3,
+      getLatestBlockTimestamp: () => Promise.resolve(17000),
+      deployContract: deployContractThrows,
+      retrieveGasPrice: () => Promise.resolve(new BN(10)),
+      sendTransactionTo
+    });
+
+    const action: LedgerAction = {
+      type: "ethereum-call-contract",
+      payload: {
+        contract_address: "0xfoo",
+        data: "0xdeadbeef",
+        gas_limit: "0x2710",
+        network: "ropsten",
+        min_block_timestamp: 20
+      }
+    };
+
+    await executor.execute(action);
+
+    const expectedArg = {
+      gasPrice: new BN("10"),
+      gasLimit: new BN("10000"),
+      to: "0xfoo",
+      data: Buffer.from("deadbeef", "hex")
+    };
+    const actualArg = sendTransactionTo.mock.calls[0][0];
+    expect(JSON.stringify(actualArg)).toEqual(JSON.stringify(expectedArg));
   });
 });

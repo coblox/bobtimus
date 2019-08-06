@@ -1,12 +1,12 @@
 /// <reference path="./bitcoin-core.d.ts" />
 import Client from "bitcoin-core";
 import { Transaction } from "bitcoinjs-lib";
-import { getLogger } from "log4js";
 import {
   BitcoindCoreRpcBasicAuth,
   BitcoindCoreRpcConfig,
   BitcoindCoreRpcCookieAuth
 } from "../config";
+import { getLogger } from "../logging/logger";
 import { BitcoindAuthCookie } from "./bitcoindAuthCookie";
 import { Bitcoin, BitcoinBlockchain, Satoshis, Utxo } from "./blockchain";
 

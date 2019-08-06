@@ -1,8 +1,8 @@
 import BN = require("bn.js");
-import { getLogger } from "log4js";
 import request from "request-promise-native";
 import URI from "urijs";
 import { Action, Entity } from "../gen/siren";
+import { getLogger } from "./logging/logger";
 
 const logger = getLogger();
 
@@ -120,7 +120,8 @@ export class ComitNode {
       };
     }
 
-    logger.trace(
+    logger.log(
+      "trace",
       `Doing a ${options.method} request to ${
         options.uri
       } with body: ${JSON.stringify(options.body)}`

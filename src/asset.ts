@@ -1,6 +1,6 @@
 import Big from "big.js";
-import { getLogger } from "log4js";
 import Ledger from "./ledger";
+import { getLogger } from "./logging/logger";
 
 const logger = getLogger();
 

@@ -1,6 +1,5 @@
 import { Network, Transaction } from "bitcoinjs-lib";
 import BN = require("bn.js");
-import { getLogger } from "log4js";
 import { TransactionReceipt } from "web3/types";
 import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import {
@@ -10,6 +9,7 @@ import {
 } from "./bitcoin/blockchain";
 import { hexToBuffer } from "./comitNode";
 import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
+import { getLogger } from "./logging/logger";
 import { BitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
 

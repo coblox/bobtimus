@@ -1,7 +1,7 @@
 import Big from "big.js";
-import { getLogger } from "log4js";
 import Asset from "../asset";
 import Ledger from "../ledger";
+import { getLogger } from "../logging/logger";
 import { BitcoinWallet } from "../wallets/bitcoin";
 import { EthereumWallet } from "../wallets/ethereum";
 import Balances from "./balances";

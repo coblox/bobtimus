@@ -1,6 +1,6 @@
 import Big from "big.js";
-import { getLogger } from "log4js";
 import Asset from "../asset";
+import { getLogger } from "../logging/logger";
 import Balances from "./balances";
 import { Trade, TradeService } from "./tradeService";
 

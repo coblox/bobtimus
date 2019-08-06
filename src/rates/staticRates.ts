@@ -1,7 +1,7 @@
 import Big from "big.js";
-import { getLogger } from "log4js";
 import Asset from "../asset";
 import Ledger from "../ledger";
+import { getLogger } from "../logging/logger";
 import { Trade, TradeService } from "./tradeService";
 
 const logger = getLogger();

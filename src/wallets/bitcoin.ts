@@ -10,7 +10,6 @@ import {
 } from "bitcoinjs-lib";
 import { ECPairInterface } from "bitcoinjs-lib/types/ecpair";
 import coinSelect from "coinselect";
-import { getLogger } from "log4js";
 import Asset, { toNominalUnit } from "../asset";
 import {
   BitcoinBlockchain,
@@ -19,6 +18,7 @@ import {
   Utxo
 } from "../bitcoin/blockchain";
 import { BitcoinConfig } from "../config";
+import { getLogger } from "../logging/logger";
 
 const logger = getLogger();
 

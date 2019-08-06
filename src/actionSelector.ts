@@ -1,9 +1,9 @@
 import Big from "big.js";
-import { getLogger } from "log4js";
 import { Action, Entity } from "../gen/siren";
 import Asset, { toAsset, toNominalUnit } from "./asset";
 import { Swap } from "./comitNode";
 import Ledger, { toLedger } from "./ledger";
+import { getLogger } from "./logging/logger";
 import { Trade, TradeService } from "./rates/tradeService";
 
 const logger = getLogger();

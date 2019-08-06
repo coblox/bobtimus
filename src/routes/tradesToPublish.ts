@@ -1,8 +1,8 @@
 import { Request } from "express";
 import { Response } from "express";
-import { getLogger } from "log4js";
 import { BitcoinConfig } from "../config";
 import Ledger from "../ledger";
+import { getLogger } from "../logging/logger";
 import { Trade, TradeService } from "../rates/tradeService";
 import { EthereumWallet } from "../wallets/ethereum";
 

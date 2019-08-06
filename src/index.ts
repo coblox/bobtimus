@@ -1,5 +1,4 @@
 import express = require("express");
-import { configure, getLogger } from "log4js";
 import { ActionExecutor } from "./actionExecutor";
 import { ActionSelector } from "./actionSelector";
 import { BitcoinCoreRpc } from "./bitcoin/bitcoinCoreRpc";
@@ -9,6 +8,7 @@ import { Config } from "./config";
 import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
 import { DefaultFieldDataSource } from "./fieldDataSource";
 import { LedgerExecutor } from "./ledgerExecutor";
+import { getLogger } from "./logging/logger";
 import { createTradeEvaluationService } from "./rates/tradeService";
 import { getAmountsToPublishRoute } from "./routes/tradesToPublish";
 import Tokens from "./tokens";
@@ -16,12 +16,10 @@ import { InternalBitcoinWallet } from "./wallets/bitcoin";
 import { Web3EthereumWallet } from "./wallets/ethereum";
 
 const CONFIG_PATH = "./config.toml";
-const LOG_CONFIG_PATH = "./logconfig.json";
 const TOKENS_CONFIG_PATH = "./tokens.toml";
 
 const logger = getLogger();
 const pollIntervalMillis = 10000;
-configure(LOG_CONFIG_PATH);
 
 const api = express();
 
@@ -30,7 +28,6 @@ const refreshUtxos = async (bitcoinWallet: InternalBitcoinWallet) => {
     await bitcoinWallet.refreshUtxo();
   } catch (e) {
     logger.error("Failed to refresh UTXO:", e.message);
-    console.log(e.message);
   }
 };
 
@@ -63,7 +60,7 @@ const initBitcoin = async (config: Config) => {
     config.bitcoinConfig.fee.defaultFee,
     config.bitcoinConfig.fee.strategy
   );
-  console.log(
+  logger.info(
     `Please fund bobtimus btc account: ${bitcoinWallet.getNewAddress()}`
   );
 
@@ -166,27 +163,29 @@ const config = Config.fromFile(CONFIG_PATH);
 
   const shoot = async () => {
     const swaps = await comitNode.getSwaps();
-    logger.trace(`Found ${swaps.length} swap(s)`);
+    logger.log("trace", `Found ${swaps.length} swap(s)`);
 
     for (const swap of swaps) {
       const id = swap.properties ? swap.properties.id : undefined;
       try {
         const selectedAction = await actionSelector.selectActions(swap);
         if (selectedAction) {
-          logger.trace(
+          logger.log(
+            "trace",
             `Selected action for swap ${id}: ${JSON.stringify(selectedAction)}`
           );
           const executionResult = await actionExecutor.execute(
             selectedAction,
             config.maxRetries
           );
-          logger.trace(
+          logger.log(
+            "trace",
             `Action execution response for swap ${id}: ${JSON.stringify(
               executionResult
             )}`
           );
         } else {
-          logger.trace(`No action returned for swap ${id}`);
+          logger.log("trace", `No action returned for swap ${id}`);
         }
       } catch (err) {
         logger.error(`Error has occurred for swap ${id}`, err);
@@ -196,7 +195,8 @@ const config = Config.fromFile(CONFIG_PATH);
 
   setInterval(() => {
     shoot().then(() =>
-      logger.trace(
+      logger.log(
+        "trace",
         `Polling new information from comit-node in ${pollIntervalMillis} ms again`
       )
     );

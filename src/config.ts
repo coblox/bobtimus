@@ -2,9 +2,9 @@ import TOML from "@iarna/toml";
 import { generateMnemonic, mnemonicToSeedSync } from "bip39";
 import BN = require("bn.js");
 import * as fs from "fs";
-import { getLogger } from "log4js";
 import URI from "urijs";
 import Ledger from "./ledger";
+import { getLogger } from "./logging/logger";
 import { ConfigRates } from "./rates/staticRates";
 import { TestnetMarketMakerConfig } from "./rates/testnetMarketMaker";
 

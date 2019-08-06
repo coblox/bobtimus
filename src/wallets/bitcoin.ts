@@ -6,8 +6,7 @@ import {
   ECPair,
   Network,
   payments,
-  Transaction,
-  TransactionBuilder
+  Psbt
 } from "bitcoinjs-lib";
 import { ECPairInterface } from "bitcoinjs-lib/types/ecpair";
 import coinSelect from "coinselect";
@@ -200,13 +199,13 @@ export class InternalBitcoinWallet implements BitcoinWallet {
       throw new Error("Was not able to fund the transaction");
     }
 
-    const txb = new TransactionBuilder(this.network);
+    const psbt = new Psbt({ network: this.network });
 
     for (const output of outputs) {
       if (!output.address) {
         output.address = this.getNewAddress(DerivationType.Internal);
       }
-      txb.addOutput(output.address, output.value);
+      psbt.addOutput(output);
     }
 
     const nInputs = inputs.length;
@@ -223,21 +222,23 @@ export class InternalBitcoinWallet implements BitcoinWallet {
         network: this.network
       });
 
-      txb.addInput(input.txId, input.vout, undefined, p2wpkh.output);
+      psbt.addInput({
+        hash: input.txId,
+        index: input.vout,
+        // @ts-ignore: @types/bitcoinjs-lib is not aligned with latest bitcoinjs-lib
+        witnessUtxo: {
+          script: p2wpkh.output,
+          value: input.value
+        }
+      });
       this.unspentOutputs.delete(toKey(input));
     }
 
     for (let i = 0; i < nInputs; i++) {
-      txb.sign(
-        i,
-        keypairs[i],
-        undefined,
-        Transaction.SIGHASH_ALL,
-        inputs[i].value
-      );
+      psbt.signInput(i, keypairs[i]);
     }
 
-    const transaction = txb.build();
+    const transaction = psbt.finalizeAllInputs().extractTransaction();
 
     return this.blockchain.broadcastTransaction(transaction);
   }

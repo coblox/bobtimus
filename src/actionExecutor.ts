@@ -1,12 +1,12 @@
 import { Result } from "@badrap/result/dist";
 import { Transaction } from "bitcoinjs-lib";
 import BN from "bn.js";
-import { getLogger } from "log4js";
 import { Action } from "../gen/siren";
 import { networkFromString, Satoshis } from "./bitcoin/blockchain";
 import { ComitNode, hexToBN, hexToBuffer, LedgerAction } from "./comitNode";
 import { FieldDataSource } from "./fieldDataSource";
 import { ILedgerExecutor } from "./ledgerExecutor";
+import { getLogger } from "./logging/logger";
 
 const logger = getLogger();
 
@@ -39,14 +39,14 @@ export class ActionExecutor {
     let result: Result<any, Error>;
 
     const triggerResult = await this.triggerRequestFromAction(action);
-    logger.trace(`Response from action: ${JSON.stringify(triggerResult)}`);
+    logger.log("trace", `Response from action`, triggerResult);
     result = triggerResult;
     // If the response has a type and payload then a ledger action is needed
     if (triggerResult.isOk) {
       const response = triggerResult.unwrap();
       if (response.type && response.payload) {
         result = await this.executeLedgerAction(response);
-        logger.debug(`executeLedgerAction response: ${JSON.stringify(result)}`);
+        logger.debug(`executeLedgerAction response`, result);
       }
     }
 
@@ -75,7 +75,7 @@ export class ActionExecutor {
     }
 
     if (action.method === "POST" && action.type !== "application/json") {
-      logger.error("Only 'application/json' action type is supported.");
+      logger.crit("Only 'application/json' action type is supported.");
       throw new Error("Only 'application/json' action type is supported.");
     }
     try {
@@ -97,7 +97,7 @@ export class ActionExecutor {
         executedAction => executedAction.href === action.href
       )
     ) {
-      logger.debug(`Cannot execute action twice: ${JSON.stringify(action)}!`);
+      logger.debug(`Cannot execute action twice`, action);
       return true;
     } else {
       return false;
@@ -105,7 +105,7 @@ export class ActionExecutor {
   }
 
   private async executeLedgerAction(action: LedgerAction) {
-    logger.trace(`Execute Ledger Action: ${JSON.stringify(action)}`);
+    logger.log("trace", `Execute Ledger Action`, action);
     try {
       const network = action.payload.network;
       switch (action.type) {

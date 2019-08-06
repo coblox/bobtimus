@@ -1,6 +1,6 @@
 import Big from "big.js";
-import { getLogger } from "log4js";
 import Ledger from "./ledger";
+import { getLogger } from "./logging/logger";
 
 const logger = getLogger();
 
@@ -32,7 +32,7 @@ export function toAssetFromName(name: string): Asset | undefined {
     case Asset.ether.name:
       return Asset.ether;
     default:
-      logger.error(`Asset not supported: ${name}`);
+      logger.crit(`Asset not supported: ${name}`);
       return undefined;
   }
 }
@@ -58,7 +58,7 @@ export function toAsset(
       if (createAssetFromTokens && ledger && asset.token_contract) {
         return createAssetFromTokens(ledger, asset.token_contract);
       }
-      logger.error(`Asset not supported: ${asset}`);
+      logger.crit(`Asset not supported`, asset);
       return undefined;
   }
 }
@@ -89,6 +89,6 @@ function toNominalUnitForToken(asset: Asset, quantity: Big) {
   if (asset.decimals) {
     return quantity.div(new Big(10).pow(asset.decimals));
   }
-  logger.error("Unit conversion not supported for", asset);
+  logger.crit("Unit conversion not supported for", asset);
   return undefined;
 }

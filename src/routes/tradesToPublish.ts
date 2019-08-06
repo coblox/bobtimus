@@ -1,8 +1,8 @@
 import { Request } from "express";
 import { Response } from "express";
-import { getLogger } from "log4js";
 import { BitcoinConfig } from "../config";
 import Ledger from "../ledger";
+import { getLogger } from "../logging/logger";
 import { Trade, TradeService } from "../rates/tradeService";
 import { EthereumWallet } from "../wallets/ethereum";
 
@@ -46,7 +46,7 @@ export function getAmountsToPublishRoute(
 ) {
   return async (_: Request, res: Response) => {
     const errorHandling = (response: Response, message: string) => {
-      logger.error(`Error when requesting trades to publish: ${message}`);
+      logger.crit(`Error when requesting trades to publish: ${message}`);
       response.status(500);
       response.send({ error: message });
     };

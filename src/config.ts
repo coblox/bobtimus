@@ -2,9 +2,9 @@ import TOML from "@iarna/toml";
 import { generateMnemonic, mnemonicToSeedSync } from "bip39";
 import BN = require("bn.js");
 import * as fs from "fs";
-import { getLogger } from "log4js";
 import URI from "urijs";
 import Ledger from "./ledger";
+import { getLogger } from "./logging/logger";
 import { ConfigRates } from "./rates/staticRates";
 import { TestnetMarketMakerConfig } from "./rates/testnetMarketMaker";
 
@@ -135,20 +135,18 @@ export class Config {
           if (typeof this.bitcoinConfig === "object") {
             supportedLedgers.push(Ledger.Bitcoin);
           } else {
-            logger.warn(`Invalid configuration for ledger ${ledger}`);
+            logger.warn(`Invalid configuration for ledger`, ledger);
           }
           break;
         case Ledger.Ethereum:
           if (typeof this.ethereumConfig === "object") {
             supportedLedgers.push(Ledger.Ethereum);
           } else {
-            logger.warn(`Invalid configuration for ledger ${ledger}`);
+            logger.warn(`Invalid configuration for ledger`, ledger);
           }
           break;
         default:
-          logger.error(
-            `Internal error: enum ledger variant ${ledger} is considered in switch statement.`
-          );
+          logger.crit(`Internal error: invalid ledger`, ledger);
       }
     }
 
@@ -177,7 +175,7 @@ function throwIfAbsent<T, K extends keyof T>(obj: T, prop: K): T[K] {
   const child = obj[prop];
 
   if (!child) {
-    logger.error(`${prop} must be present in the config file`);
+    logger.crit(`Property must be present in the config file`, prop);
     throw new Error(`${prop} must be present in the config file`);
   }
 

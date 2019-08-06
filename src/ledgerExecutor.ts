@@ -1,6 +1,5 @@
 import { Network, Transaction } from "bitcoinjs-lib";
 import BN = require("bn.js");
-import { getLogger } from "log4js";
 import { TransactionReceipt } from "web3/types";
 import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
 import {
@@ -10,6 +9,7 @@ import {
 } from "./bitcoin/blockchain";
 import { hexToBuffer } from "./comitNode";
 import { EthereumGasPriceService } from "./ethereum/ethereumGasPriceService";
+import { getLogger } from "./logging/logger";
 import { BitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
 
@@ -134,11 +134,7 @@ export class LedgerExecutor implements ILedgerExecutor {
     const gasPrice = await ethereumFeeService.retrieveGasPrice();
 
     const parameters = { ...params, gasPrice };
-    logger.info(
-      `Invoking deployContract on Ethereum Wallet with ${JSON.stringify(
-        parameters
-      )}`
-    );
+    logger.info(`Invoking deployContract on Ethereum Wallet`, parameters);
     return ethereumWallet.deployContract(parameters);
   }
 
@@ -159,9 +155,7 @@ export class LedgerExecutor implements ILedgerExecutor {
       data: params.data ? hexToBuffer(params.data) : undefined
     };
 
-    logger.info(
-      `Invoking sendTransaction on Ethereum Wallet with ${parameters}`
-    );
+    logger.info(`Invoking sendTransaction on Ethereum Wallet`, parameters);
     return ethereumWallet.sendTransactionTo(parameters);
   }
 

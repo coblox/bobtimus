@@ -1,7 +1,7 @@
 import Big from "big.js";
-import { getLogger } from "log4js";
 import Asset from "../asset";
 import Ledger from "../ledger";
+import { getLogger } from "../logging/logger";
 import { BitcoinWallet } from "../wallets/bitcoin";
 import { EthereumWallet } from "../wallets/ethereum";
 import Balances from "./balances";
@@ -67,7 +67,7 @@ export async function createTradeEvaluationService({
           return bitcoinWallet.getNominalBalance();
         }
       } catch (e) {
-        logger.error("Bitcoin balance not found", e);
+        logger.crit("Bitcoin balance not found", e);
       }
 
       return Promise.resolve(new Big(0));
@@ -78,7 +78,7 @@ export async function createTradeEvaluationService({
         try {
           return ethereumWallet.getBalance(Asset.ether);
         } catch (e) {
-          logger.error("Ethereum balance not found", e);
+          logger.crit("Ethereum balance not found", e);
         }
       }
       return Promise.resolve(new Big(0));

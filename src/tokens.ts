@@ -1,8 +1,8 @@
 import TOML from "@iarna/toml";
 import * as fs from "fs";
-import { getLogger } from "log4js";
 import Asset from "./asset";
 import Ledger from "./ledger";
+import { getLogger } from "./logging/logger";
 
 const logger = getLogger();
 

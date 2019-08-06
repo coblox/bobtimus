@@ -53,3 +53,19 @@ export default class BitcoinWalletStub implements BitcoinWallet {
     return returnOrThrow(this, "nominalBalance");
   }
 }
+
+export function getWalletNetworkThrows(): Network {
+  throw new Error("Mock not configured to return Bitcoin network");
+}
+
+export function broadcastTransactionThrows(): Promise<string> {
+  throw new Error("Mock not configured to broadcast a Bitcoin transaction");
+}
+
+export function retrieveSatsPerByteThrows(): Promise<number> {
+  throw new Error("Mock not configured to return Sats per byte fee");
+}
+
+export function payToAddressThrows(): Promise<string> {
+  throw new Error("Mock not configured to pay to Bitcoin address");
+}

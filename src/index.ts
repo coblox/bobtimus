@@ -11,12 +11,17 @@ import { DefaultFieldDataSource } from "./fieldDataSource";
 import { LedgerExecutor } from "./ledgerExecutor";
 import { createTradeEvaluationService } from "./rates/tradeService";
 import { getAmountsToPublishRoute } from "./routes/tradesToPublish";
+import Tokens from "./tokens";
 import { InternalBitcoinWallet } from "./wallets/bitcoin";
 import { Web3EthereumWallet } from "./wallets/ethereum";
 
+const CONFIG_PATH = "./config.toml";
+const LOG_CONFIG_PATH = "./logconfig.json";
+const TOKENS_CONFIG_PATH = "./tokens.toml";
+
 const logger = getLogger();
 const pollIntervalMillis = 10000;
-configure("./logconfig.json");
+configure(LOG_CONFIG_PATH);
 
 const api = express();
 
@@ -91,7 +96,7 @@ const initEthereum = async (config: Config) => {
   return { ethereumWallet, ethereumFeeService };
 };
 
-const config = Config.fromFile("./config.toml");
+const config = Config.fromFile(CONFIG_PATH);
 
 (async () => {
   const {
@@ -119,9 +124,15 @@ const config = Config.fromFile("./config.toml");
   const comitNode = new ComitNode(config.cndUrl);
   const datastore = new DefaultFieldDataSource(ledgerExecutorParams);
   const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
+  const tokens = Tokens.fromFile(TOKENS_CONFIG_PATH);
+  let createAssetFromTokens;
+  if (tokens) {
+    createAssetFromTokens = tokens.createAsset;
+  }
   const actionSelector = new ActionSelector(
     config.getSupportedLedgers(),
-    tradeService
+    tradeService,
+    createAssetFromTokens
   );
 
   const actionExecutor = new ActionExecutor(

@@ -1,13 +1,21 @@
+import { configure } from "log4js";
 import { Entity } from "../gen/siren";
 import { ActionSelector } from "../src/actionSelector";
+import Asset from "../src/asset";
 import Ledger from "../src/ledger";
 import StaticRates from "../src/rates/staticRates";
 import swapsAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithAcceptDecline.siren.json";
+import swapsDogecoinAcceptDeclineStub from "./stubs/bitcoinEther/swapsWithDogecoinAcceptDecline.siren.json";
 import swapsErc20AcceptDeclineStub from "./stubs/bitcoinEther/swapsWithErc20AcceptDecline.siren.json";
 import swapsRedeemBitcoinEther from "./stubs/bitcoinEther/swapsWithRedeem.siren.json";
 import swapsFundEtherBitcoinStub from "./stubs/etherBitcoin/swapsWithFund.siren.json";
 import swapsRedeemRefundStub from "./stubs/etherBitcoin/swapsWithRedeemRefund.siren.json";
 import swapsRefundStub from "./stubs/etherBitcoin/swapsWithRefund.siren.json";
+
+configure({
+  appenders: { out: { type: "stdout", layout: { type: "basic" } } },
+  categories: { default: { appenders: ["out"], level: "debug" } }
+});
 
 function extractEntityAndAction(json: any, actionName: string) {
   const entity = json.entities[0] as Entity | undefined;
@@ -29,13 +37,13 @@ function extractEntityAndAction(json: any, actionName: string) {
   return { entity, action };
 }
 
-describe("Action selector tests: ", () => {
+const supportedLedgers = [Ledger.Ethereum, Ledger.Bitcoin];
+
+describe("Action selector tests for Ethereum/Bitcoin: ", () => {
   const rates = new StaticRates({
     ether: { bitcoin: 0.0105 },
     bitcoin: { ether: 105.26 }
   });
-
-  const supportedLedgers = [Ledger.Ethereum, Ledger.Bitcoin];
 
   it("Should emit accept only", async done => {
     const actionSelector = new ActionSelector(supportedLedgers, rates);
@@ -69,7 +77,7 @@ describe("Action selector tests: ", () => {
   it("Should emit decline because of unsupported trading pair", async done => {
     const actionSelector = new ActionSelector(supportedLedgers, rates);
     const { entity, action } = extractEntityAndAction(
-      swapsErc20AcceptDeclineStub,
+      swapsDogecoinAcceptDeclineStub,
       "decline"
     );
 
@@ -166,6 +174,38 @@ describe("Action selector tests: ", () => {
       expect(actionResponse).toStrictEqual(action);
     }
 
+    done();
+  });
+});
+
+describe("Action selector test for ERC20", () => {
+  const rates = new StaticRates({
+    PAY: { bitcoin: 0.0105 },
+    bitcoin: { PAY: 105.26 }
+  });
+
+  it("Should emit accept only", async done => {
+    const createAssetFromTokens = () => {
+      return new Asset(
+        "PAY",
+        Ledger.Ethereum,
+        "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+        18
+      );
+    };
+
+    const actionSelector = new ActionSelector(
+      supportedLedgers,
+      rates,
+      createAssetFromTokens
+    );
+    const { entity, action } = extractEntityAndAction(
+      swapsErc20AcceptDeclineStub,
+      "accept"
+    );
+
+    const actionResponse = await actionSelector.selectActions(entity);
+    expect(actionResponse).toStrictEqual(action);
     done();
   });
 });

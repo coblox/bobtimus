@@ -4,12 +4,16 @@ import Ledger from "../src/ledger";
 
 describe("Test asset", () => {
   it("Return Bitcoin asset when passed `bitcoin` asset object", () => {
-    const asset = toAsset({ name: "bitcoin", quantity: "1234" });
+    const asset = toAsset(
+      { name: "bitcoin", quantity: "1234" },
+      Ledger.Bitcoin,
+      () => undefined
+    );
     expect(asset).toEqual(Asset.bitcoin);
   });
 
   it("Return PAY asset when passed pay asset object", () => {
-    const tokensCreateAsset = () => {
+    const createAssetFromTokens = () => {
       return new Asset(
         "PAY",
         Ledger.Ethereum,
@@ -25,7 +29,7 @@ describe("Test asset", () => {
         token_contract: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
       },
       Ledger.Ethereum,
-      tokensCreateAsset
+      createAssetFromTokens
     ) as Asset;
 
     expect(asset.name).toEqual("PAY");
@@ -51,5 +55,17 @@ describe("Test asset", () => {
     );
 
     expect(toNominalUnit(payAsset, intQuantity)).toEqual(new Big(1));
+  });
+
+  it("Convert Unit for ERC20 tokens", () => {
+    const payAsset = new Asset(
+      "PAY",
+      Ledger.Ethereum,
+      "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+      18
+    );
+    expect(toNominalUnit(payAsset, new Big("1000000000000000000"))).toEqual(
+      new Big(1)
+    );
   });
 });

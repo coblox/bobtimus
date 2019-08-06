@@ -18,11 +18,15 @@ export interface TokensConfig {
 }
 
 export default class Tokens {
-  public static fromFile(tomlFilePath: string): Tokens {
-    const tokensConfig: TokensConfig = TOML.parse(
-      fs.readFileSync(tomlFilePath, "utf8")
-    );
-    return new Tokens(tokensConfig);
+  public static fromFile(tomlFilePath: string): Tokens | undefined {
+    try {
+      const tokensConfig: TokensConfig = TOML.parse(
+        fs.readFileSync(tomlFilePath, "utf8")
+      );
+      return new Tokens(tokensConfig);
+    } catch (_) {
+      return undefined;
+    }
   }
 
   private readonly ethereumTokens?: Map<string, Asset>;

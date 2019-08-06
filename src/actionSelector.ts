@@ -99,12 +99,12 @@ export class ActionSelector {
       logger.error("Ledger is not supported");
       return Promise.resolve(false);
     }
-    const alphaAsset = Asset.FromComitPayload(
+    const alphaAsset = Asset.fromComitPayload(
       swap.properties.parameters.alpha_asset,
       alphaLedger,
       this.createAssetFromTokens
     );
-    const betaAsset = Asset.FromComitPayload(
+    const betaAsset = Asset.fromComitPayload(
       swap.properties.parameters.beta_asset,
       betaLedger,
       this.createAssetFromTokens

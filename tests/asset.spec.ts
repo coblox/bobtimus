@@ -4,7 +4,7 @@ import Ledger from "../src/ledger";
 
 describe("Test asset", () => {
   it("Return Bitcoin asset when passed `bitcoin` asset object", () => {
-    const asset = Asset.FromComitPayload(
+    const asset = Asset.fromComitPayload(
       { name: "bitcoin", quantity: "1234" },
       Ledger.Bitcoin,
       () => undefined
@@ -22,7 +22,7 @@ describe("Test asset", () => {
       );
     };
 
-    const asset = Asset.FromComitPayload(
+    const asset = Asset.fromComitPayload(
       {
         name: "PAY",
         quantity: "1234",

@@ -21,7 +21,7 @@ class Asset {
   }
 
   // TODO: See if the ledger argument can be avoided
-  public static FromComitPayload(
+  public static fromComitPayload(
     asset: any,
     ledger: Ledger,
     createAssetFromTokens: (

@@ -81,6 +81,10 @@ class Asset {
     }
   }
 
+  public toMapKey(): string {
+    return JSON.stringify(this);
+  }
+
   private toNominalUnitForToken(quantity: Big) {
     if (this.decimals) {
       return quantity.div(new Big(10).pow(this.decimals));

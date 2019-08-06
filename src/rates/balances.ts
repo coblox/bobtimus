@@ -1,31 +1,35 @@
 import Big from "big.js";
 import Asset from "../asset";
 
-export interface BalanceLookups {
-  [asset: string]: () => Promise<Big>;
-}
+export type BalanceLookups = Map<Asset, () => Promise<Big>>;
 
 export default class Balances {
   public static async create(
     balanceLookups: BalanceLookups,
     lowFundsThresholdPercentage: number
-  ) {
+  ): Promise<Balances> {
     const balances = new Balances(lowFundsThresholdPercentage);
 
-    for (const [key, value] of Object.entries(balanceLookups)) {
-      const asset = Asset.fromName(key);
-      if (!asset) {
-        throw new Error(`Asset ${key} not supported`);
-      }
-      balances.balanceLookup.set(asset, value);
-      balances.originalBalance.set(asset, await value());
-    }
+    const promises: Array<Promise<void>> = [];
+    balanceLookups.forEach((value: () => Promise<Big>, asset: Asset) => {
+      promises.push(
+        (async (value, asset) => {
+          if (!asset) {
+            throw new Error(`Asset ${asset} not supported`);
+          }
+          balances.balanceLookup.set(asset.toMapKey(), value);
+          const originalBalance = await value();
+          balances.originalBalance.set(asset.toMapKey(), originalBalance);
+        })(value, asset)
+      );
+    });
 
+    await Promise.all(promises);
     return balances;
   }
 
-  private balanceLookup: Map<Asset, () => Promise<Big>>;
-  private originalBalance: Map<Asset, Big>;
+  private balanceLookup: Map<string, () => Promise<Big>>;
+  private originalBalance: Map<string, Big>;
   private readonly lowFundsThresholdPercentage: Big;
 
   private constructor(lowFundsThresholdPercentage: number) {
@@ -33,12 +37,12 @@ export default class Balances {
       100
     );
 
-    this.balanceLookup = new Map<Asset, () => Promise<Big>>();
-    this.originalBalance = new Map<Asset, Big>();
+    this.balanceLookup = new Map<string, () => Promise<Big>>();
+    this.originalBalance = new Map<string, Big>();
   }
 
   public getBalance(asset: Asset): Promise<Big> {
-    const getBalance = this.balanceLookup.get(asset);
+    const getBalance = this.balanceLookup.get(asset.toMapKey());
 
     if (getBalance) {
       return getBalance();
@@ -50,7 +54,7 @@ export default class Balances {
   }
 
   public getOriginalBalance(asset: Asset): Big {
-    const originalBalance = this.originalBalance.get(asset);
+    const originalBalance = this.originalBalance.get(asset.toMapKey());
 
     if (!originalBalance) {
       throw new Error(

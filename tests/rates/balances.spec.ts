@@ -17,11 +17,12 @@ describe("Balances tests", () => {
     let bitcoinBalance = 1;
     let etherBalance = 2;
 
+    const balanceLookups = new Map();
+    balanceLookups.set(Asset.bitcoin, () => balance(bitcoinBalance));
+    balanceLookups.set(Asset.ether, () => balance(etherBalance));
+
     const balances = await Balances.create(
-      {
-        bitcoin: () => balance(bitcoinBalance),
-        ether: () => balance(etherBalance)
-      },
+      balanceLookups,
       lowFundsThresholdPercentage
     );
 
@@ -39,11 +40,11 @@ describe("Balances tests", () => {
     let bitcoinBalance = 1;
     let etherBalance = 2;
 
+    const balanceLookups = new Map();
+    balanceLookups.set(Asset.bitcoin, () => balance(bitcoinBalance));
+    balanceLookups.set(Asset.ether, () => balance(etherBalance));
     const balances = await Balances.create(
-      {
-        bitcoin: () => balance(bitcoinBalance),
-        ether: () => balance(etherBalance)
-      },
+      balanceLookups,
       lowFundsThresholdPercentage
     );
 
@@ -62,11 +63,11 @@ describe("Balances tests", () => {
   });
 
   it("Should return insufficient funds if funds are 0", async () => {
+    const balanceLookups = new Map();
+    balanceLookups.set(Asset.bitcoin, () => balance(0));
+    balanceLookups.set(Asset.ether, () => balance(0));
     const balances = await Balances.create(
-      {
-        bitcoin: () => balance(0),
-        ether: () => balance(0)
-      },
+      balanceLookups,
       lowFundsThresholdPercentage
     );
 
@@ -74,11 +75,11 @@ describe("Balances tests", () => {
   });
 
   it("Should return insufficient funds if balance minus trade amount is equal or below 0", async () => {
+    const balanceLookups = new Map();
+    balanceLookups.set(Asset.bitcoin, () => balance(1));
+    balanceLookups.set(Asset.ether, () => balance(0));
     const balances = await Balances.create(
-      {
-        bitcoin: () => balance(1),
-        ether: () => balance(0)
-      },
+      balanceLookups,
       lowFundsThresholdPercentage
     );
 
@@ -89,12 +90,11 @@ describe("Balances tests", () => {
 
   it("Should return low funds if balance is below the threshold", async () => {
     let bitcoinBalance = 10;
-
+    const balanceLookups = new Map();
+    balanceLookups.set(Asset.bitcoin, () => balance(bitcoinBalance));
+    balanceLookups.set(Asset.ether, () => balance(0));
     const balances = await Balances.create(
-      {
-        bitcoin: () => balance(bitcoinBalance),
-        ether: () => balance(0)
-      },
+      balanceLookups,
       lowFundsThresholdPercentage
     );
 
@@ -108,11 +108,11 @@ describe("Balances tests", () => {
   it("Should not return low funds if balance is over the threshold", async () => {
     let bitcoinBalance = 10;
 
+    const balanceLookups = new Map();
+    balanceLookups.set(Asset.bitcoin, () => balance(bitcoinBalance));
+    balanceLookups.set(Asset.ether, () => balance(0));
     const balances = await Balances.create(
-      {
-        bitcoin: () => balance(bitcoinBalance),
-        ether: () => balance(0)
-      },
+      balanceLookups,
       lowFundsThresholdPercentage
     );
     bitcoinBalance = 2.1;

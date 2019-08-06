@@ -2,18 +2,35 @@ import Big from "big.js";
 import { List } from "underscore";
 import Asset from "../../src/asset";
 import Ledger from "../../src/ledger";
-import Balances, { BalanceLookups } from "../../src/rates/balances";
+import Balances from "../../src/rates/balances";
 import TestnetMarketMaker from "../../src/rates/testnetMarketMaker";
 import { Offer } from "../../src/rates/tradeService";
 
 async function createMockBalances(
   bitcoinBalance: number,
-  etherBalance: number
+  etherBalance: number,
+  payBalance?: number
 ) {
-  const mockBalanceLookups: BalanceLookups = {
-    bitcoin: () => Promise.resolve(new Big(bitcoinBalance)),
-    ether: () => Promise.resolve(new Big(etherBalance))
-  };
+  const mockBalanceLookups = new Map();
+  mockBalanceLookups.set(Asset.bitcoin, () =>
+    Promise.resolve(new Big(bitcoinBalance))
+  );
+  mockBalanceLookups.set(Asset.ether, () =>
+    Promise.resolve(new Big(etherBalance))
+  );
+
+  if (payBalance) {
+    const payAsset = new Asset(
+      "PAY",
+      Ledger.Ethereum,
+      "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+      18
+    );
+    mockBalanceLookups.set(payAsset, () =>
+      Promise.resolve(new Big(payBalance))
+    );
+  }
+
   return Balances.create(mockBalanceLookups, 20);
 }
 
@@ -245,5 +262,41 @@ describe("Test the TestnetMarketMaker module", () => {
 
     expect(trades[0].buy).toEqual(expected[0].buy);
     expect(trades[1].sell).toEqual(expected[1].sell);
+  });
+
+  it("Returns the amounts to publish for buy and sell assets with an ERC20 asset based on the balances, the configured published fraction and the rate spread", async () => {
+    const payAsset = new Asset(
+      "PAY",
+      Ledger.Ethereum,
+      "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+      18
+    );
+    const offer: Offer = {
+      timestamp: new Date(),
+      protocol: "rfc003",
+      buy: {
+        ledger: Ledger.Bitcoin,
+        asset: Asset.bitcoin,
+        quantity: new Big(0.525)
+      },
+      sell: {
+        ledger: Ledger.Ethereum,
+        asset: payAsset,
+        quantity: new Big(40)
+      }
+    };
+
+    const marketMaker = new TestnetMarketMaker(
+      { rateSpread: 5, publishFraction: 200, maxFraction: 100 },
+      await createMockBalances(100, 1000, 8000)
+    );
+
+    const offersToPublish = await marketMaker.prepareOffersToPublishForAsset(
+      buyAsset,
+      payAsset
+    );
+    expect(offersToPublish).toBeDefined();
+    expect(offersToPublish.buy).toEqual(offer.buy); // Based on the publish fraction
+    expect(offersToPublish.sell).toEqual(offer.sell);
   });
 });

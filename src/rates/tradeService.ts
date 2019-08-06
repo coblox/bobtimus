@@ -84,10 +84,9 @@ export async function createTradeEvaluationService({
       return Promise.resolve(new Big(0));
     };
 
-    const balanceLookups = {
-      bitcoin: bitcoinBalanceLookup,
-      ether: etherBalanceLookup
-    };
+    const balanceLookups = new Map();
+    balanceLookups.set(Asset.bitcoin, bitcoinBalanceLookup);
+    balanceLookups.set(Asset.ether, etherBalanceLookup);
 
     const balances = await Balances.create(
       balanceLookups,

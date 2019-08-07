@@ -104,7 +104,7 @@ describe("Test Tokens", () => {
       18
     );
 
-    const assets = tokens.getAssets();
+    const assets = tokens.getAssets(Ledger.Ethereum);
 
     expect(
       isEqual(tenxAsset, assets[0]) || isEqual(payAsset, assets[0])

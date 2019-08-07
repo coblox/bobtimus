@@ -2,6 +2,7 @@ import Big from "big.js";
 import Asset from "../asset";
 import Ledger from "../ledger";
 import { getLogger } from "../logging/logger";
+import Tokens from "../tokens";
 import { BitcoinWallet } from "../wallets/bitcoin";
 import { EthereumWallet } from "../wallets/ethereum";
 import Balances from "./balances";
@@ -36,6 +37,7 @@ export interface InitialiseRateParameters {
   lowBalanceThresholdPercentage?: number;
   ethereumWallet?: EthereumWallet;
   bitcoinWallet?: BitcoinWallet;
+  tokens?: Tokens;
 }
 
 export async function createTradeEvaluationService({
@@ -43,7 +45,8 @@ export async function createTradeEvaluationService({
   staticRates,
   lowBalanceThresholdPercentage,
   ethereumWallet,
-  bitcoinWallet
+  bitcoinWallet,
+  tokens
 }: InitialiseRateParameters) {
   const testnetMarketMakerConfig = testnetMarketMaker;
   const staticRatesConfig = staticRates;
@@ -93,7 +96,13 @@ export async function createTradeEvaluationService({
       lowBalanceThresholdPercentage
     );
 
-    return new TestnetMarketMaker(testnetMarketMakerConfig, balances);
+    const getTokens = tokens ? tokens.getAssets.bind(tokens) : () => [];
+
+    return new TestnetMarketMaker(
+      testnetMarketMakerConfig,
+      balances,
+      getTokens
+    );
   } else {
     throw new Error("No rate strategy defined.");
   }

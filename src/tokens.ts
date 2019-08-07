@@ -74,4 +74,8 @@ export default class Tokens {
 
     return this.ethereumTokens.get(contractAddress);
   }
+
+  public getAssets(): Asset[] {
+    throw new Error("Not implemented");
+  }
 }

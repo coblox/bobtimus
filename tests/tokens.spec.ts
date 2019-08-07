@@ -87,4 +87,25 @@ describe("Test Tokens", () => {
     const tokens = Tokens.fromFile("./tests/configs/doesNotExists.toml");
     expect(tokens).toBeUndefined();
   });
+
+  it("Returns all configured tokens", () => {
+    const tokens = new Tokens(tokensConfig);
+    const payAsset = new Asset(
+      "PAY",
+      Ledger.Ethereum,
+      "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+      18
+    );
+    const tenxAsset = new Asset(
+      "TENX",
+      Ledger.Ethereum,
+      "0x515bA0a2E286AF10115284F151cF398688A69170",
+      18
+    );
+
+    const assets = tokens.getAssets();
+
+    expect(assets).toContain(payAsset);
+    expect(assets).toContain(tenxAsset);
+  });
 });

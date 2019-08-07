@@ -234,9 +234,9 @@ const config = Config.fromFile(CONFIG_PATH);
 
   if (config.apiPort) {
     api.listen(config.apiPort, () =>
-      console.log(`API exposed at port ${config.apiPort}`)
+      logger.info(`API exposed at port ${config.apiPort}`)
     );
   } else {
-    console.warn("API port not configured - not exposing API");
+    logger.info("API port not configured - not exposing API");
   }
 })();

@@ -27,7 +27,7 @@ export function getLogger(config: any = defaultLoggingConf) {
   if (!config.transports || config.transports.includes("console")) {
     logger.add(
       new winston.transports.Console({
-        format: winston.format.json()
+        format: winston.format.simple()
       })
     );
   }

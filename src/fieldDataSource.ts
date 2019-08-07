@@ -6,17 +6,13 @@ import { EthereumWallet } from "./wallets/ethereum";
 
 const logger = getLogger();
 
-export interface FieldDataSource {
-  getData: (field: Field) => any;
-}
-
 export interface DataSourceParameters {
   ethereumWallet?: EthereumWallet;
   bitcoinWallet?: BitcoinWallet;
   bitcoinFeeService?: BitcoinFeeService;
 }
 
-export class DefaultFieldDataSource implements FieldDataSource {
+export class DefaultFieldDataSource {
   private readonly ethereumWallet?: EthereumWallet;
   private readonly bitcoinWallet?: BitcoinWallet;
   private readonly bitcoinFeeService?: BitcoinFeeService;

@@ -2,19 +2,19 @@ import Big from "big.js";
 import Asset from "../../src/asset";
 import { ComitMetadata } from "../../src/comitNode";
 import Ledger from "../../src/ledger";
-import { Trade, TradeService } from "../../src/rates/tradeService";
+import { Offer, TradeService } from "../../src/rates/tradeService";
 import {
-  findLatestTradeTimestamp,
-  getAmountsToPublishRoute,
+  findLatestOfferTimestamp,
+  getOffersToPublishRoute,
   ToPublish
-} from "../../src/routes/tradesToPublish";
+} from "../../src/routes/offersToPublish";
 import EthereumWalletStub from "../doubles/ethereumWalletStub";
 
 const present = new Date();
 const past = new Date(present.getTime() - 5000);
 const future = new Date(present.getTime() + 5000);
 
-const btcEthTrade: Trade = {
+const btcEthTrade: Offer = {
   timestamp: present,
   protocol: "rfc003",
   buy: {
@@ -29,7 +29,7 @@ const btcEthTrade: Trade = {
   }
 };
 
-const ethBtcTrade: Trade = {
+const ethBtcTrade: Offer = {
   timestamp: past,
   protocol: "rfc003",
   buy: {
@@ -72,7 +72,7 @@ describe("TradesToPublish tests ", () => {
       ...btcEthTrade
     };
 
-    const tradeTimestamp = findLatestTradeTimestamp(trade);
+    const tradeTimestamp = findLatestOfferTimestamp(trade);
     expect(tradeTimestamp.getTime()).toStrictEqual(present.getTime());
   });
 
@@ -80,9 +80,9 @@ describe("TradesToPublish tests ", () => {
     const trade = {
       ...btcEthTrade
     };
-    const tradeTimestampBefore = findLatestTradeTimestamp(trade);
+    const tradeTimestampBefore = findLatestOfferTimestamp(trade);
 
-    const tradeTimestampAfter = findLatestTradeTimestamp(trade);
+    const tradeTimestampAfter = findLatestOfferTimestamp(trade);
 
     expect(tradeTimestampBefore.getTime()).toStrictEqual(present.getTime());
     expect(tradeTimestampAfter.getTime()).toStrictEqual(present.getTime());
@@ -98,10 +98,10 @@ describe("TradesToPublish tests ", () => {
       timestamp: future
     };
 
-    const tradeTimestamp1 = findLatestTradeTimestamp(trade1);
+    const tradeTimestamp1 = findLatestOfferTimestamp(trade1);
     expect(tradeTimestamp1.getTime()).toStrictEqual(present.getTime());
 
-    const tradeTimestamp2 = findLatestTradeTimestamp(trade2);
+    const tradeTimestamp2 = findLatestOfferTimestamp(trade2);
     expect(tradeTimestamp2.getTime()).toStrictEqual(present.getTime());
   });
 
@@ -120,11 +120,11 @@ describe("TradesToPublish tests ", () => {
       }
     };
 
-    const tradeTimestamp1 = findLatestTradeTimestamp(trade1);
-    expect(tradeTimestamp1.getTime()).toStrictEqual(trade1.timestamp.getTime());
+    const timestamp1 = findLatestOfferTimestamp(trade1);
+    expect(timestamp1.getTime()).toStrictEqual(trade1.timestamp.getTime());
 
-    const tradeTimestamp2 = findLatestTradeTimestamp(trade2);
-    expect(tradeTimestamp2.getTime()).toStrictEqual(trade2.timestamp.getTime());
+    const timestamp2 = findLatestOfferTimestamp(trade2);
+    expect(timestamp2.getTime()).toStrictEqual(trade2.timestamp.getTime());
   });
 
   it("given different amounts but in the past - should return newer timestamp", () => {
@@ -142,10 +142,10 @@ describe("TradesToPublish tests ", () => {
       }
     };
 
-    const tradeTimestamp1 = findLatestTradeTimestamp(trade1);
+    const tradeTimestamp1 = findLatestOfferTimestamp(trade1);
     expect(tradeTimestamp1.getTime()).toStrictEqual(trade1.timestamp.getTime());
 
-    const tradeTimestamp2 = findLatestTradeTimestamp(trade2);
+    const tradeTimestamp2 = findLatestOfferTimestamp(trade2);
     expect(tradeTimestamp2.getTime()).toStrictEqual(trade1.timestamp.getTime());
   });
 
@@ -158,21 +158,21 @@ describe("TradesToPublish tests ", () => {
       ...ethBtcTrade
     };
 
-    const tradeTimestamp1 = findLatestTradeTimestamp(trade1);
+    const tradeTimestamp1 = findLatestOfferTimestamp(trade1);
     expect(tradeTimestamp1.getTime()).toStrictEqual(trade1.timestamp.getTime());
 
-    const tradeTimestamp2 = findLatestTradeTimestamp(trade2);
+    const tradeTimestamp2 = findLatestOfferTimestamp(trade2);
     expect(tradeTimestamp2.getTime()).toStrictEqual(trade2.timestamp.getTime());
   });
 
   class MockMarketMaker implements TradeService {
-    protected trades: Trade[] = [ethBtcTrade, btcEthTrade];
+    protected trades: Offer[] = [ethBtcTrade, btcEthTrade];
 
-    public isTradeAcceptable(_: Trade): Promise<boolean> {
+    public isOfferAcceptable(_: Offer): Promise<boolean> {
       return Promise.resolve(true);
     }
 
-    public prepareTradesToPublish() {
+    public prepareOffersToPublish() {
       return Promise.resolve(this.trades);
     }
   }
@@ -180,7 +180,7 @@ describe("TradesToPublish tests ", () => {
   it("Should return the trades and ledgers information", async () => {
     const mockMarketMaker = new MockMarketMaker();
 
-    const apiCall = getAmountsToPublishRoute(
+    const apiCall = getOffersToPublishRoute(
       mockMarketMaker,
       bitcoinConfig,
       ethereumWalletMock,

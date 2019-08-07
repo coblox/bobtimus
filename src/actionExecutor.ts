@@ -1,29 +1,27 @@
 import { Result } from "@badrap/result/dist";
-import { Transaction } from "bitcoinjs-lib";
-import BN from "bn.js";
-import { Action } from "../gen/siren";
-import { networkFromString, Satoshis } from "./bitcoin/blockchain";
-import { ComitNode, hexToBN, hexToBuffer, LedgerAction } from "./comitNode";
-import { FieldDataSource } from "./fieldDataSource";
-import { ILedgerExecutor } from "./ledgerExecutor";
+import { Action, Field } from "../gen/siren";
+import { ComitNode, LedgerAction } from "./comitNode";
 import { getLogger } from "./logging/logger";
+import sleep from "./sleep";
 
 const logger = getLogger();
 
 export class ActionExecutor {
-  private datastore: FieldDataSource;
+  private readonly getData: (field: Field) => any;
   private comitClient: ComitNode;
-  private ledgerExecutor: ILedgerExecutor;
+  private readonly executeLedgerAction: (
+    ledgerAction: LedgerAction
+  ) => Promise<Result<any>>;
   private executedActions: Action[];
 
   constructor(
     comitClient: ComitNode,
-    datastore: FieldDataSource,
-    ledgerExecutor: ILedgerExecutor
+    getData: (field: Field) => any,
+    executeLedgerAction: (ledgerAction: LedgerAction) => Promise<Result<any>>
   ) {
-    this.datastore = datastore;
+    this.getData = getData;
     this.comitClient = comitClient;
-    this.ledgerExecutor = ledgerExecutor;
+    this.executeLedgerAction = executeLedgerAction;
     this.executedActions = [];
   }
 
@@ -68,7 +66,7 @@ export class ActionExecutor {
     const data: any = {};
 
     for (const field of action.fields || []) {
-      const value = await this.datastore.getData(field);
+      const value = await this.getData(field);
       if (value) {
         data[field.name] = value;
       }
@@ -103,102 +101,4 @@ export class ActionExecutor {
       return false;
     }
   }
-
-  private async executeLedgerAction(action: LedgerAction) {
-    logger.log("trace", `Execute Ledger Action`, action);
-    try {
-      const network = action.payload.network;
-      switch (action.type) {
-        case "bitcoin-send-amount-to-address": {
-          const satoshis = new Satoshis(action.payload.amount);
-          const result = await this.ledgerExecutor.bitcoinPayToAddress(
-            action.payload.to,
-            satoshis,
-            networkFromString(action.payload.network)
-          );
-          return Result.ok(result);
-        }
-        case "bitcoin-broadcast-signed-transaction": {
-          const minMedianBlockTime = action.payload.min_median_block_time;
-          if (minMedianBlockTime) {
-            await sleepTillBlockchainTimeReached(minMedianBlockTime, () =>
-              this.ledgerExecutor.bitcoinGetBlockTime(network)
-            );
-          }
-
-          const transaction = Transaction.fromHex(action.payload.hex);
-          const result = await this.ledgerExecutor.bitcoinBroadcastTransaction(
-            transaction,
-            network
-          );
-          return Result.ok(result);
-        }
-        case "ethereum-deploy-contract": {
-          const params = {
-            value: new BN(action.payload.amount),
-            gasLimit: hexToBN(action.payload.gas_limit),
-            data: hexToBuffer(action.payload.data),
-            network: action.payload.network
-          };
-          const result = await this.ledgerExecutor.ethereumDeployContract(
-            params
-          );
-          return Result.ok(result);
-        }
-        case "ethereum-call-contract": {
-          const minBlockTimestamp = action.payload.min_block_timestamp;
-          if (minBlockTimestamp) {
-            await sleepTillBlockchainTimeReached(minBlockTimestamp, () =>
-              this.ledgerExecutor.ethereumGetTimestamp(network)
-            );
-          }
-
-          const params = {
-            gasLimit: hexToBN(action.payload.gas_limit),
-            to: action.payload.contract_address,
-            network: action.payload.network,
-            data: action.payload.data
-          };
-          const result = await this.ledgerExecutor.ethereumSendTransactionTo(
-            params
-          );
-          return Result.ok(result);
-        }
-        default: {
-          return Result.err(
-            new Error(`Action type ${action} is not supported`)
-          );
-        }
-      }
-    } catch (err) {
-      return Result.err(err);
-    }
-  }
-}
-
-async function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function sleepTillBlockchainTimeReached(
-  targetTime: number,
-  getCurrentBlockTime: () => Promise<number>
-) {
-  let currentBlockTime = await getCurrentBlockTime();
-  let diff = targetTime - currentBlockTime;
-
-  if (diff > 0) {
-    logger.info(
-      `Initializing refund, waiting for block time to pass ${targetTime}`
-    );
-
-    while (diff > 0) {
-      await sleep(1000);
-
-      currentBlockTime = await getCurrentBlockTime();
-      diff = targetTime - currentBlockTime;
-    }
-  }
-
-  logger.info(`Block time has passed ${targetTime}, executing refund`);
 }

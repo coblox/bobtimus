@@ -5,7 +5,7 @@ import EthereumTx from "ethereumjs-tx";
 import { privateToAddress } from "ethereumjs-util";
 import Web3 from "web3";
 import { TransactionReceipt } from "web3/types";
-import Asset, { toNominalUnit } from "../asset";
+import Asset from "../asset";
 import { EthereumConfig } from "../config";
 import Erc20ABI from "../ethereum/Erc20ABI.json";
 import Ledger from "../ledger";
@@ -153,7 +153,7 @@ export class Web3EthereumWallet implements EthereumWallet {
 
   private async getEtherBalance() {
     const wei = await this.web3.eth.getBalance(this.account);
-    const ether = toNominalUnit(Asset.ether, new Big(wei));
+    const ether = Asset.ether.toNominalUnit(new Big(wei));
     if (!ether) {
       throw new Error(`Failed to convert balance '${wei}' to a number`);
     }

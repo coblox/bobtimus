@@ -10,7 +10,7 @@ import { DefaultFieldDataSource } from "./fieldDataSource";
 import { LedgerExecutor } from "./ledgerExecutor";
 import { getLogger } from "./logging/logger";
 import { createTradeEvaluationService } from "./rates/tradeService";
-import { getAmountsToPublishRoute } from "./routes/tradesToPublish";
+import { getOffersToPublishRoute } from "./routes/offersToPublish";
 import Tokens from "./tokens";
 import { InternalBitcoinWallet } from "./wallets/bitcoin";
 import { Web3EthereumWallet } from "./wallets/ethereum";
@@ -111,6 +111,29 @@ const config = Config.fromFile(CONFIG_PATH);
     bitcoinWallet
   });
 
+  let bitcoinLedgerExecutorParams;
+  if (bitcoinBlockchain && bitcoinWallet) {
+    bitcoinLedgerExecutorParams = {
+      getBlockTime: bitcoinBlockchain.getBlockTime,
+      getWalletNetwork: bitcoinWallet.getNetwork,
+      broadcastTransaction: bitcoinBlockchain.broadcastTransaction,
+      retrieveSatsPerByte: bitcoinFeeService.retrieveSatsPerByte,
+      payToAddress: bitcoinWallet.payToAddress
+    };
+  }
+
+  let ethereumLedgerExecutorParams;
+  if (ethereumParams && ethereumParams.ethereumWallet) {
+    ethereumLedgerExecutorParams = {
+      getWalletChainId: ethereumParams.ethereumWallet.getChainId,
+      getLatestBlockTimestamp:
+        ethereumParams.ethereumWallet.getLatestBlockTimestamp,
+      deployContract: ethereumParams.ethereumWallet.deployContract,
+      retrieveGasPrice: ethereumParams.ethereumFeeService.retrieveGasPrice,
+      sendTransactionTo: ethereumParams.ethereumWallet.sendTransactionTo
+    };
+  }
+
   const ledgerExecutorParams = {
     bitcoinFeeService,
     bitcoinBlockchain,
@@ -120,7 +143,10 @@ const config = Config.fromFile(CONFIG_PATH);
 
   const comitNode = new ComitNode(config.cndUrl);
   const datastore = new DefaultFieldDataSource(ledgerExecutorParams);
-  const ledgerExecutor = new LedgerExecutor(ledgerExecutorParams);
+  const ledgerExecutor = new LedgerExecutor(
+    bitcoinLedgerExecutorParams,
+    ethereumLedgerExecutorParams
+  );
   const tokens = Tokens.fromFile(TOKENS_CONFIG_PATH);
   let createAssetFromTokens;
   if (tokens) {
@@ -128,14 +154,14 @@ const config = Config.fromFile(CONFIG_PATH);
   }
   const actionSelector = new ActionSelector(
     config.getSupportedLedgers(),
-    tradeService,
+    tradeService.isOfferAcceptable,
     createAssetFromTokens
   );
 
   const actionExecutor = new ActionExecutor(
     comitNode,
-    datastore,
-    ledgerExecutor
+    datastore.getData,
+    ledgerExecutor.execute
   );
 
   const comitNodeMetadata = await comitNode.getMetadata();
@@ -152,7 +178,7 @@ const config = Config.fromFile(CONFIG_PATH);
 
   api.get(
     "/trades",
-    getAmountsToPublishRoute(
+    getOffersToPublishRoute(
       tradeService,
       config.bitcoinConfig,
       ethereumParams.ethereumWallet,

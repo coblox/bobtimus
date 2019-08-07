@@ -1,10 +1,10 @@
 import Big from "big.js";
 import { Action, Entity } from "../gen/siren";
-import Asset, { toAsset, toNominalUnit } from "./asset";
+import Asset from "./asset";
 import { Swap } from "./comitNode";
 import Ledger, { toLedger } from "./ledger";
 import { getLogger } from "./logging/logger";
-import { Trade, TradeService } from "./rates/tradeService";
+import { Offer } from "./rates/tradeService";
 
 const logger = getLogger();
 
@@ -19,15 +19,15 @@ export class ActionSelector {
   private readonly supportedLedgers: Ledger[];
   private readonly createAssetFromTokens: CreateAssetFromTokens;
   private selectedActions: Action[];
-  private rates: TradeService;
+  private readonly isOfferAcceptable: (offer: Offer) => Promise<boolean>;
 
   constructor(
     supportedLedgers: Ledger[],
-    rates: TradeService,
+    isOfferAcceptable: (offer: Offer) => Promise<boolean>,
     createAssetFromTokens?: CreateAssetFromTokens
   ) {
     this.supportedLedgers = supportedLedgers;
-    this.rates = rates;
+    this.isOfferAcceptable = isOfferAcceptable;
     this.selectedActions = [];
     if (createAssetFromTokens) {
       this.createAssetFromTokens = createAssetFromTokens;
@@ -99,12 +99,12 @@ export class ActionSelector {
       logger.crit("Ledger is not supported");
       return Promise.resolve(false);
     }
-    const alphaAsset = toAsset(
+    const alphaAsset = Asset.fromComitPayload(
       swap.properties.parameters.alpha_asset,
       alphaLedger,
       this.createAssetFromTokens
     );
-    const betaAsset = toAsset(
+    const betaAsset = Asset.fromComitPayload(
       swap.properties.parameters.beta_asset,
       betaLedger,
       this.createAssetFromTokens
@@ -121,12 +121,10 @@ export class ActionSelector {
     }
     const protocol = swap.properties.protocol;
 
-    const alphaNominalAmount = toNominalUnit(
-      alphaAsset,
+    const alphaNominalAmount = alphaAsset.toNominalUnit(
       new Big(swap.properties.parameters.alpha_asset.quantity)
     );
-    const betaNominalAmount = toNominalUnit(
-      betaAsset,
+    const betaNominalAmount = betaAsset.toNominalUnit(
       new Big(swap.properties.parameters.beta_asset.quantity)
     );
 
@@ -135,7 +133,7 @@ export class ActionSelector {
     }
 
     // Bob always buys Alpha
-    const trade: Trade = {
+    const offer: Offer = {
       timestamp: new Date(),
       buy: {
         asset: alphaAsset,
@@ -149,7 +147,7 @@ export class ActionSelector {
       },
       protocol
     };
-    return this.rates.isTradeAcceptable(trade);
+    return this.isOfferAcceptable(offer);
   }
 
   private wasReturned(action: Action) {

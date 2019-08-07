@@ -18,7 +18,7 @@ export interface TradeAmount {
   quantity: Big;
 }
 
-export interface Trade {
+export interface Offer {
   protocol: string;
   timestamp: Date;
   buy: TradeAmount;
@@ -26,8 +26,8 @@ export interface Trade {
 }
 
 export interface TradeService {
-  isTradeAcceptable: (trade: Trade) => Promise<boolean>;
-  prepareTradesToPublish: () => Promise<Trade[]>;
+  isOfferAcceptable: (offer: Offer) => Promise<boolean>;
+  prepareOffersToPublish: () => Promise<Offer[]>;
 }
 
 export interface InitialiseRateParameters {

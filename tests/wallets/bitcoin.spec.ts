@@ -4,10 +4,10 @@ import Client from "bitcoin-core";
 import { bip32, networks } from "bitcoinjs-lib";
 import { BitcoinCoreRpc } from "../../src/bitcoin/bitcoinCoreRpc";
 import { Satoshis } from "../../src/bitcoin/blockchain";
+import sleep from "../../src/sleep";
 import { InternalBitcoinWallet } from "../../src/wallets/bitcoin";
 import bitcoindTestContainer from "../containers/bitcoindTestContainer";
 import containerTest from "../containerTest";
-import sleep from "../sleep";
 
 describe("Bitcoin wallet", () => {
   it(

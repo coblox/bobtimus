@@ -3,19 +3,19 @@ import { Response } from "express";
 import { BitcoinConfig } from "../config";
 import Ledger from "../ledger";
 import { getLogger } from "../logging/logger";
-import { Trade, TradeService } from "../rates/tradeService";
+import { Offer, TradeService } from "../rates/tradeService";
 import { EthereumWallet } from "../wallets/ethereum";
 
 const logger = getLogger();
 
-const previousTradesLookup: Map<string, Trade> = new Map<string, Trade>();
+const previousTradesLookup: Map<string, Offer> = new Map<string, Offer>();
 
 export interface LedgerToPublish {
   name: string;
   network: string;
 }
 
-export interface RateToPublish {
+export interface OffersToPublish {
   buy: {
     asset: string;
     ledger: string;
@@ -34,10 +34,10 @@ export interface ToPublish {
   peerId: string;
   addressHint: string | undefined;
   ledgers: LedgerToPublish[];
-  rates: RateToPublish[];
+  rates: OffersToPublish[];
 }
 
-export function getAmountsToPublishRoute(
+export function getOffersToPublishRoute(
   tradeService: TradeService,
   bitcoinConfig: BitcoinConfig,
   ethereumWallet: EthereumWallet,
@@ -61,7 +61,7 @@ export function getAmountsToPublishRoute(
     }
 
     try {
-      const trades = await tradeService.prepareTradesToPublish();
+      const trades = await tradeService.prepareOffersToPublish();
       const publishTradesResponse: ToPublish = {
         peerId,
         addressHint,
@@ -77,7 +77,7 @@ export function getAmountsToPublishRoute(
         ],
         rates: trades.map(trade => {
           return {
-            timestamp: formatTimestamp(findLatestTradeTimestamp(trade)),
+            timestamp: formatTimestamp(findLatestOfferTimestamp(trade)),
             protocol: trade.protocol,
             buy: {
               ledger: trade.buy.ledger,
@@ -100,7 +100,7 @@ export function getAmountsToPublishRoute(
   };
 }
 
-export function findLatestTradeTimestamp(current: Trade): Date {
+export function findLatestOfferTimestamp(current: Offer): Date {
   const key =
     current.buy.ledger +
     current.buy.asset +

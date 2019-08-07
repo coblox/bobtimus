@@ -5,11 +5,11 @@ import Web3 from "web3";
 import Asset from "../../src/asset";
 import Erc20ABI from "../../src/ethereum/Erc20ABI.json";
 import Ledger from "../../src/ledger";
+import sleep from "../../src/sleep";
 import { Web3EthereumWallet } from "../../src/wallets/ethereum";
 import parityTestContainer from "../containers/parityTestContainer";
 import containerTest from "../containerTest";
 import EthereumHarness from "../ethereumHarness";
-import sleep from "../sleep";
 
 async function fundAddressOfPrivateKey(web3: Web3, privateKey: Buffer) {
   const initialFunding = new BN(web3.utils.toWei("10", "ether"));

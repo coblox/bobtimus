@@ -2,7 +2,7 @@ import Big from "big.js";
 import Asset from "../asset";
 import { getLogger } from "../logging/logger";
 import Balances from "./balances";
-import { Trade, TradeService } from "./tradeService";
+import { Offer, TradeService } from "./tradeService";
 
 const logger = getLogger();
 
@@ -65,12 +65,12 @@ export default class TestnetMarketMaker implements TradeService {
    *
    * @param {Asset} buyAsset The asset to buy
    * @param {Asset} sellAsset The asset to sell
-   * @return {Trade} trade amounts and metadata to be published
+   * @return {Offer} trade amounts and metadata to be published
    */
-  public async prepareTradesToPublishForAsset(
+  public async prepareOffersToPublishForAsset(
     buyAsset: Asset,
     sellAsset: Asset
-  ): Promise<Trade> {
+  ): Promise<Offer> {
     const sufficientFunds = await this.balances.isSufficientFunds(sellAsset);
     if (!sufficientFunds) {
       throw new Error(
@@ -103,10 +103,10 @@ export default class TestnetMarketMaker implements TradeService {
 
   /** Returns whether the proposed rate is above the acceptable rate
    *
-   * @param {Trade} tradeAmounts The proposed quantities for the trade
+   * @param {Offer} tradeAmounts The proposed quantities for the trade
    * @return {boolean} True if the trade should proceed (rate and amounts are acceptable), False otherwise
    */
-  public async isTradeAcceptable({ buy, sell }: Trade) {
+  public async isOfferAcceptable({ buy, sell }: Offer) {
     const buyBalance: Big = await this.balances.getBalance(buy.asset);
     const sellBalance: Big = await this.balances.getBalance(sell.asset);
 
@@ -122,7 +122,7 @@ export default class TestnetMarketMaker implements TradeService {
     );
     if (!sufficientFunds) {
       logger.crit(
-        `Insufficient funds for asset, current balance is ${this.balances.getBalance(
+        `Insufficient funds for asset, current balance is ${await this.balances.getBalance(
           sell.asset
         )} but trade requires ${sell.quantity}`,
         sell.asset
@@ -146,14 +146,14 @@ export default class TestnetMarketMaker implements TradeService {
     return tradeBuyRate >= currentBuyRate;
   }
 
-  public async prepareTradesToPublish(): Promise<Trade[]> {
-    const trades = new Array<Trade>();
+  public async prepareOffersToPublish(): Promise<Offer[]> {
+    const trades = new Array<Offer>();
 
     trades.push(
-      await this.prepareTradesToPublishForAsset(Asset.bitcoin, Asset.ether)
+      await this.prepareOffersToPublishForAsset(Asset.bitcoin, Asset.ether)
     );
     trades.push(
-      await this.prepareTradesToPublishForAsset(Asset.ether, Asset.bitcoin)
+      await this.prepareOffersToPublishForAsset(Asset.ether, Asset.bitcoin)
     );
 
     return trades;

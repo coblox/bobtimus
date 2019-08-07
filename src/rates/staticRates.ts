@@ -1,7 +1,7 @@
 import Big from "big.js";
-import { getLogger } from "log4js";
 import Asset from "../asset";
 import Ledger from "../ledger";
+import { getLogger } from "../logging/logger";
 import { Offer, TradeService } from "./tradeService";
 
 const logger = getLogger();
@@ -25,7 +25,9 @@ export default class StaticRates implements TradeService {
 
     if (!rate) {
       logger.warn(
-        `Rate not configured for buy: ${buy.asset}, sell: ${sell.asset}`
+        "Rate not configured for buy and sell: ",
+        buy.asset,
+        sell.asset
       );
       return Promise.resolve(false);
     }

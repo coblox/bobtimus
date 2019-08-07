@@ -1,6 +1,6 @@
 import Big from "big.js";
-import { getLogger } from "log4js";
 import Ledger from "./ledger";
+import { getLogger } from "./logging/logger";
 
 const logger = getLogger();
 
@@ -15,7 +15,7 @@ class Asset {
       case Asset.ether.name:
         return Asset.ether;
       default:
-        logger.error(`Asset not supported: ${name}`);
+        logger.crit(`Asset not supported: ${name}`);
         return undefined;
     }
   }
@@ -41,7 +41,7 @@ class Asset {
         if (createAssetFromTokens && ledger && asset.token_contract) {
           return createAssetFromTokens(ledger, asset.token_contract);
         }
-        logger.error(`Asset not supported: ${asset}`);
+        logger.crit(`Asset not supported`, asset);
         return undefined;
     }
   }
@@ -85,7 +85,7 @@ class Asset {
     if (this.decimals) {
       return quantity.div(new Big(10).pow(this.decimals));
     }
-    logger.error("Unit conversion not supported for", this);
+    logger.crit("Unit conversion not supported for", this);
     return undefined;
   }
 }

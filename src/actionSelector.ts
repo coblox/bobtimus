@@ -1,9 +1,9 @@
 import Big from "big.js";
-import { getLogger } from "log4js";
 import { Action, Entity } from "../gen/siren";
 import Asset from "./asset";
 import { Swap } from "./comitNode";
 import Ledger, { toLedger } from "./ledger";
+import { getLogger } from "./logging/logger";
 import { Offer } from "./rates/tradeService";
 
 const logger = getLogger();
@@ -42,7 +42,7 @@ export class ActionSelector {
 
       return this.selectSwapAction(swap);
     }
-    logger.error(`The given entity is not a swap; entity ${entity}`);
+    logger.crit(`The given entity is not a swap entity`, entity);
     return undefined;
   }
 
@@ -82,7 +82,7 @@ export class ActionSelector {
         this.selectedActions.push(declineAction);
         return declineAction;
       } else {
-        logger.error("Decline action is unavailable");
+        logger.crit("Decline action is unavailable");
       }
     } else if (refundAction) {
       // Only refund action available, doing nothing for now
@@ -96,7 +96,7 @@ export class ActionSelector {
     const alphaLedger = toLedger(swap.properties.parameters.alpha_ledger.name);
     const betaLedger = toLedger(swap.properties.parameters.beta_ledger.name);
     if (!alphaLedger || !betaLedger) {
-      logger.error("Ledger is not supported");
+      logger.crit("Ledger is not supported");
       return Promise.resolve(false);
     }
     const alphaAsset = Asset.fromComitPayload(
@@ -110,7 +110,7 @@ export class ActionSelector {
       this.createAssetFromTokens
     );
     if (!alphaAsset || !betaAsset) {
-      logger.error("Asset is not supported");
+      logger.crit("Asset is not supported");
       return Promise.resolve(false);
     }
     if (
@@ -156,7 +156,7 @@ export class ActionSelector {
         loggedAction => loggedAction.href === action.href
       )
     ) {
-      logger.debug(`Cannot return action twice: ${JSON.stringify(action)}!`);
+      logger.debug(`Cannot return action twice`, action);
       return true;
     } else {
       return false;

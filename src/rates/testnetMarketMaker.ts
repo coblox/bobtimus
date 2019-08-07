@@ -1,6 +1,6 @@
 import Big from "big.js";
-import { getLogger } from "log4js";
 import Asset from "../asset";
+import { getLogger } from "../logging/logger";
 import Balances from "./balances";
 import { Offer, TradeService } from "./tradeService";
 
@@ -121,12 +121,11 @@ export default class TestnetMarketMaker implements TradeService {
       sell.quantity
     );
     if (!sufficientFunds) {
-      logger.error(
-        `Insufficient funds, asset ${
+      logger.crit(
+        `Insufficient funds for asset, current balance is ${await this.balances.getBalance(
           sell.asset
-        } balance is ${this.balances.getBalance(
-          sell.asset
-        )} but trade requires ${sell.quantity}`
+        )} but trade requires ${sell.quantity}`,
+        sell.asset
       );
       return false;
     }
@@ -134,11 +133,10 @@ export default class TestnetMarketMaker implements TradeService {
     const lowFunds = await this.balances.isLowBalance(sell.asset);
     if (lowFunds) {
       logger.warn(
-        `Funds low on asset ${
+        `Funds low on asset only has ${this.balances.getOriginalBalance(
           sell.asset
-        }, only has ${this.balances.getOriginalBalance(
-          sell.asset
-        )} of balance left`
+        )} of balance left`,
+        sell.asset
       );
     }
 

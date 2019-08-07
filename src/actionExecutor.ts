@@ -1,7 +1,7 @@
 import { Result } from "@badrap/result/dist";
-import { getLogger } from "log4js";
 import { Action, Field } from "../gen/siren";
 import { ComitNode, LedgerAction } from "./comitNode";
+import { getLogger } from "./logging/logger";
 import sleep from "./sleep";
 
 const logger = getLogger();
@@ -37,14 +37,14 @@ export class ActionExecutor {
     let result: Result<any, Error>;
 
     const triggerResult = await this.triggerRequestFromAction(action);
-    logger.trace(`Response from action: ${JSON.stringify(triggerResult)}`);
+    logger.log("trace", `Response from action`, triggerResult);
     result = triggerResult;
     // If the response has a type and payload then a ledger action is needed
     if (triggerResult.isOk) {
       const response = triggerResult.unwrap();
       if (response.type && response.payload) {
         result = await this.executeLedgerAction(response);
-        logger.debug(`executeLedgerAction response: ${JSON.stringify(result)}`);
+        logger.debug(`executeLedgerAction response`, result);
       }
     }
 
@@ -73,7 +73,7 @@ export class ActionExecutor {
     }
 
     if (action.method === "POST" && action.type !== "application/json") {
-      logger.error("Only 'application/json' action type is supported.");
+      logger.crit("Only 'application/json' action type is supported.");
       throw new Error("Only 'application/json' action type is supported.");
     }
     try {
@@ -95,7 +95,7 @@ export class ActionExecutor {
         executedAction => executedAction.href === action.href
       )
     ) {
-      logger.debug(`Cannot execute action twice: ${JSON.stringify(action)}!`);
+      logger.debug(`Cannot execute action twice`, action);
       return true;
     } else {
       return false;

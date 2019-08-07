@@ -1,6 +1,6 @@
-import { getLogger } from "log4js";
 import { Field } from "../gen/siren";
 import { BitcoinFeeService } from "./bitcoin/bitcoinFeeService";
+import { getLogger } from "./logging/logger";
 import { BitcoinWallet } from "./wallets/bitcoin";
 import { EthereumWallet } from "./wallets/ethereum";
 
@@ -28,7 +28,7 @@ export class DefaultFieldDataSource {
   }
 
   public async getData(field: Field) {
-    logger.trace(`Trying to find data for ${JSON.stringify(field)}`);
+    logger.log("trace", `Trying to find data for field`, field);
     if (
       this.ethereumWallet &&
       field.class.includes("ethereum") &&
@@ -52,6 +52,6 @@ export class DefaultFieldDataSource {
     ) {
       return this.bitcoinFeeService.retrieveSatsPerByte();
     }
-    logger.warn(`Could not find data for ${JSON.stringify(field)}`);
+    logger.warn(`Could not find data for field`, field);
   }
 }

@@ -1,6 +1,6 @@
 import BN = require("bn.js");
-import { getLogger } from "log4js";
 import request from "request-promise-native";
+import { getLogger } from "../logging/logger";
 
 const logger = getLogger();
 

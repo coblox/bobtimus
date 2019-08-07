@@ -1,5 +1,5 @@
 import { networks, Transaction } from "bitcoinjs-lib";
-import { getLogger } from "log4js";
+import { getLogger } from "../logging/logger";
 
 const logger = getLogger();
 

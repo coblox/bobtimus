@@ -1,10 +1,10 @@
 import { Result } from "@badrap/result/dist";
 import { Network, Transaction } from "bitcoinjs-lib";
 import BN = require("bn.js");
-import { getLogger } from "log4js";
 import { TransactionReceipt } from "web3/types";
 import { networkFromString, Satoshis } from "./bitcoin/blockchain";
 import { hexToBN, hexToBuffer, LedgerAction } from "./comitNode";
+import { getLogger } from "./logging/logger";
 import sleep from "./sleep";
 import {
   DeployContractParams,
@@ -66,7 +66,7 @@ export class LedgerExecutor {
   }
 
   public async execute(action: LedgerAction) {
-    logger.trace(`Execute Ledger Action: ${JSON.stringify(action)}`);
+    logger.log("trace", "Execute Ledger Action:", action);
     try {
       const network = action.payload.network;
       switch (action.type) {
@@ -183,11 +183,7 @@ export class LedgerExecutor {
     const gasPrice = await retrieveGasPrice();
 
     const parameters = { ...params, gasPrice };
-    logger.info(
-      `Invoking deployContract on Ethereum Wallet with ${JSON.stringify(
-        parameters
-      )}`
-    );
+    logger.info(`Invoking deployContract on Ethereum Wallet`, parameters);
     return deployContract(parameters);
   }
 
@@ -208,9 +204,7 @@ export class LedgerExecutor {
       data: params.data ? hexToBuffer(params.data) : undefined
     };
 
-    logger.info(
-      `Invoking sendTransaction on Ethereum Wallet with ${parameters}`
-    );
+    logger.info(`Invoking sendTransaction on Ethereum Wallet`, parameters);
     return sendTransactionTo(parameters);
   }
 

@@ -76,6 +76,9 @@ export default class Tokens {
   }
 
   public getAssets(): Asset[] {
-    throw new Error("Not implemented");
+    if (this.ethereumTokens) {
+      return Array.from(this.ethereumTokens.values());
+    }
+    return [];
   }
 }

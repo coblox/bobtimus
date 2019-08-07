@@ -1,3 +1,4 @@
+import { isEqual } from "underscore";
 import Asset from "../src/asset";
 import Ledger from "../src/ledger";
 import Tokens, { TokensConfig } from "../src/tokens";
@@ -105,7 +106,11 @@ describe("Test Tokens", () => {
 
     const assets = tokens.getAssets();
 
-    expect(assets).toContain(payAsset);
-    expect(assets).toContain(tenxAsset);
+    expect(
+      isEqual(tenxAsset, assets[0]) || isEqual(payAsset, assets[0])
+    ).toBeTruthy();
+    expect(
+      isEqual(tenxAsset, assets[1]) || isEqual(payAsset, assets[1])
+    ).toBeTruthy();
   });
 });

@@ -236,13 +236,17 @@ describe("TradesToPublish tests ", () => {
       rates: [
         {
           buy: {
-            asset: "ether",
+            asset: {
+              name: "ether"
+            },
             ledger: "ethereum",
             quantity: "80"
           },
           protocol: "rfc003",
           sell: {
-            asset: "bitcoin",
+            asset: {
+              name: "bitcoin"
+            },
             ledger: "bitcoin",
             quantity: "1"
           },
@@ -250,13 +254,17 @@ describe("TradesToPublish tests ", () => {
         },
         {
           buy: {
-            asset: "bitcoin",
+            asset: {
+              name: "bitcoin"
+            },
             ledger: "bitcoin",
             quantity: "1"
           },
           protocol: "rfc003",
           sell: {
-            asset: "ether",
+            asset: {
+              name: "ether"
+            },
             ledger: "ethereum",
             quantity: "100"
           },
@@ -264,13 +272,21 @@ describe("TradesToPublish tests ", () => {
         },
         {
           buy: {
-            asset: "bitcoin",
+            asset: {
+              name: "bitcoin"
+            },
             ledger: "bitcoin",
             quantity: "1"
           },
           protocol: "rfc003",
           sell: {
-            asset: "PAY",
+            asset: {
+              name: "PAY",
+              contract: {
+                address: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+                decimals: 18
+              }
+            },
             ledger: "ethereum",
             quantity: "1000"
           },

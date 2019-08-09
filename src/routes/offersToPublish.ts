@@ -15,15 +15,23 @@ export interface LedgerToPublish {
   network: string;
 }
 
+export interface AssetToPublish {
+  name: string;
+  contract?: {
+    address: string;
+    decimals: 18;
+  };
+}
+
 export interface OffersToPublish {
   buy: {
-    asset: string;
+    asset: AssetToPublish;
     ledger: string;
     quantity: string;
   };
   protocol: string;
   sell: {
-    asset: string;
+    asset: AssetToPublish;
     ledger: string;
     quantity: string;
   };
@@ -81,12 +89,16 @@ export function getOffersToPublishRoute(
             protocol: trade.protocol,
             buy: {
               ledger: trade.buy.ledger,
-              asset: trade.buy.asset.name,
+              asset: {
+                name: trade.buy.asset.name
+              },
               quantity: trade.buy.quantity.toString()
             },
             sell: {
               ledger: trade.sell.ledger,
-              asset: trade.sell.asset.name,
+              asset: {
+                name: trade.sell.asset.name
+              },
               quantity: trade.sell.quantity.toString()
             }
           };

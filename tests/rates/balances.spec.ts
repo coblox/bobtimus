@@ -17,14 +17,11 @@ describe("Balances tests", () => {
     let bitcoinBalance = 1;
     let etherBalance = 2;
 
-    const balanceLookups = new Map();
-    balanceLookups.set(Asset.bitcoin, () => balance(bitcoinBalance));
-    balanceLookups.set(Asset.ether, () => balance(etherBalance));
-
-    const balances = await Balances.create(
-      balanceLookups,
-      lowFundsThresholdPercentage
+    const balances = new Balances(lowFundsThresholdPercentage);
+    await balances.addBalanceLookup(Asset.bitcoin, () =>
+      balance(bitcoinBalance)
     );
+    await balances.addBalanceLookup(Asset.ether, () => balance(etherBalance));
 
     expect(await balances.getBalance(Asset.bitcoin)).toEqual(new Big(1));
     expect(await balances.getBalance(Asset.ether)).toEqual(new Big(2));
@@ -40,13 +37,11 @@ describe("Balances tests", () => {
     let bitcoinBalance = 1;
     let etherBalance = 2;
 
-    const balanceLookups = new Map();
-    balanceLookups.set(Asset.bitcoin, () => balance(bitcoinBalance));
-    balanceLookups.set(Asset.ether, () => balance(etherBalance));
-    const balances = await Balances.create(
-      balanceLookups,
-      lowFundsThresholdPercentage
+    const balances = new Balances(lowFundsThresholdPercentage);
+    await balances.addBalanceLookup(Asset.bitcoin, () =>
+      balance(bitcoinBalance)
     );
+    await balances.addBalanceLookup(Asset.ether, () => balance(etherBalance));
 
     expect(await balances.getOriginalBalance(Asset.bitcoin)).toEqual(
       new Big(1)
@@ -63,25 +58,17 @@ describe("Balances tests", () => {
   });
 
   it("Should return insufficient funds if funds are 0", async () => {
-    const balanceLookups = new Map();
-    balanceLookups.set(Asset.bitcoin, () => balance(0));
-    balanceLookups.set(Asset.ether, () => balance(0));
-    const balances = await Balances.create(
-      balanceLookups,
-      lowFundsThresholdPercentage
-    );
+    const balances = new Balances(lowFundsThresholdPercentage);
+    await balances.addBalanceLookup(Asset.bitcoin, () => balance(0));
+    await balances.addBalanceLookup(Asset.ether, () => balance(0));
 
     expect(await balances.isSufficientFunds(Asset.bitcoin)).toBeFalsy();
   });
 
   it("Should return insufficient funds if balance minus trade amount is equal or below 0", async () => {
-    const balanceLookups = new Map();
-    balanceLookups.set(Asset.bitcoin, () => balance(1));
-    balanceLookups.set(Asset.ether, () => balance(0));
-    const balances = await Balances.create(
-      balanceLookups,
-      lowFundsThresholdPercentage
-    );
+    const balances = new Balances(lowFundsThresholdPercentage);
+    await balances.addBalanceLookup(Asset.bitcoin, () => balance(1));
+    await balances.addBalanceLookup(Asset.ether, () => balance(0));
 
     expect(
       await balances.isSufficientFunds(Asset.bitcoin, new Big(1.0001))
@@ -90,13 +77,11 @@ describe("Balances tests", () => {
 
   it("Should return low funds if balance is below the threshold", async () => {
     let bitcoinBalance = 10;
-    const balanceLookups = new Map();
-    balanceLookups.set(Asset.bitcoin, () => balance(bitcoinBalance));
-    balanceLookups.set(Asset.ether, () => balance(0));
-    const balances = await Balances.create(
-      balanceLookups,
-      lowFundsThresholdPercentage
+    const balances = new Balances(lowFundsThresholdPercentage);
+    await balances.addBalanceLookup(Asset.bitcoin, () =>
+      balance(bitcoinBalance)
     );
+    await balances.addBalanceLookup(Asset.ether, () => balance(0));
 
     bitcoinBalance = 1;
     expect(await balances.isLowBalance(Asset.bitcoin)).toBeTruthy();
@@ -108,13 +93,11 @@ describe("Balances tests", () => {
   it("Should not return low funds if balance is over the threshold", async () => {
     let bitcoinBalance = 10;
 
-    const balanceLookups = new Map();
-    balanceLookups.set(Asset.bitcoin, () => balance(bitcoinBalance));
-    balanceLookups.set(Asset.ether, () => balance(0));
-    const balances = await Balances.create(
-      balanceLookups,
-      lowFundsThresholdPercentage
+    const balances = new Balances(lowFundsThresholdPercentage);
+    await balances.addBalanceLookup(Asset.bitcoin, () =>
+      balance(bitcoinBalance)
     );
+    await balances.addBalanceLookup(Asset.ether, () => balance(0));
     bitcoinBalance = 2.1;
 
     expect(await balances.isLowBalance(Asset.bitcoin)).toBeFalsy();

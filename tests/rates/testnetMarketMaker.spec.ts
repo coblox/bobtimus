@@ -12,14 +12,15 @@ async function createMockBalances(
   etherBalance: number,
   payBalance?: number
 ) {
-  const mockBalanceLookups = new Map();
-  mockBalanceLookups.set(Asset.bitcoin, () =>
+  const balances = new Balances(20);
+
+  await balances.addBalanceLookup(Asset.bitcoin, () =>
     Promise.resolve(new Big(bitcoinBalance))
   );
-  mockBalanceLookups.set(Asset.ether, () =>
+
+  await balances.addBalanceLookup(Asset.ether, () =>
     Promise.resolve(new Big(etherBalance))
   );
-
   if (payBalance) {
     const payAsset = new Asset(
       "PAY",
@@ -27,12 +28,11 @@ async function createMockBalances(
       "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
       18
     );
-    mockBalanceLookups.set(payAsset, () =>
+    await balances.addBalanceLookup(payAsset, () =>
       Promise.resolve(new Big(payBalance))
     );
   }
-
-  return Balances.create(mockBalanceLookups, 20);
+  return balances;
 }
 
 const payAsset = new Asset(

@@ -87,14 +87,10 @@ export async function createTradeEvaluationService({
       return Promise.resolve(new Big(0));
     };
 
-    const balanceLookups = new Map();
-    balanceLookups.set(Asset.bitcoin, bitcoinBalanceLookup);
-    balanceLookups.set(Asset.ether, etherBalanceLookup);
+    const balances = new Balances(lowBalanceThresholdPercentage);
 
-    const balances = await Balances.create(
-      balanceLookups,
-      lowBalanceThresholdPercentage
-    );
+    await balances.addBalanceLookup(Asset.bitcoin, bitcoinBalanceLookup);
+    await balances.addBalanceLookup(Asset.ether, etherBalanceLookup);
 
     const getTokens = tokens ? tokens.getAssets.bind(tokens) : () => [];
 

@@ -1,32 +1,71 @@
 import Big from "big.js";
 import Asset from "../asset";
 
-export type BalanceLookups = Map<Asset, () => Promise<Big>>;
+type BalanceFunction = () => Promise<Big>;
 
-export default class Balances {
-  private balanceLookup: Map<string, () => Promise<Big>>;
-  private originalBalance: Map<string, Big>;
-  private readonly lowFundsThresholdPercentage: Big;
+export class BalanceLookups {
+  private inner: Map<string, BalanceFunction>;
 
-  public constructor(lowFundsThresholdPercentage: number) {
-    this.lowFundsThresholdPercentage = new Big(lowFundsThresholdPercentage).div(
-      100
+  constructor(
+    entries?: ReadonlyArray<readonly [string, BalanceFunction]> | null
+  ) {
+    this.inner = new Map(entries);
+  }
+
+  public get(asset: Asset) {
+    return this.inner.get(asset.toMapKey());
+  }
+
+  public async getBalances(): Promise<Map<string, Big>> {
+    const balancesPromises = this.map(
+      async ([strAsset, getBalance]): Promise<[string, Big]> => {
+        const balance: Big = await getBalance();
+        return [strAsset, balance];
+      }
     );
 
-    this.balanceLookup = new Map<string, () => Promise<Big>>();
-    this.originalBalance = new Map<string, Big>();
+    const balances: Array<[string, Big]> = await Promise.all(balancesPromises);
+
+    return Promise.resolve(new Map(balances));
   }
-  public async addBalanceLookup(
-    asset: Asset,
-    balanceLookup: () => Promise<Big>
-  ): Promise<void> {
-    this.balanceLookup.set(asset.toMapKey(), balanceLookup);
-    const originalBalance = await balanceLookup();
-    this.originalBalance.set(asset.toMapKey(), originalBalance);
+
+  private map<U>(
+    callback: (value: [string, BalanceFunction], index: number) => U
+  ): U[] {
+    const inner = Array.from(this.inner.entries());
+    return inner.map(callback);
+  }
+}
+
+export default class Balances {
+  public static async new(
+    lowFundsThresholdPercentage: number,
+    balanceLookups: BalanceLookups
+  ): Promise<Balances> {
+    const originalBalances = await balanceLookups.getBalances();
+
+    return new Balances(
+      balanceLookups,
+      originalBalances,
+      new Big(lowFundsThresholdPercentage).div(100)
+    );
+  }
+  private balanceLookups: BalanceLookups;
+  private originalBalances: Map<string, Big>;
+  private readonly lowFundsThresholdPercentage: Big;
+
+  private constructor(
+    balanceLookups: BalanceLookups,
+    originalBalances: Map<string, Big>,
+    lowFundsTresholdPercentage: Big
+  ) {
+    this.balanceLookups = balanceLookups;
+    this.originalBalances = originalBalances;
+    this.lowFundsThresholdPercentage = lowFundsTresholdPercentage;
   }
 
   public getBalance(asset: Asset): Promise<Big> {
-    const getBalance = this.balanceLookup.get(asset.toMapKey());
+    const getBalance = this.balanceLookups.get(asset);
 
     if (getBalance) {
       return getBalance();
@@ -38,11 +77,13 @@ export default class Balances {
   }
 
   public getOriginalBalance(asset: Asset): Big {
-    const originalBalance = this.originalBalance.get(asset.toMapKey());
+    const originalBalance = this.originalBalances.get(asset.toMapKey());
 
     if (!originalBalance) {
       throw new Error(
-        `Original balance for asset ${asset} not initialized correctly`
+        `Original balance not initialized correctly for ${JSON.stringify(
+          asset
+        )}`
       );
     }
 

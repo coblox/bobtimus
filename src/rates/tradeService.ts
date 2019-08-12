@@ -5,7 +5,7 @@ import { getLogger } from "../logging/logger";
 import Tokens from "../tokens";
 import { BitcoinWallet } from "../wallets/bitcoin";
 import { EthereumWallet } from "../wallets/ethereum";
-import Balances from "./balances";
+import Balances, { BalanceLookups } from "./balances";
 import StaticRates, { ConfigRates } from "./staticRates";
 import TestnetMarketMaker, {
   TestnetMarketMakerConfig
@@ -87,32 +87,39 @@ export async function createTradeEvaluationService({
       return Promise.resolve(new Big(0));
     };
 
-    const balances = new Balances(lowBalanceThresholdPercentage);
-
-    await balances.addBalanceLookup(Asset.bitcoin, bitcoinBalanceLookup);
-    await balances.addBalanceLookup(Asset.ether, etherBalanceLookup);
+    const nativeAssetBalanceLookups: BalTuple[] = [
+      [Asset.bitcoin.toMapKey(), bitcoinBalanceLookup],
+      [Asset.ether.toMapKey(), etherBalanceLookup]
+    ];
 
     const getTokens = tokens
       ? (ledger: Ledger) => tokens.getAssets(ledger)
       : () => [];
 
-    if (tokens) {
+    type BalTuple = [string, () => Promise<Big>];
+
+    let ethTokensBalanceLookups: BalTuple[] = [];
+
+    if (tokens && ethereumWallet) {
       const ethTokens = tokens.getAssets(Ledger.Ethereum);
 
-      ethTokens.map(async token => {
-        const balanceLookup = async () => {
-          if (ethereumWallet) {
-            try {
-              return ethereumWallet.getBalance(token);
-            } catch (e) {
-              logger.crit("balance not found for ", token, e);
-            }
-          }
-          return Promise.resolve(new Big(0));
-        };
-        await balances.addBalanceLookup(token, balanceLookup);
-      });
+      const promises = ethTokens.map(
+        (token: Asset): BalTuple => {
+          const fn = () => ethereumWallet.getBalance(token);
+          return [token.toMapKey(), fn];
+        }
+      );
+      ethTokensBalanceLookups = await Promise.all(promises);
     }
+
+    const allLookups: BalTuple[] = nativeAssetBalanceLookups.concat(
+      ethTokensBalanceLookups
+    );
+
+    const balances = await Balances.new(
+      lowBalanceThresholdPercentage,
+      new BalanceLookups(allLookups)
+    );
 
     return new TestnetMarketMaker(
       testnetMarketMakerConfig,

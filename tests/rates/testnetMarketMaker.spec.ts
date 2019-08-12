@@ -2,7 +2,7 @@ import Big from "big.js";
 import { List } from "underscore";
 import Asset from "../../src/asset";
 import Ledger from "../../src/ledger";
-import Balances from "../../src/rates/balances";
+import Balances, { BalanceLookups } from "../../src/rates/balances";
 import TestnetMarketMaker from "../../src/rates/testnetMarketMaker";
 import { Offer } from "../../src/rates/tradeService";
 import Tokens from "../../src/tokens";
@@ -12,27 +12,23 @@ async function createMockBalances(
   etherBalance: number,
   payBalance?: number
 ) {
-  const balances = new Balances(20);
-
-  await balances.addBalanceLookup(Asset.bitcoin, () =>
-    Promise.resolve(new Big(bitcoinBalance))
+  const payAsset = new Asset(
+    "PAY",
+    Ledger.Ethereum,
+    "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+    18
   );
 
-  await balances.addBalanceLookup(Asset.ether, () =>
-    Promise.resolve(new Big(etherBalance))
-  );
-  if (payBalance) {
-    const payAsset = new Asset(
-      "PAY",
-      Ledger.Ethereum,
-      "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
-      18
-    );
-    await balances.addBalanceLookup(payAsset, () =>
-      Promise.resolve(new Big(payBalance))
-    );
-  }
-  return balances;
+  const balanceLookups = new BalanceLookups([
+    [Asset.bitcoin.toMapKey(), () => Promise.resolve(new Big(bitcoinBalance))],
+    [Asset.ether.toMapKey(), () => Promise.resolve(new Big(etherBalance))],
+    [
+      payAsset.toMapKey(),
+      () => Promise.resolve(new Big(payBalance ? payBalance : 0))
+    ]
+  ]);
+
+  return Balances.new(20, balanceLookups);
 }
 
 const payAsset = new Asset(

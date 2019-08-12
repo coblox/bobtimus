@@ -96,6 +96,24 @@ export async function createTradeEvaluationService({
       ? (ledger: Ledger) => tokens.getAssets(ledger)
       : () => [];
 
+    if (tokens) {
+      const ethTokens = tokens.getAssets(Ledger.Ethereum);
+
+      ethTokens.map(async token => {
+        const balanceLookup = async () => {
+          if (ethereumWallet) {
+            try {
+              return ethereumWallet.getBalance(token);
+            } catch (e) {
+              logger.crit("balance not found for ", token, e);
+            }
+          }
+          return Promise.resolve(new Big(0));
+        };
+        await balances.addBalanceLookup(token, balanceLookup);
+      });
+    }
+
     return new TestnetMarketMaker(
       testnetMarketMakerConfig,
       balances,

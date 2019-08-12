@@ -92,7 +92,9 @@ export async function createTradeEvaluationService({
     await balances.addBalanceLookup(Asset.bitcoin, bitcoinBalanceLookup);
     await balances.addBalanceLookup(Asset.ether, etherBalanceLookup);
 
-    const getTokens = tokens ? tokens.getAssets.bind(tokens) : () => [];
+    const getTokens = tokens
+      ? (ledger: Ledger) => tokens.getAssets(ledger)
+      : () => [];
 
     return new TestnetMarketMaker(
       testnetMarketMakerConfig,

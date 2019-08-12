@@ -42,6 +42,7 @@ export default class TestnetMarketMaker implements TradeService {
    * @param {number} publishFraction Fraction of the sell asset balance that we publish for trades
    * @param {number} maxFraction Max fraction of the sell asset balance we are happy to trade (ie, trading nth of balance means that you can do n trades at the same time)
    * @param {BalanceLookups} balanceLookups Callbacks that returns the current balance of a given asset
+   * @param getTokens method that returns the list of configured tokens for a given ledger
    * @param {Map<Asset, Big>} startupBalances The balance of each asset upon initialization of the market makes to be able to react on low funds.
    * @return {TestnetMarketMaker} The new MarketMaker object
    *
@@ -151,27 +152,30 @@ export default class TestnetMarketMaker implements TradeService {
   }
 
   public async prepareOffersToPublish(): Promise<Offer[]> {
-    const offers = new Array<Offer>();
-
-    offers.push(
-      await this.prepareOffersToPublishForAsset(Asset.bitcoin, Asset.ether)
+    const bitcoinOffer = await this.prepareOffersToPublishForAsset(
+      Asset.bitcoin,
+      Asset.ether
     );
-    offers.push(
-      await this.prepareOffersToPublishForAsset(Asset.ether, Asset.bitcoin)
+    const etherOffer = await this.prepareOffersToPublishForAsset(
+      Asset.ether,
+      Asset.bitcoin
     );
 
     const ethereumTokens = this.getTokens(Ledger.Ethereum);
 
-    const promises = ethereumTokens.map(async asset => {
-      offers.push(
-        await this.prepareOffersToPublishForAsset(Asset.bitcoin, asset)
-      );
-      offers.push(
+    const ethTokensOffersPromises = ethereumTokens.map(async asset => {
+      return [
+        await this.prepareOffersToPublishForAsset(Asset.bitcoin, asset),
         await this.prepareOffersToPublishForAsset(asset, Asset.bitcoin)
-      );
+      ];
     });
-    await Promise.all(promises);
+    const ethTokensOffersTmp: Offer[][] = await Promise.all(
+      ethTokensOffersPromises
+    );
 
-    return offers;
+    // @ts-ignore: Valid JS Syntax
+    const ethTokensOffers: Offer[] = [].concat(...ethTokensOffersTmp);
+
+    return [bitcoinOffer, etherOffer].concat(ethTokensOffers);
   }
 }

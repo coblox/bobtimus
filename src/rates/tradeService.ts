@@ -2,9 +2,10 @@ import Big from "big.js";
 import Asset from "../asset";
 import Ledger from "../ledger";
 import { getLogger } from "../logging/logger";
+import Tokens from "../tokens";
 import { BitcoinWallet } from "../wallets/bitcoin";
 import { EthereumWallet } from "../wallets/ethereum";
-import Balances from "./balances";
+import Balances, { BalanceLookups } from "./balances";
 import StaticRates, { ConfigRates } from "./staticRates";
 import TestnetMarketMaker, {
   TestnetMarketMakerConfig
@@ -36,6 +37,7 @@ export interface InitialiseRateParameters {
   lowBalanceThresholdPercentage?: number;
   ethereumWallet?: EthereumWallet;
   bitcoinWallet?: BitcoinWallet;
+  tokens?: Tokens;
 }
 
 export async function createTradeEvaluationService({
@@ -43,7 +45,8 @@ export async function createTradeEvaluationService({
   staticRates,
   lowBalanceThresholdPercentage,
   ethereumWallet,
-  bitcoinWallet
+  bitcoinWallet,
+  tokens
 }: InitialiseRateParameters) {
   const testnetMarketMakerConfig = testnetMarketMaker;
   const staticRatesConfig = staticRates;
@@ -84,17 +87,45 @@ export async function createTradeEvaluationService({
       return Promise.resolve(new Big(0));
     };
 
-    const balanceLookups = {
-      bitcoin: bitcoinBalanceLookup,
-      ether: etherBalanceLookup
-    };
+    const nativeAssetBalanceLookups: BalTuple[] = [
+      [Asset.bitcoin.toMapKey(), bitcoinBalanceLookup],
+      [Asset.ether.toMapKey(), etherBalanceLookup]
+    ];
 
-    const balances = await Balances.create(
-      balanceLookups,
-      lowBalanceThresholdPercentage
+    const getTokens = tokens
+      ? (ledger: Ledger) => tokens.getAssets(ledger)
+      : () => [];
+
+    type BalTuple = [string, () => Promise<Big>];
+
+    let ethTokensBalanceLookups: BalTuple[] = [];
+
+    if (tokens && ethereumWallet) {
+      const ethTokens = tokens.getAssets(Ledger.Ethereum);
+
+      const promises = ethTokens.map(
+        (token: Asset): BalTuple => {
+          const fn = () => ethereumWallet.getBalance(token);
+          return [token.toMapKey(), fn];
+        }
+      );
+      ethTokensBalanceLookups = await Promise.all(promises);
+    }
+
+    const allLookups: BalTuple[] = nativeAssetBalanceLookups.concat(
+      ethTokensBalanceLookups
     );
 
-    return new TestnetMarketMaker(testnetMarketMakerConfig, balances);
+    const balances = await Balances.new(
+      lowBalanceThresholdPercentage,
+      new BalanceLookups(allLookups)
+    );
+
+    return new TestnetMarketMaker(
+      testnetMarketMakerConfig,
+      balances,
+      getTokens
+    );
   } else {
     throw new Error("No rate strategy defined.");
   }

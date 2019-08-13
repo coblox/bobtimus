@@ -14,6 +14,12 @@ const present = new Date();
 const past = new Date(present.getTime() - 5000);
 const future = new Date(present.getTime() + 5000);
 
+const payAsset = new Asset(
+  "PAY",
+  Ledger.Ethereum,
+  "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
+);
+
 const btcEthTrade: Offer = {
   timestamp: present,
   protocol: "rfc003",
@@ -41,6 +47,21 @@ const ethBtcTrade: Offer = {
     ledger: Ledger.Bitcoin,
     asset: Asset.bitcoin,
     quantity: new Big(1)
+  }
+};
+
+const btcPayTrade: Offer = {
+  timestamp: present,
+  protocol: "rfc003",
+  buy: {
+    ledger: Ledger.Bitcoin,
+    asset: Asset.bitcoin,
+    quantity: new Big(1)
+  },
+  sell: {
+    ledger: Ledger.Ethereum,
+    asset: payAsset,
+    quantity: new Big(1000)
   }
 };
 
@@ -166,7 +187,7 @@ describe("TradesToPublish tests ", () => {
   });
 
   class MockMarketMaker implements TradeService {
-    protected trades: Offer[] = [ethBtcTrade, btcEthTrade];
+    protected trades: Offer[] = [ethBtcTrade, btcEthTrade, btcPayTrade];
 
     public isOfferAcceptable(_: Offer): Promise<boolean> {
       return Promise.resolve(true);
@@ -240,17 +261,31 @@ describe("TradesToPublish tests ", () => {
             quantity: "100"
           },
           timestamp: btcEthTrade.timestamp.toISOString()
+        },
+        {
+          buy: {
+            asset: "bitcoin",
+            ledger: "bitcoin",
+            quantity: "1"
+          },
+          protocol: "rfc003",
+          sell: {
+            asset: "PAY",
+            ledger: "ethereum",
+            quantity: "1000"
+          },
+          timestamp: btcPayTrade.timestamp.toISOString()
         }
       ]
     };
 
     await apiCall(req as any, res as any);
-    let result = await res.sendCalledWith;
+    let result = res.sendCalledWith;
     expect(result).toBeDefined();
     expect(result).toEqual(expected);
 
     await apiCall(req as any, res as any);
-    result = await res.sendCalledWith;
+    result = res.sendCalledWith;
     expect(result).toBeDefined();
     expect(result).toEqual(expected);
   });

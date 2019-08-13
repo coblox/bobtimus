@@ -1,5 +1,6 @@
 import Big from "big.js";
 import Asset from "../asset";
+import Ledger from "../ledger";
 import { getLogger } from "../logging/logger";
 import Balances from "./balances";
 import { Offer, TradeService } from "./tradeService";
@@ -33,6 +34,7 @@ export default class TestnetMarketMaker implements TradeService {
   private readonly publishFraction: number;
   private readonly maxFraction: number;
   private readonly balances: Balances;
+  private readonly getTokens: (ledger: Ledger) => Asset[];
 
   /** Initialize the TestnetMarketMaker class.
    *
@@ -40,6 +42,7 @@ export default class TestnetMarketMaker implements TradeService {
    * @param {number} publishFraction Fraction of the sell asset balance that we publish for trades
    * @param {number} maxFraction Max fraction of the sell asset balance we are happy to trade (ie, trading nth of balance means that you can do n trades at the same time)
    * @param {BalanceLookups} balanceLookups Callbacks that returns the current balance of a given asset
+   * @param getTokens method that returns the list of configured tokens for a given ledger
    * @param {Map<Asset, Big>} startupBalances The balance of each asset upon initialization of the market makes to be able to react on low funds.
    * @return {TestnetMarketMaker} The new MarketMaker object
    *
@@ -47,7 +50,8 @@ export default class TestnetMarketMaker implements TradeService {
    */
   public constructor(
     { rateSpread, publishFraction, maxFraction }: TestnetMarketMakerConfig,
-    balanceLookups: Balances
+    balanceLookups: Balances,
+    getTokens: (ledger: Ledger) => Asset[]
   ) {
     if (maxFraction >= publishFraction) {
       throw new Error(
@@ -59,6 +63,7 @@ export default class TestnetMarketMaker implements TradeService {
     this.publishFraction = publishFraction;
     this.maxFraction = maxFraction;
     this.balances = balanceLookups;
+    this.getTokens = getTokens;
   }
 
   /** Provide the trades to publish
@@ -147,15 +152,30 @@ export default class TestnetMarketMaker implements TradeService {
   }
 
   public async prepareOffersToPublish(): Promise<Offer[]> {
-    const trades = new Array<Offer>();
-
-    trades.push(
-      await this.prepareOffersToPublishForAsset(Asset.bitcoin, Asset.ether)
+    const bitcoinOffer = await this.prepareOffersToPublishForAsset(
+      Asset.bitcoin,
+      Asset.ether
     );
-    trades.push(
-      await this.prepareOffersToPublishForAsset(Asset.ether, Asset.bitcoin)
+    const etherOffer = await this.prepareOffersToPublishForAsset(
+      Asset.ether,
+      Asset.bitcoin
     );
 
-    return trades;
+    const ethereumTokens = this.getTokens(Ledger.Ethereum);
+
+    const ethTokensOffersPromises = ethereumTokens.map(async asset => {
+      return [
+        await this.prepareOffersToPublishForAsset(Asset.bitcoin, asset),
+        await this.prepareOffersToPublishForAsset(asset, Asset.bitcoin)
+      ];
+    });
+    const ethTokensOffersTmp: Offer[][] = await Promise.all(
+      ethTokensOffersPromises
+    );
+
+    // @ts-ignore: Valid JS Syntax
+    const ethTokensOffers: Offer[] = [].concat(...ethTokensOffersTmp);
+
+    return [bitcoinOffer, etherOffer].concat(ethTokensOffers);
   }
 }

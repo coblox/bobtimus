@@ -103,12 +103,15 @@ const config = Config.fromFile(CONFIG_PATH);
   } = await initBitcoin(config);
   const ethereumParams = await initEthereum(config);
 
+  const tokens = Tokens.fromFile(TOKENS_CONFIG_PATH);
+
   const tradeService = await createTradeEvaluationService({
     testnetMarketMaker: config.testnetMarketMaker,
     staticRates: config.staticRates,
     lowBalanceThresholdPercentage: config.lowBalanceThresholdPercentage,
     ethereumWallet: ethereumParams.ethereumWallet,
-    bitcoinWallet
+    bitcoinWallet,
+    tokens
   });
 
   let bitcoinLedgerExecutorParams;
@@ -147,7 +150,6 @@ const config = Config.fromFile(CONFIG_PATH);
     bitcoinLedgerExecutorParams,
     ethereumLedgerExecutorParams
   );
-  const tokens = Tokens.fromFile(TOKENS_CONFIG_PATH);
   let createAssetFromTokens;
   if (tokens) {
     createAssetFromTokens = tokens.createAsset;
@@ -234,9 +236,9 @@ const config = Config.fromFile(CONFIG_PATH);
 
   if (config.apiPort) {
     api.listen(config.apiPort, () =>
-      console.log(`API exposed at port ${config.apiPort}`)
+      logger.info(`API exposed at port ${config.apiPort}`)
     );
   } else {
-    console.warn("API port not configured - not exposing API");
+    logger.info("API port not configured - not exposing API");
   }
 })();

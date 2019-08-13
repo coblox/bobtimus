@@ -74,4 +74,11 @@ export default class Tokens {
 
     return this.ethereumTokens.get(contractAddress);
   }
+
+  public getAssets(ledger: Ledger): Asset[] {
+    if (ledger === Ledger.Ethereum && this.ethereumTokens) {
+      return Array.from(this.ethereumTokens.values());
+    }
+    return [];
+  }
 }

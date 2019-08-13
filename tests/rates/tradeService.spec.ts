@@ -13,7 +13,7 @@ describe("Test TradeService module", () => {
   });
 
   it("should load the static rate if passed", async () => {
-    const rates = createTradeEvaluationService({
+    const rates = await createTradeEvaluationService({
       staticRates: { ether: { bitcoin: 0.0105 }, bitcoin: { ether: 105.26 } },
       bitcoinWallet,
       ethereumWallet
@@ -23,7 +23,7 @@ describe("Test TradeService module", () => {
   });
 
   it("should set the marketmaker if no rates is passed", async () => {
-    const rates = createTradeEvaluationService({
+    const rates = await createTradeEvaluationService({
       testnetMarketMaker: {
         rateSpread: 5,
         maxFraction: 1000,

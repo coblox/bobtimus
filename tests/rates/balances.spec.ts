@@ -1,6 +1,6 @@
 import Big from "big.js";
 import Asset from "../../src/asset";
-import Balances from "../../src/rates/balances";
+import Balances, { BalanceLookups } from "../../src/rates/balances";
 
 function balance(balance: number) {
   return Promise.resolve(new Big(balance));
@@ -17,12 +17,13 @@ describe("Balances tests", () => {
     let bitcoinBalance = 1;
     let etherBalance = 2;
 
-    const balances = await Balances.create(
-      {
-        bitcoin: () => balance(bitcoinBalance),
-        ether: () => balance(etherBalance)
-      },
-      lowFundsThresholdPercentage
+    const balanceLookups = new BalanceLookups([
+      [Asset.bitcoin.toMapKey(), () => balance(bitcoinBalance)],
+      [Asset.ether.toMapKey(), () => balance(etherBalance)]
+    ]);
+    const balances = await Balances.new(
+      lowFundsThresholdPercentage,
+      balanceLookups
     );
 
     expect(await balances.getBalance(Asset.bitcoin)).toEqual(new Big(1));
@@ -39,12 +40,13 @@ describe("Balances tests", () => {
     let bitcoinBalance = 1;
     let etherBalance = 2;
 
-    const balances = await Balances.create(
-      {
-        bitcoin: () => balance(bitcoinBalance),
-        ether: () => balance(etherBalance)
-      },
-      lowFundsThresholdPercentage
+    const balanceLookups = new BalanceLookups([
+      [Asset.bitcoin.toMapKey(), () => balance(bitcoinBalance)],
+      [Asset.ether.toMapKey(), () => balance(etherBalance)]
+    ]);
+    const balances = await Balances.new(
+      lowFundsThresholdPercentage,
+      balanceLookups
     );
 
     expect(await balances.getOriginalBalance(Asset.bitcoin)).toEqual(
@@ -62,24 +64,26 @@ describe("Balances tests", () => {
   });
 
   it("Should return insufficient funds if funds are 0", async () => {
-    const balances = await Balances.create(
-      {
-        bitcoin: () => balance(0),
-        ether: () => balance(0)
-      },
-      lowFundsThresholdPercentage
+    const balanceLookups = new BalanceLookups([
+      [Asset.bitcoin.toMapKey(), () => balance(0)],
+      [Asset.ether.toMapKey(), () => balance(0)]
+    ]);
+    const balances = await Balances.new(
+      lowFundsThresholdPercentage,
+      balanceLookups
     );
 
     expect(await balances.isSufficientFunds(Asset.bitcoin)).toBeFalsy();
   });
 
   it("Should return insufficient funds if balance minus trade amount is equal or below 0", async () => {
-    const balances = await Balances.create(
-      {
-        bitcoin: () => balance(1),
-        ether: () => balance(0)
-      },
-      lowFundsThresholdPercentage
+    const balanceLookups = new BalanceLookups([
+      [Asset.bitcoin.toMapKey(), () => balance(1)],
+      [Asset.ether.toMapKey(), () => balance(0)]
+    ]);
+    const balances = await Balances.new(
+      lowFundsThresholdPercentage,
+      balanceLookups
     );
 
     expect(
@@ -89,13 +93,13 @@ describe("Balances tests", () => {
 
   it("Should return low funds if balance is below the threshold", async () => {
     let bitcoinBalance = 10;
-
-    const balances = await Balances.create(
-      {
-        bitcoin: () => balance(bitcoinBalance),
-        ether: () => balance(0)
-      },
-      lowFundsThresholdPercentage
+    const balanceLookups = new BalanceLookups([
+      [Asset.bitcoin.toMapKey(), () => balance(bitcoinBalance)],
+      [Asset.ether.toMapKey(), () => balance(0)]
+    ]);
+    const balances = await Balances.new(
+      lowFundsThresholdPercentage,
+      balanceLookups
     );
 
     bitcoinBalance = 1;
@@ -108,12 +112,13 @@ describe("Balances tests", () => {
   it("Should not return low funds if balance is over the threshold", async () => {
     let bitcoinBalance = 10;
 
-    const balances = await Balances.create(
-      {
-        bitcoin: () => balance(bitcoinBalance),
-        ether: () => balance(0)
-      },
-      lowFundsThresholdPercentage
+    const balanceLookups = new BalanceLookups([
+      [Asset.bitcoin.toMapKey(), () => balance(bitcoinBalance)],
+      [Asset.ether.toMapKey(), () => balance(0)]
+    ]);
+    const balances = await Balances.new(
+      lowFundsThresholdPercentage,
+      balanceLookups
     );
     bitcoinBalance = 2.1;
 

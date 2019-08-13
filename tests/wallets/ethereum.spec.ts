@@ -144,11 +144,10 @@ describe("Ethereum Wallet", () => {
       });
       expect(mintReceipt.logs).toHaveLength(1);
 
-      const tokenAsset = new Asset(
-        "testToken",
-        Ledger.Ethereum,
-        contractAddress
-      );
+      const tokenAsset = new Asset("testToken", Ledger.Ethereum, {
+        address: contractAddress,
+        decimals: 18
+      });
       const actualBalance = await wallet.getBalance(tokenAsset);
 
       expect(actualBalance).toEqual(new Big(12000.34));

@@ -4,6 +4,11 @@ import { getLogger } from "./logging/logger";
 
 const logger = getLogger();
 
+export interface ContractDetails {
+  address: string;
+  decimals: number;
+}
+
 class Asset {
   public static bitcoin = new Asset("bitcoin", Ledger.Bitcoin);
   public static ether = new Asset("ether", Ledger.Ethereum);
@@ -48,19 +53,12 @@ class Asset {
 
   public ledger: Ledger;
   public name: string;
-  public contract?: string;
-  public decimals?: number;
+  public contract?: ContractDetails;
 
-  public constructor(
-    name: string,
-    ledger: Ledger,
-    contract?: string,
-    decimals?: number
-  ) {
+  public constructor(name: string, ledger: Ledger, contract?: ContractDetails) {
     this.name = name;
     this.ledger = ledger;
     this.contract = contract;
-    this.decimals = decimals;
   }
 
   public toNominalUnit(quantity: Big) {
@@ -86,8 +84,8 @@ class Asset {
   }
 
   private toNominalUnitForToken(quantity: Big) {
-    if (this.decimals) {
-      return quantity.div(new Big(10).pow(this.decimals));
+    if (this.contract) {
+      return quantity.div(new Big(10).pow(this.contract.decimals));
     }
     logger.crit("Unit conversion not supported for", this);
     return undefined;

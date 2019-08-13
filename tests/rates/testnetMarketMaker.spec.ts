@@ -12,12 +12,10 @@ async function createMockBalances(
   etherBalance: number,
   payBalance?: number
 ) {
-  const payAsset = new Asset(
-    "PAY",
-    Ledger.Ethereum,
-    "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
-    18
-  );
+  const payAsset = new Asset("PAY", Ledger.Ethereum, {
+    address: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+    decimals: 18
+  });
 
   const balanceLookups = new BalanceLookups([
     [Asset.bitcoin.toMapKey(), () => Promise.resolve(new Big(bitcoinBalance))],
@@ -31,12 +29,10 @@ async function createMockBalances(
   return Balances.new(20, balanceLookups);
 }
 
-const payAsset = new Asset(
-  "PAY",
-  Ledger.Ethereum,
-  "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
-  18
-);
+const payAsset = new Asset("PAY", Ledger.Ethereum, {
+  address: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+  decimals: 18
+});
 
 describe("Test the TestnetMarketMaker module", () => {
   const buyAsset = Asset.bitcoin;

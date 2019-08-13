@@ -14,11 +14,10 @@ const present = new Date();
 const past = new Date(present.getTime() - 5000);
 const future = new Date(present.getTime() + 5000);
 
-const payAsset = new Asset(
-  "PAY",
-  Ledger.Ethereum,
-  "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
-);
+const payAsset = new Asset("PAY", Ledger.Ethereum, {
+  address: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+  decimals: 18
+});
 
 const btcEthTrade: Offer = {
   timestamp: present,

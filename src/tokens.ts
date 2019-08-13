@@ -38,19 +38,21 @@ export default class Tokens {
       const ethereumTokens = new Map();
 
       Object.values(ethereumConfig).forEach((contractDecimals, index) => {
-        const contract = contractDecimals.contract;
-        const decimals = contractDecimals.decimals;
+        const address = contractDecimals.contract;
         const symbol = Object.keys(ethereumConfig)[index];
 
-        if (ethereumTokens.has(contract)) {
+        if (ethereumTokens.has(address)) {
           throw new Error(
-            `Duplicate contract address detected in tokens configuration: ${contract}`
+            `Duplicate contract address detected in tokens configuration: ${address}`
           );
         }
 
         ethereumTokens.set(
           contractDecimals.contract,
-          new Asset(symbol, Ledger.Ethereum, contract, decimals)
+          new Asset(symbol, Ledger.Ethereum, {
+            address,
+            decimals: contractDecimals.decimals
+          })
         );
       });
 

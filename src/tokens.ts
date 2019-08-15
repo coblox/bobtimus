@@ -37,8 +37,8 @@ export default class Tokens {
     if (ethereumConfig) {
       const ethereumTokens = new Map();
 
-      Object.values(ethereumConfig).forEach((contractDecimals, index) => {
-        const address = contractDecimals.contract;
+      Object.values(ethereumConfig).forEach((tokenDetails, index) => {
+        const address = tokenDetails.contract;
         const symbol = Object.keys(ethereumConfig)[index];
 
         if (ethereumTokens.has(address)) {
@@ -48,10 +48,10 @@ export default class Tokens {
         }
 
         ethereumTokens.set(
-          contractDecimals.contract,
+          tokenDetails.contract,
           new Asset(symbol, Ledger.Ethereum, {
             address,
-            decimals: contractDecimals.decimals
+            decimals: tokenDetails.decimals
           })
         );
       });

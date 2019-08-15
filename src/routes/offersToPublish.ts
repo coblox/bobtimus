@@ -1,5 +1,6 @@
 import { Request } from "express";
 import { Response } from "express";
+import Asset from "../asset";
 import { BitcoinConfig } from "../config";
 import Ledger from "../ledger";
 import { getLogger } from "../logging/logger";
@@ -15,17 +16,24 @@ export interface LedgerToPublish {
   network: string;
 }
 
+export interface ContractToPublish {
+  address: string;
+  decimals: number;
+}
+
 export interface OffersToPublish {
   buy: {
     asset: string;
     ledger: string;
     quantity: string;
+    contract?: ContractToPublish;
   };
   protocol: string;
   sell: {
     asset: string;
     ledger: string;
     quantity: string;
+    contract?: ContractToPublish;
   };
   timestamp: string;
 }
@@ -35,6 +43,17 @@ export interface ToPublish {
   addressHint: string | undefined;
   ledgers: LedgerToPublish[];
   rates: OffersToPublish[];
+}
+
+function contractToPublish(asset: Asset): ContractToPublish | undefined {
+  if (asset.contract) {
+    const contract = asset.contract;
+    return {
+      address: contract.address,
+      decimals: contract.decimals
+    };
+  }
+  return undefined;
 }
 
 export function getOffersToPublishRoute(
@@ -82,12 +101,14 @@ export function getOffersToPublishRoute(
             buy: {
               ledger: trade.buy.ledger,
               asset: trade.buy.asset.name,
-              quantity: trade.buy.quantity.toString()
+              quantity: trade.buy.quantity.toString(),
+              contract: contractToPublish(trade.buy.asset)
             },
             sell: {
               ledger: trade.sell.ledger,
               asset: trade.sell.asset.name,
-              quantity: trade.sell.quantity.toString()
+              quantity: trade.sell.quantity.toString(),
+              contract: contractToPublish(trade.sell.asset)
             }
           };
         })

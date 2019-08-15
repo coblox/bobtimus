@@ -136,7 +136,6 @@ describe("Ethereum Wallet", () => {
       const invocationData = Buffer.from(mintMethodCall.substring(2), "hex");
 
       const mintReceipt = await wallet.sendTransactionTo({
-        // @ts-ignore
         to: deploymentReceipt.contractAddress,
         gasPrice: new BN(10),
         gasLimit: new BN(1_000_000),
@@ -144,11 +143,10 @@ describe("Ethereum Wallet", () => {
       });
       expect(mintReceipt.logs).toHaveLength(1);
 
-      const tokenAsset = new Asset(
-        "testToken",
-        Ledger.Ethereum,
-        contractAddress
-      );
+      const tokenAsset = new Asset("testToken", Ledger.Ethereum, {
+        address: contractAddress,
+        decimals: 18
+      });
       const actualBalance = await wallet.getBalance(tokenAsset);
 
       expect(actualBalance).toEqual(new Big(12000.34));

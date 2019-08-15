@@ -14,12 +14,10 @@ describe("Test asset", () => {
 
   it("Return PAY asset when passed pay asset object", () => {
     const createAssetFromTokens = () => {
-      return new Asset(
-        "PAY",
-        Ledger.Ethereum,
-        "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
-        18
-      );
+      return new Asset("PAY", Ledger.Ethereum, {
+        address: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+        decimals: 18
+      });
     };
 
     const asset = Asset.fromComitPayload(
@@ -33,11 +31,12 @@ describe("Test asset", () => {
     ) as Asset;
 
     expect(asset.name).toEqual("PAY");
-    expect(asset.contract).toEqual(
-      "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
-    );
+
     expect(asset.ledger).toEqual(Ledger.Ethereum);
-    expect(asset.decimals).toEqual(18);
+    expect(asset.contract).toEqual({
+      address: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+      decimals: 18
+    });
   });
 
   it("Convert satoshis to Bitcoin", () => {
@@ -47,23 +46,19 @@ describe("Test asset", () => {
 
   it("Convert ERC20 integer quantity to correct float as per configured decimals", () => {
     const intQuantity = new Big("1000000000000000000");
-    const payAsset = new Asset(
-      "PAY",
-      Ledger.Ethereum,
-      "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
-      18
-    );
+    const payAsset = new Asset("PAY", Ledger.Ethereum, {
+      address: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+      decimals: 18
+    });
 
     expect(payAsset.toNominalUnit(intQuantity)).toEqual(new Big(1));
   });
 
   it("Convert Unit for ERC20 tokens", () => {
-    const payAsset = new Asset(
-      "PAY",
-      Ledger.Ethereum,
-      "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
-      18
-    );
+    const payAsset = new Asset("PAY", Ledger.Ethereum, {
+      address: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+      decimals: 18
+    });
     expect(payAsset.toNominalUnit(new Big("1000000000000000000"))).toEqual(
       new Big(1)
     );

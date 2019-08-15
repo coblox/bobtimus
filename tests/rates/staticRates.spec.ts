@@ -100,11 +100,10 @@ describe("Rate tests", () => {
     expect(amounts[1].sell).toEqual(trades[1].sell);
   });
 
-  const payAsset = new Asset(
-    "PAY",
-    Ledger.Ethereum,
-    "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
-  );
+  const payAsset = new Asset("PAY", Ledger.Ethereum, {
+    address: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+    decimals: 18
+  });
 
   it("Should consider the rate profitable when the proposed rate is less than the configured rate and one asset is ERC20", async () => {
     const config = {
@@ -162,11 +161,10 @@ describe("Rate tests", () => {
       bitcoin: { PAY: 0.01 }
     };
 
-    const tenxAsset = new Asset(
-      "TENX",
-      Ledger.Ethereum,
-      "0x515bA0a2E286AF10115284F151cF398688A69170"
-    );
+    const tenxAsset = new Asset("TENX", Ledger.Ethereum, {
+      address: "0x515bA0a2E286AF10115284F151cF398688A69170",
+      decimals: 18
+    });
 
     const trade = {
       timestamp: new Date(),

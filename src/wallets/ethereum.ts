@@ -143,7 +143,7 @@ export class Web3EthereumWallet implements EthereumWallet {
     if (asset === Asset.ether) {
       return this.getEtherBalance();
     } else if (asset.contract) {
-      return this.getErc20Balance(asset.contract);
+      return this.getErc20Balance(asset.contract.address);
     } else {
       return Promise.reject(
         `Asset ${asset} is not supported by the Ethereum wallet`

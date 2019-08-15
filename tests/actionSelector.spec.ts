@@ -203,12 +203,10 @@ describe("Action selector tests for Ethereum/Bitcoin: ", () => {
 describe("Action selector test for ERC20", () => {
   it("Should emit accept only", async done => {
     const createAssetFromTokens = () => {
-      return new Asset(
-        "PAY",
-        Ledger.Ethereum,
-        "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
-        18
-      );
+      return new Asset("PAY", Ledger.Ethereum, {
+        address: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+        decimals: 18
+      });
     };
 
     const actionSelector = new ActionSelector(

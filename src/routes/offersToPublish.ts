@@ -16,25 +16,24 @@ export interface LedgerToPublish {
   network: string;
 }
 
-export interface AssetToPublish {
-  name: string;
-  contract?: {
-    address: string;
-    decimals: number;
-  };
+export interface ContractToPublish {
+  address: string;
+  decimals: number;
 }
 
 export interface OffersToPublish {
   buy: {
-    asset: AssetToPublish;
+    asset: string;
     ledger: string;
     quantity: string;
+    contract?: ContractToPublish;
   };
   protocol: string;
   sell: {
-    asset: AssetToPublish;
+    asset: string;
     ledger: string;
     quantity: string;
+    contract?: ContractToPublish;
   };
   timestamp: string;
 }
@@ -46,17 +45,15 @@ export interface ToPublish {
   rates: OffersToPublish[];
 }
 
-function assetToPublish(asset: Asset): AssetToPublish {
-  const name = asset.name;
+function contractToPublish(asset: Asset): ContractToPublish | undefined {
   if (asset.contract) {
     const contract = asset.contract;
     return {
-      name,
-      contract: { address: contract.address, decimals: contract.decimals }
+      address: contract.address,
+      decimals: contract.decimals
     };
-  } else {
-    return { name };
   }
+  return undefined;
 }
 
 export function getOffersToPublishRoute(
@@ -103,13 +100,15 @@ export function getOffersToPublishRoute(
             protocol: trade.protocol,
             buy: {
               ledger: trade.buy.ledger,
-              asset: assetToPublish(trade.buy.asset),
-              quantity: trade.buy.quantity.toString()
+              asset: trade.buy.asset.name,
+              quantity: trade.buy.quantity.toString(),
+              contract: contractToPublish(trade.buy.asset)
             },
             sell: {
               ledger: trade.sell.ledger,
-              asset: assetToPublish(trade.sell.asset),
-              quantity: trade.sell.quantity.toString()
+              asset: trade.sell.asset.name,
+              quantity: trade.sell.quantity.toString(),
+              contract: contractToPublish(trade.sell.asset)
             }
           };
         })

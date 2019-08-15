@@ -235,17 +235,13 @@ describe("TradesToPublish tests ", () => {
       rates: [
         {
           buy: {
-            asset: {
-              name: "ether"
-            },
+            asset: "ether",
             ledger: "ethereum",
             quantity: "80"
           },
           protocol: "rfc003",
           sell: {
-            asset: {
-              name: "bitcoin"
-            },
+            asset: "bitcoin",
             ledger: "bitcoin",
             quantity: "1"
           },
@@ -253,17 +249,13 @@ describe("TradesToPublish tests ", () => {
         },
         {
           buy: {
-            asset: {
-              name: "bitcoin"
-            },
+            asset: "bitcoin",
             ledger: "bitcoin",
             quantity: "1"
           },
           protocol: "rfc003",
           sell: {
-            asset: {
-              name: "ether"
-            },
+            asset: "ether",
             ledger: "ethereum",
             quantity: "100"
           },
@@ -271,23 +263,19 @@ describe("TradesToPublish tests ", () => {
         },
         {
           buy: {
-            asset: {
-              name: "bitcoin"
-            },
+            asset: "bitcoin",
             ledger: "bitcoin",
             quantity: "1"
           },
           protocol: "rfc003",
           sell: {
-            asset: {
-              name: "PAY",
-              contract: {
-                address: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
-                decimals: 18
-              }
-            },
+            asset: "PAY",
             ledger: "ethereum",
-            quantity: "1000"
+            quantity: "1000",
+            contract: {
+              address: "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+              decimals: 18
+            }
           },
           timestamp: btcPayTrade.timestamp.toISOString()
         }

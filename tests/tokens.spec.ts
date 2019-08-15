@@ -81,8 +81,7 @@ describe("Test Tokens", () => {
       "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280"
     ) as Asset;
     expect(payAsset.name).toEqual("PAY");
-    // @ts-ignore: if payAsset.contract is undefined, the test will fail as expected
-    expect(payAsset.contract.decimals).toEqual(18);
+    expect(payAsset!.contract!.decimals).toEqual(18);
   });
 
   it("Return undefined when creating Tokens instance from file if the file is not present", () => {

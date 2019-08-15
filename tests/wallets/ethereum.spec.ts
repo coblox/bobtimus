@@ -136,7 +136,6 @@ describe("Ethereum Wallet", () => {
       const invocationData = Buffer.from(mintMethodCall.substring(2), "hex");
 
       const mintReceipt = await wallet.sendTransactionTo({
-        // @ts-ignore
         to: deploymentReceipt.contractAddress,
         gasPrice: new BN(10),
         gasLimit: new BN(1_000_000),

@@ -68,7 +68,8 @@ export class BitcoinCoreRpc implements BitcoinBlockchain {
       username,
       password,
       host,
-      port
+      port,
+      timeout: 60000
     });
   }
 

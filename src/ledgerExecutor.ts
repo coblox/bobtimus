@@ -66,7 +66,7 @@ export class LedgerExecutor {
   }
 
   public async execute(action: LedgerAction) {
-    logger.log("trace", "Execute Ledger Action:", action);
+    logger.debug("Execute Ledger Action:", action);
     try {
       const network = action.payload.network;
       switch (action.type) {

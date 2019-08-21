@@ -114,7 +114,7 @@ export class InternalBitcoinWallet implements BitcoinWallet {
       network: this.network
     }).address;
     if (!address) {
-      logger.crit(
+      logger.error(
         `Address could not be derived for derivationType`,
         derivationType
       );
@@ -194,7 +194,7 @@ export class InternalBitcoinWallet implements BitcoinWallet {
     logger.debug("Fee (sats):", fee);
 
     if (!inputs || !outputs) {
-      logger.crit(
+      logger.error(
         `Was not able to fund the transaction [address: ${address}, amountSat ${amount}, feeSatPerByte ${feeSatPerByte}]`
       );
       throw new Error("Was not able to fund the transaction");
@@ -262,13 +262,13 @@ export class InternalBitcoinWallet implements BitcoinWallet {
   private getPrivateKey(address: string) {
     const res = this.usedAddresses[address];
     if (!res) {
-      logger.crit(`Cannot find address ${address}`);
+      logger.error(`Cannot find address ${address}`);
       throw new Error(`Cannot find id of input's address ${address}`);
     }
     const hd = this.deriveForId(res);
     const key = hd.privateKey;
     if (!key) {
-      logger.crit(
+      logger.error(
         `Private key of freshly derived pair for address ${address} is undefined`
       );
       throw new Error(

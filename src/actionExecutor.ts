@@ -37,7 +37,7 @@ export class ActionExecutor {
     let result: Result<any, Error>;
 
     const triggerResult = await this.triggerRequestFromAction(action);
-    logger.log("trace", `Response from action`, triggerResult);
+    logger.debug(`Response from action`, triggerResult);
     result = triggerResult;
     // If the response has a type and payload then a ledger action is needed
     if (triggerResult.isOk) {
@@ -73,7 +73,7 @@ export class ActionExecutor {
     }
 
     if (action.method === "POST" && action.type !== "application/json") {
-      logger.crit("Only 'application/json' action type is supported.");
+      logger.error("Only 'application/json' action type is supported.");
       throw new Error("Only 'application/json' action type is supported.");
     }
     try {

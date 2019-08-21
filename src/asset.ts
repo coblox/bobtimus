@@ -20,7 +20,7 @@ class Asset {
       case Asset.ether.name:
         return Asset.ether;
       default:
-        logger.crit(`Asset not supported: ${name}`);
+        logger.error(`Asset not supported: ${name}`);
         return undefined;
     }
   }
@@ -46,7 +46,7 @@ class Asset {
         if (createAssetFromTokens && ledger && asset.token_contract) {
           return createAssetFromTokens(ledger, asset.token_contract);
         }
-        logger.crit(`Asset not supported`, asset);
+        logger.error(`Asset not supported`, asset);
         return undefined;
     }
   }
@@ -87,7 +87,7 @@ class Asset {
     if (this.contract) {
       return quantity.div(new Big(10).pow(this.contract.decimals));
     }
-    logger.crit("Unit conversion not supported for", this);
+    logger.error("Unit conversion not supported for", this);
     return undefined;
   }
 }

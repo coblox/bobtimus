@@ -146,7 +146,7 @@ export class Config {
           }
           break;
         default:
-          logger.crit(`Internal error: invalid ledger`, ledger);
+          logger.error(`Internal error: invalid ledger`, ledger);
       }
     }
 
@@ -175,7 +175,7 @@ function throwIfAbsent<T, K extends keyof T>(obj: T, prop: K): T[K] {
   const child = obj[prop];
 
   if (!child) {
-    logger.crit(`Property must be present in the config file`, prop);
+    logger.error(`Property must be present in the config file`, prop);
     throw new Error(`${prop} must be present in the config file`);
   }
 

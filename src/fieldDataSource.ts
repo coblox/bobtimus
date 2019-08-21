@@ -28,7 +28,7 @@ export class DefaultFieldDataSource {
   }
 
   public async getData(field: Field) {
-    logger.log("trace", `Trying to find data for field`, field);
+    logger.debug(`Trying to find data for field`, field);
     if (
       this.ethereumWallet &&
       field.class.includes("ethereum") &&

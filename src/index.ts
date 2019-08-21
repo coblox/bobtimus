@@ -27,7 +27,7 @@ const refreshUtxos = async (bitcoinWallet: InternalBitcoinWallet) => {
   try {
     await bitcoinWallet.refreshUtxo();
   } catch (e) {
-    logger.crit("Failed to refresh UTXO: ", e);
+    logger.error("Failed to refresh UTXO: ", e);
   }
 };
 
@@ -191,14 +191,14 @@ const config = Config.fromFile(CONFIG_PATH);
 
   const shoot = async () => {
     const swaps = await comitNode.getSwaps();
-    logger.log("trace", `Found ${swaps.length} swap(s)`);
+    logger.debug(`Found ${swaps.length} swap(s)`);
 
     for (const swap of swaps) {
       const id = swap.properties ? swap.properties.id : undefined;
       try {
         const selectedAction = await actionSelector.selectActions(swap);
         if (selectedAction) {
-          logger.log("trace", `Selected action for swap ${id}`, selectedAction);
+          logger.debug(`Selected action for swap ${id}`, selectedAction);
           const executionResult = await actionExecutor.execute(
             selectedAction,
             config.maxRetries
@@ -209,10 +209,10 @@ const config = Config.fromFile(CONFIG_PATH);
             executionResult
           );
         } else {
-          logger.log("trace", `No action returned for swap ${id}`);
+          logger.debug(`No action returned for swap ${id}`);
         }
       } catch (err) {
-        logger.crit(`Error has occurred for swap ${id}`, err);
+        logger.error(`Error has occurred for swap ${id}`, err);
       }
     }
   };

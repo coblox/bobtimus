@@ -126,7 +126,7 @@ export default class TestnetMarketMaker implements TradeService {
       sell.quantity
     );
     if (!sufficientFunds) {
-      logger.crit(
+      logger.error(
         `Insufficient funds for asset, current balance is ${await this.balances.getBalance(
           sell.asset
         )} but trade requires ${sell.quantity}`,

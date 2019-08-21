@@ -120,8 +120,7 @@ export class ComitNode {
       };
     }
 
-    logger.log(
-      "trace",
+    logger.debug(
       `Doing a ${options.method} request to ${options.uri}`,
       options
     );

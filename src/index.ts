@@ -87,7 +87,7 @@ const initEthereum = async (config: Config) => {
     config.ethereumConfig.fee.defaultFee,
     config.ethereumConfig.fee.strategy
   );
-  console.log(
+  logger.info(
     `Please fund bobtimus eth account: ${ethereumWallet.getAddress()}`
   );
   return { ethereumWallet, ethereumFeeService };
@@ -203,8 +203,7 @@ const config = Config.fromFile(CONFIG_PATH);
             selectedAction,
             config.maxRetries
           );
-          logger.log(
-            "trace",
+          logger.debug(
             `Action execution response for swap ${id}`,
             executionResult
           );
@@ -219,8 +218,7 @@ const config = Config.fromFile(CONFIG_PATH);
 
   setInterval(() => {
     shoot().then(() =>
-      logger.log(
-        "trace",
+      logger.debug(
         `Polling new information from comit-node in ${pollIntervalMillis} ms again`
       )
     );

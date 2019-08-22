@@ -65,7 +65,7 @@ export function getOffersToPublishRoute(
 ) {
   return async (_: Request, res: Response) => {
     const errorHandling = (response: Response, message: string) => {
-      logger.crit(`Error when requesting trades to publish: ${message}`);
+      logger.error(`Error when requesting trades to publish: ${message}`);
       response.status(500);
       response.send({ error: message });
     };

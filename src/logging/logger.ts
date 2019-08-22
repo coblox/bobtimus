@@ -5,14 +5,6 @@ import defaultLoggingConf from "../../logconfig.json";
 export function getLogger(config: any = defaultLoggingConf) {
   const logger = winston.createLogger({
     level: config.level,
-    levels: {
-      fatal: 0,
-      crit: 1,
-      warn: 2,
-      info: 3,
-      debug: 4,
-      trace: 5
-    },
     format: winston.format.combine(
       winston.format.timestamp({
         format: "YYYY-MM-DD HH:mm:ss"

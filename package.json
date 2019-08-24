@@ -27,7 +27,7 @@
   "homepage": "https://github.com/coblox/bobtimus#readme",
   "dependencies": {
     "@badrap/result": "^0.2.4",
-    "@google-cloud/logging-winston": "^1.1.1",
+    "@google-cloud/logging-winston": "^2.0.0",
     "@iarna/toml": "^2.2.3",
     "big.js": "^5.2.2",
     "bip39": "^3.0.2",

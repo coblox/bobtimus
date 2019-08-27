@@ -174,13 +174,13 @@
     retry-request "^4.0.0"
     teeny-request "^5.1.1"
 
-"@google-cloud/logging-winston@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@google-cloud/logging-winston/-/logging-winston-1.1.1.tgz#63ee1f7ce412455e49fd148ea8d43643066d7056"
-  integrity sha512-z4gANZdG/33ZAuuRjqVCa3ZF0BgdPhouIMH9PfoUZdajLbn6ofssYdK6wal1rhG3ufuHyl0kWBZjuovcvEdwzg==
+"@google-cloud/logging-winston@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@google-cloud/logging-winston/-/logging-winston-2.0.0.tgz#8c6e004aeaec4f3e543696cca8ca2ff7890bdae6"
+  integrity sha512-TfWTVCvVdl9XY2ZWMd7c52x3L/5kYq3xmKTedeT9/0pWbctZgJbBkvJ2xwk9Il5uJXl5disyarJgi7i3NQ7rNg==
   dependencies:
     "@google-cloud/logging" "^5.1.0"
-    google-auth-library "^4.2.0"
+    google-auth-library "^5.0.0"
     lodash.mapvalues "^4.6.0"
     logform "^2.1.2"
     triple-beam "^1.3.0"
@@ -3441,20 +3441,6 @@ glogg@^1.0.0:
   dependencies:
     sparkles "^1.0.0"
 
-google-auth-library@^4.2.0:
-  version "4.2.6"
-  resolved "https://registry.yarnpkg.com/google-auth-library/-/google-auth-library-4.2.6.tgz#3b1a73abe23b174d03e443e57f42d5f15a81ef1d"
-  integrity sha512-oJ6tCA9rbsYeIVY+mcLPFHa2hatz3XO6idYIrlI/KhhlMxZrO3tKyU8O2Pxu5KnSBBP7Wj4HtbM1LLKngNFaFw==
-  dependencies:
-    arrify "^2.0.0"
-    base64-js "^1.3.0"
-    fast-text-encoding "^1.0.0"
-    gaxios "^2.0.0"
-    gcp-metadata "^2.0.0"
-    gtoken "^3.0.0"
-    jws "^3.1.5"
-    lru-cache "^5.0.0"
-
 google-auth-library@^5.0.0:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/google-auth-library/-/google-auth-library-5.1.2.tgz#6d64c9d44c21bafc4ff6fdcb26f10b91f16f9a18"
@@ -3566,16 +3552,6 @@ growly@^1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/growly/-/growly-1.3.0.tgz#f10748cbe76af964b7c96c93c6bcc28af120c081"
   integrity sha1-8QdIy+dq+WS3yWyTxrzCivEgwIE=
-
-gtoken@^3.0.0:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/gtoken/-/gtoken-3.0.2.tgz#09b3c2998a785f81d7d020b9221d65d27e0e8e62"
-  integrity sha512-BOBi6Zz31JfxhSHRZBIDdbwIbOPyux10WxJHdx8wz/FMP1zyN1xFrsAWsgcLe5ww5v/OZu/MePUEZAjgJXSauA==
-  dependencies:
-    gaxios "^2.0.0"
-    google-p12-pem "^2.0.0"
-    jws "^3.1.5"
-    mime "^2.2.0"
 
 gtoken@^4.0.0:
   version "4.0.0"

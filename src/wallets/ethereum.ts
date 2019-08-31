@@ -1,7 +1,7 @@
 import Big from "big.js";
 import { bip32 } from "bitcoinjs-lib";
 import BN from "bn.js";
-import EthereumTx from "ethereumjs-tx";
+import { Transaction } from "ethereumjs-tx";
 import { privateToAddress } from "ethereumjs-util";
 import Web3 from "web3";
 import { TransactionReceipt } from "web3/types";
@@ -181,18 +181,17 @@ export class Web3EthereumWallet implements EthereumWallet {
   }: TransactionParams) {
     const nonce = await this.web3.eth.getTransactionCount(this.account);
 
-    return new EthereumTx({
+    return new Transaction({
       nonce: new BN(nonce).toBuffer(),
       gasPrice: gasPrice.toBuffer(),
       gasLimit: gasLimit.toBuffer(),
       to,
       data,
-      value: value.toBuffer(),
-      chainId: this.chainId
+      value: value.toBuffer()
     });
   }
 
-  private async signAndSend(tx: EthereumTx) {
+  private async signAndSend(tx: Transaction) {
     tx.sign(this.privateKey);
     const serializedTx = tx.serialize();
     const hex = "0x" + serializedTx.toString("hex");

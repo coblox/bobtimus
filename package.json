@@ -60,7 +60,7 @@
     "@types/request-promise-native": "^1.0.17",
     "@types/tmp": "^0.1.0",
     "@types/underscore": "^1.8.16",
-    "@types/urijs": "^1.19.0",
+    "@types/urijs": "^1.19.4",
     "@types/web3": "^1.0.19",
     "jest": "^24.9.0",
     "json-schema-to-typescript": "^7.1.0",
